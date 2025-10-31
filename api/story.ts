@@ -44,8 +44,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const API_KEY = process.env.API_KEY;
     if (!API_KEY) {
-        return res.status(500).json({ error: "API_KEY environment variable not set" });
+        console.error("API_KEY environment variable not found.");
+        return res.status(500).json({ error: "Server configuration error: The API_KEY is not set in the Vercel project settings. Please add the environment variable and redeploy." });
     }
+    
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     try {
