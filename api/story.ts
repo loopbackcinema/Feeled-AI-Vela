@@ -1,3 +1,4 @@
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
 
@@ -69,8 +70,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
         });
         
-        const storyJsonText = storyResponse.text.trim();
-        const story: Story = JSON.parse(storyJsonText);
+        const storyJsonText = storyResponse.text;
+        if (!storyJsonText) {
+            throw new Error("Failed to get a valid text response from the AI model. The response was empty.");
+        }
+        const story: Story = JSON.parse(storyJsonText.trim());
 
         res.status(200).json({ story });
 
