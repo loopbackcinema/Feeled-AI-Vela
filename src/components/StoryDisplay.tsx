@@ -9,10 +9,13 @@ interface StoryDisplayProps {
     onTryAnother: () => void;
 }
 
-const StorySection: React.FC<{ title: string; content: string }> = ({ title, content }) => (
-    <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-700 mb-1 capitalize">{title.replace(/_/g, ' ')}</h3>
-        <p className="text-slate-600 leading-relaxed">{content}</p>
+const StorySection: React.FC<{ title: string; content: string; delay: number }> = ({ title, content, delay }) => (
+    <div 
+        className="animate-fadeInUp"
+        style={{ animationDelay: `${delay}ms`, opacity: 0 }}
+    >
+        <h3 className="text-xl font-bold text-slate-800 mb-2 capitalize">{title.replace(/_/g, ' ')}</h3>
+        <p className="text-slate-600 leading-relaxed text-base">{content}</p>
     </div>
 );
 
@@ -198,6 +201,16 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         };
     }, []);
     
+    const storyParts = [
+        { title: "Introduction", content: story.introduction },
+        { title: "Emotional Trigger", content: story.emotional_trigger },
+        { title: "Concept Explanation", content: story.concept_explanation },
+        { title: "Resolution", content: story.resolution },
+        { type: 'divider', title: 'divider', content: '' },
+        { title: "Moral Message", content: story.moral_message },
+        { title: "Conclusion", content: story.conclusion }
+    ];
+    
     return (
         <div className="w-full max-w-3xl bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200 animate-fade-in">
             <h2 className="text-3xl font-bold text-center mb-2 text-blue-600">{story.title}</h2>
@@ -226,14 +239,26 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                  </button>
             </div>
             
-            <div className="story-content space-y-4">
-                <StorySection title="Introduction" content={story.introduction} />
-                <StorySection title="Emotional Trigger" content={story.emotional_trigger} />
-                <StorySection title="Concept Explanation" content={story.concept_explanation} />
-                <StorySection title="Resolution" content={story.resolution} />
-                <hr className="my-4"/>
-                <StorySection title="Moral Message" content={story.moral_message} />
-                <StorySection title="Conclusion" content={story.conclusion} />
+            <div className="story-content space-y-6">
+                 {storyParts.map((part, index) => {
+                    if (part.type === 'divider') {
+                        return (
+                            <hr 
+                                key={part.title} 
+                                className="my-4 border-slate-200 animate-fadeInUp" 
+                                style={{ animationDelay: `${index * 150}ms`, opacity: 0 }}
+                            />
+                        );
+                    }
+                    return (
+                        <StorySection 
+                            key={part.title}
+                            title={part.title} 
+                            content={part.content}
+                            delay={index * 150}
+                        />
+                    );
+                })}
             </div>
             
             <div className="mt-8 border-t border-slate-200 pt-6">
