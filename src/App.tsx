@@ -37,14 +37,16 @@ const App: React.FC = () => {
                 setBase64Audio(base64Audio);
             } catch (audioErr) {
                 console.error("Audio generation failed:", audioErr);
-                setError("Story generated, but failed to create audio. Please try again.");
+                const errorMessage = audioErr instanceof Error ? audioErr.message : 'An unknown error occurred.';
+                setError(`Story generated, but audio failed. Details: ${errorMessage}`);
             } finally {
                 setIsAudioLoading(false);
             }
 
         } catch (err) {
             console.error("Story generation failed:", err);
-            setError('Failed to generate story. Please try again.');
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setError(`Failed to generate story. Details: ${errorMessage}`);
             setIsLoading(false);
         }
     }, []);
