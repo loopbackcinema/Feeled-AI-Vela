@@ -1,7 +1,26 @@
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type, Modality } from "@google/genai";
-import type { Story, StoryRequest } from '../src/types';
+
+// Types are defined here to make the function self-contained and avoid build issues.
+interface Story {
+    title: string;
+    emotion_tone: string;
+    introduction: string;
+    emotional_trigger: string;
+    concept_explanation: string;
+    resolution: string;
+    moral_message: string;
+    conclusion: string;
+}
+
+interface StoryRequest {
+    topic: string;
+    std: string;
+    language: string;
+    narratorVoice: string;
+    emotionTone: string;
+}
+
 
 const API_KEY = process.env.API_KEY;
 
@@ -29,6 +48,7 @@ const storySchema = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
+        res.setHeader('Allow', ['POST']);
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
@@ -43,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         Return the output strictly in the specified JSON format.`;
         
         const storyResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-2.5-flash', // Using a faster model to avoid timeouts
             contents: storyPrompt,
             config: {
                 responseMimeType: "application/json",
@@ -93,6 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     } catch (error) {
         console.error('Error in /api/generate:', error);
-        res.status(500).json({ error: 'Failed to generate story.' });
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        res.status(500).json({ error: `Failed to generate story. Details: ${errorMessage}` });
     }
 }
