@@ -1,11 +1,14 @@
+
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Story, StoryRequest } from '../types';
 
-// Fix: Per coding guidelines, API key must be from process.env.API_KEY.
+// FIX: Switched from import.meta.env.VITE_API_KEY to process.env.API_KEY
+// to comply with the Gemini API coding guidelines. The vite.config.ts file
+// has been updated to ensure this variable is available in the client-side code.
 const API_KEY = process.env.API_KEY;
+
 if (!API_KEY) {
-  // Fix: Updated error message to reflect the change from VITE_API_KEY.
-  throw new Error("API_KEY environment variable not set");
+  throw new Error("API_KEY environment variable not set. Please set it in your environment configuration.");
 }
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 

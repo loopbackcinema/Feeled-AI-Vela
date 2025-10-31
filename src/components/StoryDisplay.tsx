@@ -26,7 +26,7 @@ function decode(base64: string): Uint8Array {
     return bytes;
 }
 
-// Fix: Updated to use the recommended audio decoding function from the guidelines.
+// FIX: Updated to use the recommended audio decoding function from the guidelines.
 // Helper function to decode raw PCM data into an AudioBuffer for playback
 async function decodeAudioData(
   data: Uint8Array,
@@ -111,7 +111,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, onTryAn
             setIsDecoding(true);
             try {
                 const audioBytes = decode(base64Audio);
-                // Fix: Calling the updated decodeAudioData function with correct parameters.
+                // FIX: Calling the updated decodeAudioData function with correct parameters.
                 const audioBuffer = await decodeAudioData(audioBytes, audioCtx, 24000, 1);
                 
                 const source = audioCtx.createBufferSource();
