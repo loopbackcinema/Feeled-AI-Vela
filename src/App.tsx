@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Story, StoryRequest, Page } from './types';
-import { generateStoryAndVoice } from './services/geminiService';
+import { generateStory, generateVoice } from './services/geminiService';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
@@ -14,6 +14,7 @@ const App: React.FC = () => {
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleGenerateStory = useCallback(async (request: StoryRequest) => {
@@ -23,14 +24,27 @@ const App: React.FC = () => {
         setBase64Audio(null);
 
         try {
-            const result = await generateStoryAndVoice(request);
-            setGeneratedStory(result.story);
-            setBase64Audio(result.base64Audio);
+            // Step 1: Generate story text
+            const { story } = await generateStory(request);
+            setGeneratedStory(story);
             setCurrentPage('story');
+            setIsLoading(false); // Story is loaded, stop main loader
+
+            // Step 2: Generate audio in the background
+            setIsAudioLoading(true);
+            try {
+                const { base64Audio } = await generateVoice(story, request);
+                setBase64Audio(base64Audio);
+            } catch (audioErr) {
+                console.error("Audio generation failed:", audioErr);
+                setError("Story generated, but failed to create audio. Please try again.");
+            } finally {
+                setIsAudioLoading(false);
+            }
+
         } catch (err) {
-            console.error(err);
+            console.error("Story generation failed:", err);
             setError('Failed to generate story. Please try again.');
-        } finally {
             setIsLoading(false);
         }
     }, []);
@@ -50,7 +64,16 @@ const App: React.FC = () => {
             case 'generator':
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
             case 'story':
-                return generatedStory && base64Audio ? <StoryDisplay story={generatedStory} base64Audio={base64Audio} onTryAnother={handleTryAnother} /> : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
+                return generatedStory ? (
+                    <StoryDisplay
+                        story={generatedStory}
+                        base64Audio={base64Audio}
+                        isAudioLoading={isAudioLoading}
+                        onTryAnother={handleTryAnother}
+                    />
+                ) : (
+                    <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
+                );
             case 'about':
                 return <AboutUs onNavigate={navigateTo} />;
             case 'contact':
