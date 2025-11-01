@@ -216,7 +216,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 )}
                 {base64Image && !isImageLoading && (
                     <img 
-                        src={`data:image/jpeg;base64,${base64Image}`} 
+                        src={`data:image/png;base64,${base64Image}`} 
                         alt={story.title} 
                         className="w-full h-auto object-cover rounded-lg mb-6 shadow-md"
                     />

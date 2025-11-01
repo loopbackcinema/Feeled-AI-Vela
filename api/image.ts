@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 
 interface ImageRequest {
     prompt: string;
@@ -21,20 +21,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const request: ImageRequest = req.body;
 
-        const imageResponse = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: request.prompt,
+        const imageResponse = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-image',
+            contents: {
+                parts: [{ text: request.prompt }],
+            },
             config: {
-              numberOfImages: 1,
-              outputMimeType: 'image/jpeg',
-              aspectRatio: '16:9',
+                responseModalities: [Modality.IMAGE],
             },
         });
-        
-        const base64Image = imageResponse.generatedImages[0].image.imageBytes;
+
+        let base64Image: string | undefined;
+        const parts = imageResponse.candidates?.[0]?.content?.parts ?? [];
+        for (const part of parts) {
+            if (part.inlineData) {
+                base64Image = part.inlineData.data;
+                break;
+            }
+        }
 
         if (!base64Image) {
-            throw new Error("Image data not found in response.");
+            console.error("Image data not found in Gemini response:", JSON.stringify(imageResponse, null, 2));
+            throw new Error("Image data not found in the AI response.");
         }
         
         res.status(200).json({ base64Image });
