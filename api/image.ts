@@ -1,3 +1,4 @@
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Modality } from "@google/genai";
 
@@ -32,20 +33,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         let base64Image: string | undefined;
+        let mimeType: string | undefined;
         const parts = imageResponse.candidates?.[0]?.content?.parts ?? [];
         for (const part of parts) {
             if (part.inlineData) {
                 base64Image = part.inlineData.data;
+                mimeType = part.inlineData.mimeType;
                 break;
             }
         }
 
-        if (!base64Image) {
-            console.error("Image data not found in Gemini response:", JSON.stringify(imageResponse, null, 2));
-            throw new Error("Image data not found in the AI response.");
+        if (!base64Image || !mimeType) {
+            console.error("Image data or MIME type not found in Gemini response:", JSON.stringify(imageResponse, null, 2));
+            throw new Error("Image data or MIME type not found in the AI response.");
         }
         
-        res.status(200).json({ base64Image });
+        res.status(200).json({ base64Image, mimeType });
 
     } catch (error) {
         console.error('Error in /api/image:', error);

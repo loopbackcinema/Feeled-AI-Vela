@@ -1,3 +1,4 @@
+
 import { Story, StoryRequest } from '../types';
 
 export const generateStory = async (request: StoryRequest): Promise<{ story: Story }> => {
@@ -47,7 +48,7 @@ export const generateVoice = async (story: Story, request: StoryRequest): Promis
     return response.json();
 };
 
-export const generateImage = async (story: Story): Promise<{ base64Image: string }> => {
+export const generateImage = async (story: Story): Promise<{ base64Image: string; mimeType: string }> => {
     const prompt = `Create a realistic, photorealistic image that captures the essence of the following story introduction. The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}". Story Title: "${story.title}". Introduction: "${story.introduction}"`;
 
     const response = await fetch('/api/image', {

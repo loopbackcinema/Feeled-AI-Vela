@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Story, StoryRequest, Page } from './types';
 import { generateStory, generateVoice, generateImage } from './services/geminiService';
@@ -16,6 +17,7 @@ const App: React.FC = () => {
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
+    const [imageMimeType, setImageMimeType] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
     const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
@@ -27,6 +29,7 @@ const App: React.FC = () => {
         setGeneratedStory(null);
         setBase64Audio(null);
         setBase64Image(null);
+        setImageMimeType(null);
 
         try {
             // Step 1: Generate story text
@@ -53,8 +56,9 @@ const App: React.FC = () => {
                 });
 
             generateImage(story)
-                .then(({ base64Image }) => {
+                .then(({ base64Image, mimeType }) => {
                     setBase64Image(base64Image);
+                    setImageMimeType(mimeType);
                 })
                 .catch((imageErr) => {
                     console.error("Image generation failed:", imageErr);
@@ -81,6 +85,7 @@ const App: React.FC = () => {
         setGeneratedStory(null);
         setBase64Audio(null);
         setBase64Image(null);
+        setImageMimeType(null);
         setCurrentPage('generator');
     };
 
@@ -95,6 +100,7 @@ const App: React.FC = () => {
                         base64Audio={base64Audio}
                         isAudioLoading={isAudioLoading}
                         base64Image={base64Image}
+                        imageMimeType={imageMimeType}
                         isImageLoading={isImageLoading}
                         onTryAnother={handleTryAnother}
                     />

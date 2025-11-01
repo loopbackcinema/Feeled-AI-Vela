@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Story } from '../types';
 import Spinner from './Spinner';
@@ -7,6 +8,7 @@ interface StoryDisplayProps {
     base64Audio: string | null;
     isAudioLoading: boolean;
     base64Image: string | null;
+    imageMimeType: string | null;
     isImageLoading: boolean;
     onTryAnother: () => void;
 }
@@ -85,7 +87,7 @@ function encodeWAV(samples: Int16Array, sampleRate: number): Blob {
 }
 
 
-const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudioLoading, base64Image, isImageLoading, onTryAnother }) => {
+const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudioLoading, base64Image, imageMimeType, isImageLoading, onTryAnother }) => {
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -214,9 +216,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 {isImageLoading && (
                     <div className="w-full aspect-video bg-slate-200 rounded-lg animate-pulse mb-6"></div>
                 )}
-                {base64Image && !isImageLoading && (
+                {base64Image && imageMimeType && !isImageLoading && (
                     <img 
-                        src={`data:image/png;base64,${base64Image}`} 
+                        src={`data:${imageMimeType};base64,${base64Image}`} 
                         alt={story.title} 
                         className="w-full h-auto object-cover rounded-lg mb-6 shadow-md"
                     />
