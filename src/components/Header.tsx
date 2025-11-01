@@ -19,17 +19,23 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
         <header className="w-full bg-white shadow-sm">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 <button onClick={() => onNavigate('generator')} className="flex items-center gap-3 group">
-                    <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl group-hover:bg-blue-700 transition-colors">
-                        <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M25 30C25 24.4772 29.4772 20 35 20H65C70.5228 20 75 24.4772 75 30V45H40C31.7157 45 25 51.7157 25 60V70H35C29.4772 70 25 65.5228 25 60V30Z" fill="white"/>
-                            <path d="M75 70C75 75.5228 70.5228 80 65 80H35C29.4772 80 25 75.5228 25 70V55H60C68.2843 55 75 48.2843 75 40V30H65C70.5228 30 75 34.4772 75 40V70Z" fill="white" opacity="0.8"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors">FeelEd AI</h1>
-                        <p className="text-slate-500 text-left mt-1">Feel the story. Learn naturally.</p>
+                    {/* Fix: Replaced a very long base64 data URI with a standard path to prevent potential parsing issues. */}
+                    <img
+                        src="/logo.png"
+                        alt="FeelEd AI Logo"
+                        className="w-12 h-12 group-hover:scale-110 transition-transform"
+                    />
+                    <div className="text-left">
+                        <h1 className="text-2xl font-bold text-blue-600">FeelEd AI</h1>
+                        <p className="text-slate-500 mt-1 text-sm">Feel the story. Learn naturally.</p>
                     </div>
                 </button>
+                <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+                    <button onClick={() => onNavigate('about')} className="text-slate-600 hover:text-blue-600 transition-colors">About Us</button>
+                    <button onClick={() => onNavigate('founder')} className="text-slate-600 hover:text-blue-600 transition-colors">Founder</button>
+                    <button onClick={() => onNavigate('research')} className="text-slate-600 hover:text-blue-600 transition-colors">Research</button>
+                    <button onClick={() => onNavigate('contact')} className="text-slate-600 hover:text-blue-600 transition-colors">Contact</button>
+                </nav>
                 <button
                     onClick={handleFeedbackClick}
                     aria-label="Provide feedback via WhatsApp"
