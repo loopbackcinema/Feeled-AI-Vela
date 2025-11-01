@@ -19,9 +19,8 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
         <header className="w-full bg-white shadow-sm">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 <button onClick={() => onNavigate('generator')} className="flex items-center gap-3 group">
-                    {/* Fix: Replaced a very long base64 data URI with a standard path to prevent potential parsing issues. */}
                     <img
-                        src="/logo.png"
+                        src="/logo.svg"
                         alt="FeelEd AI Logo"
                         className="w-12 h-12 group-hover:scale-110 transition-transform"
                     />
