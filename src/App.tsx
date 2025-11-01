@@ -124,7 +124,7 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
-            <Header />
+            <Header onNavigate={navigateTo} />
             <main className="flex-grow container mx-auto px-4 py-8 md:py-12 flex flex-col items-center justify-center">
                 {renderPage()}
             </main>
