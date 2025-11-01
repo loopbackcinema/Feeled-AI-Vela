@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Story } from '../types';
 import Spinner from './Spinner';
@@ -7,6 +6,8 @@ interface StoryDisplayProps {
     story: Story;
     base64Audio: string | null;
     isAudioLoading: boolean;
+    base64Image: string | null;
+    isImageLoading: boolean;
     onTryAnother: () => void;
 }
 
@@ -84,7 +85,7 @@ function encodeWAV(samples: Int16Array, sampleRate: number): Blob {
 }
 
 
-const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudioLoading, onTryAnother }) => {
+const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudioLoading, base64Image, isImageLoading, onTryAnother }) => {
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -208,6 +209,19 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         <div className="w-full max-w-3xl bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200">
             <h2 className="text-3xl font-bold text-center mb-2 text-blue-600 animate-fadeInUp">{story.title}</h2>
             <p className="text-center text-slate-500 mb-6 italic animate-fadeInUp" style={{ animationDelay: '100ms', opacity: 0 }}>Emotion Tone: {story.emotion_tone}</p>
+
+            <div className="my-6 animate-fadeInUp" style={{ animationDelay: '200ms', opacity: 0 }}>
+                {isImageLoading && (
+                    <div className="w-full aspect-video bg-slate-200 rounded-lg animate-pulse mb-6"></div>
+                )}
+                {base64Image && !isImageLoading && (
+                    <img 
+                        src={`data:image/jpeg;base64,${base64Image}`} 
+                        alt={story.title} 
+                        className="w-full h-auto object-cover rounded-lg mb-6 shadow-md"
+                    />
+                )}
+            </div>
 
             <div className="my-6 text-center animate-fadeInUp" style={{ animationDelay: '200ms', opacity: 0 }}>
                  <button 
