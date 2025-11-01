@@ -17,4 +17,4 @@ export interface StoryRequest {
     emotionTone: string;
 }
 
-export type Page = 'generator' | 'story' | 'about' | 'contact' | 'privacy';
+export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy';

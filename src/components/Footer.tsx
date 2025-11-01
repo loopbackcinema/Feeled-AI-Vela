@@ -9,10 +9,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     return (
         <footer className="w-full bg-white border-t border-slate-200 mt-auto">
             <div className="container mx-auto px-4 py-6 text-center text-slate-500">
-                <div className="flex justify-center items-center space-x-6 mb-4">
-                    <button onClick={() => onNavigate('about')} className="hover:text-blue-600 transition-colors">About Us</button>
-                    <button onClick={() => onNavigate('contact')} className="hover:text-blue-600 transition-colors">Contact</button>
-                    <button onClick={() => onNavigate('privacy')} className="hover:text-blue-600 transition-colors">Privacy Policy</button>
+                <div className="flex justify-center items-center space-x-4 md:space-x-6 mb-4 flex-wrap">
+                    <button onClick={() => onNavigate('about')} className="hover:text-blue-600 transition-colors px-2 py-1">About Us</button>
+                    <button onClick={() => onNavigate('founder')} className="hover:text-blue-600 transition-colors px-2 py-1">Founder</button>
+                    <button onClick={() => onNavigate('research')} className="hover:text-blue-600 transition-colors px-2 py-1">Research</button>
+                    <button onClick={() => onNavigate('contact')} className="hover:text-blue-600 transition-colors px-2 py-1">Contact</button>
+                    <button onClick={() => onNavigate('privacy')} className="hover:text-blue-600 transition-colors px-2 py-1">Privacy Policy</button>
                 </div>
                 <p className="text-sm">&copy; 2025 FeelEd AI. All rights reserved.</p>
             </div>

@@ -8,6 +8,8 @@ import StoryDisplay from './components/StoryDisplay';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Founder from './pages/Founder';
+import Research from './pages/Research';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('generator');
@@ -78,6 +80,10 @@ const App: React.FC = () => {
                 );
             case 'about':
                 return <AboutUs onNavigate={navigateTo} />;
+            case 'founder':
+                return <Founder onNavigate={navigateTo} />;
+            case 'research':
+                return <Research onNavigate={navigateTo} />;
             case 'contact':
                 return <Contact onNavigate={navigateTo} />;
             case 'privacy':
