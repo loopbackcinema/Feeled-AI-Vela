@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                         className="w-10 h-10 group-hover:rotate-12 transition-transform duration-300"
                     />
                     <div className="text-left">
-                        <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">FeelEd AI</h1>
+                        <h1 className="text-2xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">FeelEd AI</h1>
                         {/* Slogan hidden on small screens to save space */}
                         <p className="hidden sm:block text-slate-500 text-xs font-medium tracking-wide">Feel the story. Learn naturally.</p>
                     </div>

@@ -54,105 +54,140 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     }
 
     return (
-        <div className="w-full max-w-3xl mx-auto">
-            {/* Hero Section */}
+        <div className="w-full max-w-3xl mx-auto relative z-10 font-sans">
+            {/* Playful Header Section */}
             <div className="text-center mb-10 animate-fadeInUp">
-                <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-sm font-bold mb-4 border border-blue-200 shadow-sm">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
-                    </span>
-                    Now with AI Tutor & Interactive Quiz
+                <div className="inline-block bg-yellow-100 text-yellow-800 px-6 py-2 rounded-full text-sm font-black mb-6 border-2 border-yellow-300 shadow-sm transform -rotate-2 hover:rotate-2 transition-transform cursor-default">
+                     ✨ Magic Story Engine v2.0
                 </div>
-                <h2 className="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4 tracking-tight">
-                    Turn <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Complex Topics</span> into <br className="hidden md:block"/>
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">Unforgettable Stories</span>
+                <h2 className="text-4xl md:text-6xl font-black text-slate-800 mb-4 tracking-tight drop-shadow-sm leading-tight">
+                    Dream. <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600">Spark.</span> Learn.
                 </h2>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                    Experience the AGI-powered learning engine that feels, speaks, and teaches.
+                <p className="text-lg md:text-xl text-slate-600 font-bold max-w-2xl mx-auto">
+                    Turn boring lessons into <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 font-extrabold">magical stories</span>! 🧚‍♀️
                 </p>
             </div>
 
-            {/* Form Card */}
-            <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-slate-200/60 backdrop-blur-sm relative overflow-hidden">
-                {/* Decorative background blobs */}
-                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-purple-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+            {/* Magic Card Form */}
+            <div className="bg-white/90 backdrop-blur-xl p-6 md:p-10 rounded-[2.5rem] shadow-2xl border-4 border-white relative overflow-hidden ring-4 ring-indigo-50/50">
+                
+                {/* Background Decor */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full blur-3xl opacity-30 -mr-20 -mt-20 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-200 to-cyan-200 rounded-full blur-3xl opacity-30 -ml-20 -mb-20 pointer-events-none"></div>
 
-                {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl relative mb-6 flex items-center gap-2" role="alert">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    {error}
+                {error && <div className="bg-red-100 border-2 border-red-300 text-red-700 px-4 py-3 rounded-2xl relative mb-6 font-bold flex items-center gap-2">
+                    <span className="text-2xl">🚫</span> {error}
                 </div>}
 
                 <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
-                    <div>
-                        <label htmlFor="topic" className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">What do you want to learn today?</label>
-                        <div className="relative">
+                    {/* Topic Input - Big and bouncy */}
+                    <div className="group">
+                        <label htmlFor="topic" className="block text-sm font-extrabold text-indigo-900 mb-2 uppercase tracking-wider ml-1">
+                            🎩 What do you want to learn?
+                        </label>
+                        <div className="relative transition-transform group-hover:scale-[1.01] duration-300">
                             <input
                                 type="text"
                                 id="topic"
                                 value={topic}
                                 onChange={(e) => setTopic(e.target.value)}
-                                placeholder="e.g., Quantum Physics, Photosynthesis, Empathy..."
-                                className="w-full pl-12 pr-4 py-4 text-lg border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all shadow-sm"
+                                placeholder="e.g. Gravity, Dinosaurs, Mars..."
+                                className="w-full pl-6 pr-4 py-5 text-xl font-bold text-slate-700 border-4 border-indigo-100 rounded-3xl focus:ring-0 focus:border-indigo-400 transition-all bg-indigo-50/50 placeholder-indigo-300 shadow-inner"
                                 required
                                 disabled={isLoading}
                             />
-                            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-                                </svg>
+                            <div className="absolute right-5 top-1/2 transform -translate-y-1/2 text-indigo-300 text-2xl animate-pulse">
+                                ✨
                             </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label htmlFor="std" className="block text-xs font-bold text-slate-500 uppercase">Grade Level</label>
-                            <select id="std" value={std} onChange={(e) => setStd(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50 hover:bg-white cursor-pointer" disabled={isLoading}>
-                                {STD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
+                        {/* Grade - Pink Theme */}
+                        <div className="space-y-2 group">
+                            <label htmlFor="std" className="block text-xs font-black text-pink-400 uppercase ml-1">🎒 Grade</label>
+                            <div className="relative transition-transform group-hover:-translate-y-1">
+                                <select 
+                                    id="std" 
+                                    value={std} 
+                                    onChange={(e) => setStd(e.target.value)} 
+                                    className="w-full px-5 py-4 font-bold text-slate-700 bg-pink-50 border-2 border-pink-200 rounded-2xl focus:ring-0 focus:border-pink-400 transition-all appearance-none cursor-pointer hover:bg-pink-100 hover:border-pink-300" 
+                                    disabled={isLoading}
+                                >
+                                    {STD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-pink-400 text-xs">▼</div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label htmlFor="language" className="block text-xs font-bold text-slate-500 uppercase">Language</label>
-                            <select id="language" value={language} onChange={handleLanguageChange} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50 hover:bg-white cursor-pointer" disabled={isLoading}>
-                                {LANGUAGE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
+
+                        {/* Language - Blue Theme */}
+                        <div className="space-y-2 group">
+                            <label htmlFor="language" className="block text-xs font-black text-blue-400 uppercase ml-1">🗣️ Language</label>
+                            <div className="relative transition-transform group-hover:-translate-y-1">
+                                <select 
+                                    id="language" 
+                                    value={language} 
+                                    onChange={handleLanguageChange} 
+                                    className="w-full px-5 py-4 font-bold text-slate-700 bg-blue-50 border-2 border-blue-200 rounded-2xl focus:ring-0 focus:border-blue-400 transition-all appearance-none cursor-pointer hover:bg-blue-100 hover:border-blue-300" 
+                                    disabled={isLoading}
+                                >
+                                    {LANGUAGE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-blue-400 text-xs">▼</div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label htmlFor="narratorVoice" className="block text-xs font-bold text-slate-500 uppercase">Voice</label>
-                            <select id="narratorVoice" value={narratorVoice} onChange={(e) => setNarratorVoice(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50 hover:bg-white cursor-pointer" disabled={isLoading}>
-                                {NARRATOR_VOICE_OPTIONS[language].map(opt => <option key={opt} value={opt}>{getVoiceLabel(opt)}</option>)}
-                            </select>
+
+                        {/* Voice - Purple Theme */}
+                        <div className="space-y-2 group">
+                            <label htmlFor="narratorVoice" className="block text-xs font-black text-purple-400 uppercase ml-1">🎤 Voice</label>
+                            <div className="relative transition-transform group-hover:-translate-y-1">
+                                <select 
+                                    id="narratorVoice" 
+                                    value={narratorVoice} 
+                                    onChange={(e) => setNarratorVoice(e.target.value)} 
+                                    className="w-full px-5 py-4 font-bold text-slate-700 bg-purple-50 border-2 border-purple-200 rounded-2xl focus:ring-0 focus:border-purple-400 transition-all appearance-none cursor-pointer hover:bg-purple-100 hover:border-purple-300" 
+                                    disabled={isLoading}
+                                >
+                                    {NARRATOR_VOICE_OPTIONS[language].map(opt => <option key={opt} value={opt}>{getVoiceLabel(opt)}</option>)}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-purple-400 text-xs">▼</div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label htmlFor="emotionTone" className="block text-xs font-bold text-slate-500 uppercase">Emotional Tone</label>
-                            <select id="emotionTone" value={emotionTone} onChange={(e) => setEmotionTone(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50 hover:bg-white cursor-pointer" disabled={isLoading}>
-                                {EMOTION_TONE_OPTIONS.map(opt => <option key={opt} value={opt}>{getEmotionLabel(opt)}</option>)}
-                            </select>
+
+                        {/* Tone - Yellow Theme */}
+                        <div className="space-y-2 group">
+                            <label htmlFor="emotionTone" className="block text-xs font-black text-amber-500 uppercase ml-1">🎭 Mood</label>
+                            <div className="relative transition-transform group-hover:-translate-y-1">
+                                <select 
+                                    id="emotionTone" 
+                                    value={emotionTone} 
+                                    onChange={(e) => setEmotionTone(e.target.value)} 
+                                    className="w-full px-5 py-4 font-bold text-slate-700 bg-amber-50 border-2 border-amber-200 rounded-2xl focus:ring-0 focus:border-amber-400 transition-all appearance-none cursor-pointer hover:bg-amber-100 hover:border-amber-300" 
+                                    disabled={isLoading}
+                                >
+                                    {EMOTION_TONE_OPTIONS.map(opt => <option key={opt} value={opt}>{getEmotionLabel(opt)}</option>)}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-amber-400 text-xs">▼</div>
+                            </div>
                         </div>
                     </div>
 
-                    <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-4 px-6 rounded-2xl hover:shadow-lg hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center space-x-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
-                        </svg>
-                        <span className="text-lg">Generate Magic Story</span>
+                    <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-black py-5 px-6 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] focus:ring-4 focus:ring-pink-200 transition-all transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center space-x-3 border-b-4 border-indigo-700 active:border-b-0 active:translate-y-1">
+                        <span className="text-3xl filter drop-shadow-md">🚀</span>
+                        <span className="text-xl tracking-wide drop-shadow-sm">GENERATE MAGIC STORY</span>
                     </button>
                 </form>
             </div>
             
-            {/* Trust Badges */}
-            <div className="mt-8 flex justify-center gap-6 text-slate-400 grayscale opacity-70">
-                <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" /></svg>
-                    <span className="text-xs font-semibold">Gemini 2.5 Pro</span>
+            {/* Trust Badges - Colorful */}
+            <div className="mt-10 flex justify-center gap-6 opacity-80">
+                <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-xl border border-white">
+                    <span className="text-lg">🤖</span>
+                    <span className="text-xs font-bold text-slate-600">Gemini 2.5 Pro</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" /></svg>
-                    <span className="text-xs font-semibold">Native Audio</span>
+                <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-xl border border-white">
+                    <span className="text-lg">🔊</span>
+                    <span className="text-xs font-bold text-slate-600">Native Audio</span>
                 </div>
             </div>
         </div>
