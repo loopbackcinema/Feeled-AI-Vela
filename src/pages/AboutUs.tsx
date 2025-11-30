@@ -8,51 +8,65 @@ interface AboutUsProps {
 
 const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-5xl bg-white p-6 md:p-12 rounded-3xl shadow-xl border border-slate-200 animate-fade-in">
+        <div className="w-full max-w-5xl bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl border-4 border-white ring-4 ring-blue-50 animate-fade-in relative overflow-hidden">
+            
+            {/* Playful Background Elements */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-yellow-100 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-pink-100 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+
             {/* Header */}
-            <div className="text-center mb-10">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-4">About FeelEd AI</h1>
-                <p className="text-xl text-slate-500 font-medium">Feel the story. Learn naturally.</p>
+            <div className="text-center mb-12 relative z-10">
+                <div className="inline-block animate-bounce mb-2">
+                    <span className="text-4xl">🚀</span>
+                </div>
+                <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 mb-4 drop-shadow-sm">
+                    About FeelEd AI
+                </h1>
+                <p className="text-xl md:text-2xl text-slate-600 font-bold tracking-wide">
+                    Feel the story. <span className="text-green-500">Learn naturally.</span>
+                </p>
             </div>
 
             {/* Introduction */}
-            <div className="prose prose-lg max-w-none text-slate-700 leading-relaxed mb-10 text-center mx-auto">
-                <p className="mb-4">
-                    FeelEd AI is an emotion-adaptive learning platform that brings human understanding back into digital education. Our mission is to create a world where technology not only teaches content, but also understands how students feel while they learn. We combine AI, psychology, and storytelling to deliver emotionally intelligent learning experiences for every child.
+            <div className="prose prose-lg max-w-3xl mx-auto text-slate-600 leading-relaxed mb-12 text-center">
+                <p className="mb-6 text-lg">
+                    <span className="font-bold text-blue-600">FeelEd AI</span> is a magical learning friend that brings feelings into digital education. Our mission is to create a world where technology doesn't just teach facts, but understands how <span className="text-pink-500 font-bold">you feel</span> while you learn.
                 </p>
-                <p>
-                    We believe true learning happens when knowledge meets emotion. Most EdTech systems focus on content delivery. FeelEd AI focuses on emotional connection, helping students learn through stories, empathy, and supportive feedback. Our goal is simple: make learning human again.
+                <p className="text-lg">
+                    We combine smart AI, psychology, and the power of storytelling to make learning an adventure. Our goal is simple: <span className="bg-yellow-100 px-2 py-1 rounded-lg transform -rotate-1 inline-block border border-yellow-200 text-yellow-800 font-bold">Make learning human again!</span>
                 </p>
             </div>
 
             {/* Powerful Quote */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-8 border-blue-600 p-8 rounded-r-2xl mb-12 shadow-sm transform hover:scale-[1.01] transition-transform">
-                <p className="text-2xl md:text-3xl font-bold text-slate-800 italic leading-snug text-center md:text-left">
+            <div className="relative bg-gradient-to-r from-violet-100 to-fuchsia-100 border-l-8 border-violet-500 p-8 rounded-r-3xl rounded-l-lg mb-16 shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
+                <span className="absolute -top-4 -left-2 text-6xl text-violet-300 opacity-50">"</span>
+                <p className="text-2xl md:text-3xl font-bold text-violet-900 italic leading-snug text-center md:text-left relative z-10">
                     "FeelEd AI is not built for the No.1 student. It is built so any student — even the last one — can rise to No.1."
                 </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-12">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 mb-16">
                 {/* What We Do */}
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
-                        <span className="bg-blue-100 text-blue-600 p-2.5 rounded-xl">🤖</span> What We Do
+                <div className="bg-emerald-50/80 p-6 rounded-3xl border-2 border-emerald-100 hover:border-emerald-300 transition-colors duration-300">
+                    <h2 className="text-2xl font-bold text-emerald-800 mb-6 flex items-center gap-3">
+                        <span className="bg-white shadow-md text-2xl p-3 rounded-2xl">🤖</span> 
+                        What We Do
                     </h2>
-                    <p className="text-slate-600 mb-6 leading-relaxed">
-                        FeelEd AI transforms any topic into an adaptive, story-based lesson that responds to a student’s emotional state. Using multimodal affect detection and narrative generation, the system adjusts tone, pace, difficulty, and explanation style based on how the learner feels.
+                    <p className="text-emerald-700 mb-6 font-medium">
+                        We turn boring topics into exciting stories! Our system knows when you are happy, confused, or bored, and changes the story to help you.
                     </p>
-                    <ul className="space-y-4">
+                    <ul className="space-y-3">
                         {[
-                            "Emotion detection through voice, facial cues, text patterns, and engagement signals",
-                            "Adaptive story generation that converts lessons into relatable narratives",
-                            "Avatar-based storytelling using culturally familiar characters",
-                            "Real-time emotional feedback loop that supports students like a human teacher",
-                            "Mobile-first, low-bandwidth design built for Bharat and underserved communities",
-                            "Multilingual support with Tamil, English, and upcoming Indian languages"
+                            "Detects emotions through voice & text",
+                            "Turns lessons into fun stories",
+                            "Uses cool avatars & characters",
+                            "Like a friendly teacher who listens",
+                            "Works on any phone, anywhere",
+                            "Speaks Tamil, English & more!"
                         ].map((item, i) => (
-                            <li key={i} className="flex items-start gap-3 text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                                <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                                <span className="text-sm md:text-base">{item}</span>
+                            <li key={i} className="flex items-start gap-3 text-slate-700 bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition-shadow border border-emerald-100">
+                                <span className="text-emerald-500 mt-0.5 text-lg">✅</span>
+                                <span className="font-semibold text-sm md:text-base">{item}</span>
                             </li>
                         ))}
                     </ul>
@@ -60,51 +74,61 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
 
                 {/* Why We Exist */}
                 <div className="flex flex-col h-full">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-3">
-                        <span className="bg-red-100 text-red-600 p-2.5 rounded-xl">❤️</span> Why We Exist
-                    </h2>
-                    <div className="bg-orange-50/50 p-6 rounded-2xl border border-orange-100 flex-grow">
-                        <p className="text-slate-700 mb-6 leading-relaxed">
-                            India’s learning crisis is not only academic — it is emotional. Millions of students struggle silently with fear, confusion, and low confidence. Traditional EdTech does not recognize these emotional signals, widening learning gaps in rural and low-resource classrooms.
-                        </p>
-                        <p className="text-slate-700 leading-relaxed font-medium">
-                            FeelEd AI exists to solve this emotional blind spot. By integrating affective computing with culturally grounded storytelling, we help students learn with clarity, confidence, and curiosity. Our platform gives teachers the emotional insights they need to support every child, especially those who are usually overlooked.
-                        </p>
+                    <div className="bg-rose-50/80 p-6 rounded-3xl border-2 border-rose-100 hover:border-rose-300 transition-colors duration-300 flex-grow">
+                        <h2 className="text-2xl font-bold text-rose-800 mb-6 flex items-center gap-3">
+                            <span className="bg-white shadow-md text-2xl p-3 rounded-2xl">❤️</span> 
+                            Why We Exist
+                        </h2>
+                        <div className="space-y-4">
+                            <p className="text-rose-700 leading-relaxed text-lg">
+                                Many students feel scared or confused in class. Traditional apps don't notice these feelings.
+                            </p>
+                            <p className="text-rose-900 leading-relaxed font-bold text-lg bg-white/60 p-4 rounded-2xl border border-rose-200">
+                                FeelEd AI exists to hug your mind with knowledge. By mixing feelings with stories, we help you learn with confidence and curiosity. We give every child the attention they deserve.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Differentiators */}
-            <div className="mt-16">
-                <h2 className="text-2xl font-bold text-center text-slate-800 mb-8 flex items-center justify-center gap-3">
-                    <span className="bg-purple-100 text-purple-600 p-2 rounded-xl">✨</span> What Makes FeelEd AI Different
+            <div className="mt-16 relative z-10">
+                <h2 className="text-3xl font-extrabold text-center text-slate-800 mb-10 flex items-center justify-center gap-3">
+                    <span className="bg-amber-100 text-amber-500 p-2 rounded-2xl shadow-sm">✨</span> 
+                    The FeelEd Magic
+                    <span className="bg-amber-100 text-amber-500 p-2 rounded-2xl shadow-sm">✨</span>
                 </h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[
-                        "Emotion-first learning instead of one-size-fits-all content",
-                        "Story-driven explanations that improve memory and understanding",
-                        "Built for Bharat with low-cost devices and low internet usage",
-                        "Culturally relevant examples, metaphors, and avatars",
-                        "Inclusive design for shy, anxious, and slow learners",
-                        "Scalable, ethical, and privacy-first technology",
-                        "Supports government schools, NGOs, and high-stress learning environments"
+                        { text: "Emotion-first learning", color: "border-blue-200 bg-blue-50 text-blue-700" },
+                        { text: "Story-driven memory", color: "border-purple-200 bg-purple-50 text-purple-700" },
+                        { text: "Works on simple phones", color: "border-green-200 bg-green-50 text-green-700" },
+                        { text: "Culturally relatable", color: "border-orange-200 bg-orange-50 text-orange-700" },
+                        { text: "Helps shy learners", color: "border-pink-200 bg-pink-50 text-pink-700" },
+                        { text: "Safe & Private", color: "border-cyan-200 bg-cyan-50 text-cyan-700" },
+                        { text: "For every classroom", color: "border-indigo-200 bg-indigo-50 text-indigo-700" }
                     ].map((item, i) => (
-                        <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all flex items-start gap-3 group">
-                            <span className="text-blue-500 text-xl group-hover:scale-110 transition-transform">★</span>
-                            <p className="text-slate-700 font-medium text-sm md:text-base">{item}</p>
+                        <div key={i} className={`p-5 rounded-2xl border-2 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all flex items-center gap-3 group ${item.color}`}>
+                            <span className="text-2xl group-hover:scale-125 transition-transform duration-300">★</span>
+                            <p className="font-bold text-base">{item.text}</p>
                         </div>
                     ))}
                 </div>
-                <div className="mt-10 bg-slate-800 text-white p-6 rounded-2xl text-center shadow-lg">
-                    <p className="text-lg md:text-xl italic font-medium">
+                
+                <div className="mt-12 bg-slate-800 text-white p-8 rounded-[2rem] text-center shadow-xl relative overflow-hidden group">
+                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-pink-500 to-yellow-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                    <p className="text-xl md:text-2xl italic font-medium leading-relaxed">
                         "FeelEd AI brings empathy into EdTech — something traditional platforms are not designed to do."
                     </p>
                 </div>
             </div>
 
-             <div className="mt-12 text-center">
-                <button onClick={() => onNavigate('generator')} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-105">
-                    Back to Story Generator
+             <div className="mt-16 text-center">
+                <button 
+                    onClick={() => onNavigate('generator')} 
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xl font-bold py-4 px-10 rounded-full hover:shadow-2xl hover:shadow-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-300 transition-all transform hover:scale-110 active:scale-95"
+                >
+                    Let's Start Learning! 🚀
                 </button>
             </div>
         </div>
