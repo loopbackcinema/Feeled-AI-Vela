@@ -10,6 +10,21 @@ interface StoryGeneratorFormProps {
     error: string | null;
 }
 
+// Map app language names to BCP 47 language tags for SpeechRecognition
+const LANGUAGE_CODES: { [key: string]: string } = {
+    "English": "en-US",
+    "Tamil": "ta-IN",
+    "Hindi": "hi-IN",
+    "Bengali": "bn-IN",
+    "Telugu": "te-IN",
+    "Marathi": "mr-IN",
+    "Kannada": "kn-IN",
+    "Gujarati": "gu-IN",
+    "Malayalam": "ml-IN",
+    "Punjabi": "pa-IN",
+    "Odia": "or-IN"
+};
+
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
     const [topic, setTopic] = useState('');
     const [std, setStd] = useState(STD_OPTIONS[4]);
@@ -17,6 +32,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [narratorVoice, setNarratorVoice] = useState(NARRATOR_VOICE_OPTIONS.English[0]);
     const [emotionTone, setEmotionTone] = useState(EMOTION_TONE_OPTIONS[0]);
     const [submittedRequest, setSubmittedRequest] = useState<StoryRequest | null>(null);
+    const [isListening, setIsListening] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,6 +46,41 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         const newLang = e.target.value as keyof typeof NARRATOR_VOICE_OPTIONS;
         setLanguage(newLang);
         setNarratorVoice(NARRATOR_VOICE_OPTIONS[newLang][0]);
+    };
+
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("Sorry, voice input is not supported in this browser. Please use Chrome or Edge.");
+            return;
+        }
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = LANGUAGE_CODES[language] || 'en-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setTopic(transcript);
+            setIsListening(false);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.start();
     };
 
     const getVoiceLabel = (voice: string) => {
@@ -91,14 +142,29 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                 id="topic"
                                 value={topic}
                                 onChange={(e) => setTopic(e.target.value)}
-                                placeholder="e.g. Gravity, Dinosaurs, Mars..."
-                                className="w-full pl-6 pr-4 py-5 text-xl font-bold text-slate-700 border-4 border-indigo-100 rounded-3xl focus:ring-0 focus:border-indigo-400 transition-all bg-indigo-50/50 placeholder-indigo-300 shadow-inner"
+                                placeholder={isListening ? "Listening..." : "e.g. Gravity, Dinosaurs, Mars..."}
+                                className={`w-full pl-6 pr-14 py-5 text-xl font-bold text-slate-700 border-4 rounded-3xl focus:ring-0 transition-all shadow-inner ${isListening ? 'border-red-400 bg-red-50 animate-pulse' : 'border-indigo-100 bg-indigo-50/50 focus:border-indigo-400 placeholder-indigo-300'}`}
                                 required
                                 disabled={isLoading}
                             />
-                            <div className="absolute right-5 top-1/2 transform -translate-y-1/2 text-indigo-300 text-2xl animate-pulse">
-                                ✨
-                            </div>
+                            {/* Mic Button */}
+                            <button
+                                type="button"
+                                onClick={startListening}
+                                className={`absolute right-3 top-1/2 transform -translate-y-1/2 p-3 rounded-2xl transition-all ${isListening ? 'bg-red-500 text-white animate-bounce shadow-red-300 shadow-lg' : 'text-indigo-400 hover:text-indigo-600 hover:bg-indigo-100'}`}
+                                title="Tap to speak"
+                            >
+                                {isListening ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                                        <path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" />
+                                        <path d="M6 10.5a.75.75 0 0 1 .75.75v1.5a5.25 5.25 0 1 0 10.5 0v-1.5a.75.75 0 0 1 1.5 0v1.5a6.751 6.751 0 0 1-6 6.709v2.291h3a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5h3v-2.291a6.751 6.751 0 0 1-6-6.709v-1.5A.75.75 0 0 1 6 10.5Z" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                                    </svg>
+                                )}
+                            </button>
                         </div>
                     </div>
 
