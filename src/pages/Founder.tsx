@@ -15,7 +15,7 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
             <div className="flex flex-col items-center mb-10">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 ring-blue-50 mb-4 bg-blue-100 flex items-center justify-center relative group">
                     <img 
-                        src="/founder.jpg" 
+                        src="/founder.jpg?v=2" 
                         alt="Velayutham S" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => {
