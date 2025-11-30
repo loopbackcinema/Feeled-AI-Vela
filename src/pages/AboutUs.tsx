@@ -127,6 +127,35 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
                 </div>
             </div>
 
+            {/* Meet the Founder Section */}
+            <div className="mt-16 bg-white p-8 rounded-[2rem] border-2 border-slate-100 shadow-lg flex flex-col md:flex-row items-center gap-8 relative z-10 hover:border-blue-200 transition-colors">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-100 shadow-md shrink-0 bg-blue-50 flex items-center justify-center">
+                    <img 
+                        src="/founder.jpg" 
+                        alt="Velayutham S" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement!.classList.add('bg-blue-600', 'flex', 'items-center', 'justify-center');
+                            e.currentTarget.parentElement!.innerHTML = '<span class="text-4xl font-bold text-white">V</span>';
+                        }}
+                    />
+                </div>
+                <div className="text-center md:text-left">
+                    <h3 className="text-2xl font-bold text-slate-800 mb-2">Meet the Founder</h3>
+                    <p className="text-slate-600 mb-4 max-w-xl">
+                        Velayutham S is the visionary behind FeelEd AI, dedicated to restoring empathy in education through artificial intelligence.
+                    </p>
+                    <button 
+                        onClick={() => onNavigate('founder')}
+                        className="text-blue-600 font-bold hover:text-blue-800 hover:underline flex items-center justify-center md:justify-start gap-1 transition-colors"
+                    >
+                        Read Full Bio 
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </button>
+                </div>
+            </div>
+
              <div className="mt-16 text-center">
                 <button 
                     onClick={() => onNavigate('generator')} 
