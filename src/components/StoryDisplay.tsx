@@ -468,13 +468,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
 
         const shareText = "I am thrilled to share that I have received a Merit Certificate from FeelEd AI! 🎓✨ https://feeledai.com";
 
-        // Auto-copy text to clipboard for user convenience
-        try {
-            await navigator.clipboard.writeText(shareText);
-        } catch (e) {
-            // Ignore clipboard errors
-        }
-
         if (navigator.share) {
             // Mobile: Share Image + Text
             try {
