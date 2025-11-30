@@ -178,18 +178,6 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                     </button>
                 </form>
             </div>
-            
-            {/* Trust Badges - Colorful */}
-            <div className="mt-10 flex justify-center gap-6 opacity-80">
-                <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-xl border border-white">
-                    <span className="text-lg">🤖</span>
-                    <span className="text-xs font-bold text-slate-600">Gemini 2.5 Pro</span>
-                </div>
-                <div className="flex items-center gap-2 bg-white/50 px-3 py-1.5 rounded-xl border border-white">
-                    <span className="text-lg">🔊</span>
-                    <span className="text-xs font-bold text-slate-600">Native Audio</span>
-                </div>
-            </div>
         </div>
     );
 };
