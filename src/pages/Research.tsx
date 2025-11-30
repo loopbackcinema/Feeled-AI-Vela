@@ -113,7 +113,7 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                 </div>
             </div>
 
-            {/* Conferences Timeline - Updated with Full Names and Colors */}
+            {/* Conferences Timeline - Vibrant & Detailed */}
             <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-200 shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full blur-3xl -mr-20 -mt-20"></div>
                 <h2 className="text-3xl font-bold text-slate-800 mb-12 flex items-center gap-3 relative z-10">
@@ -123,25 +123,31 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                     {[
                         {
                             date: "Nov 06, 2025",
-                            title: "Neurology & Neurological Disorders Conference 2025",
+                            title: "4th International Conference on Neurology & Neurological Disorders",
                             loc: "London, UK 🇬🇧",
                             type: "Scientific Oral Talk",
                             topic: "Framework for Belief Medicine",
                             link: "https://www.scitechseries.com/neurology/program/scientific-program/2025/emotion-adaptive-ai-system-for-cognitive-belief-rewriting-a-framework-for-belief-medicine",
-                            colorClass: "bg-rose-50 border-rose-200 hover:border-rose-400 group-hover:shadow-rose-100",
-                            iconClass: "bg-gradient-to-br from-rose-500 to-pink-600",
-                            textClass: "text-rose-900"
+                            // Vibrant Rose Theme
+                            cardBg: "bg-rose-50",
+                            borderColor: "border-rose-200",
+                            hoverBorder: "hover:border-rose-400",
+                            titleColor: "text-rose-900",
+                            iconGradient: "bg-gradient-to-br from-rose-500 to-pink-600"
                         },
                         {
                             date: "Dec 05, 2025",
-                            title: "AI Visionaries Summit 2025",
+                            title: "World Artificial Intelligence Summit 2025 (Series)",
                             loc: "Gurugram, India 🇮🇳",
                             type: "Oral Presentation",
                             topic: "Emotion-Adaptive Framework",
                             link: "https://www.magnivelinternational.com/speakers/6/series-of-world-artificial-intelligence-summits",
-                            colorClass: "bg-violet-50 border-violet-200 hover:border-violet-400 group-hover:shadow-violet-100",
-                            iconClass: "bg-gradient-to-br from-violet-500 to-purple-600",
-                            textClass: "text-violet-900"
+                            // Vibrant Violet Theme
+                            cardBg: "bg-violet-50",
+                            borderColor: "border-violet-200",
+                            hoverBorder: "hover:border-violet-400",
+                            titleColor: "text-violet-900",
+                            iconGradient: "bg-gradient-to-br from-violet-500 to-purple-600"
                         },
                         {
                             date: "June 22, 2026",
@@ -150,9 +156,12 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                             type: "Invited Speaker",
                             topic: "Neurological Implications of Emotion AI",
                             link: "https://neurology.magnusconferences.com/speaker/velayutham-s",
-                            colorClass: "bg-amber-50 border-amber-200 hover:border-amber-400 group-hover:shadow-amber-100",
-                            iconClass: "bg-gradient-to-br from-amber-500 to-orange-600",
-                            textClass: "text-amber-900"
+                            // Vibrant Amber Theme
+                            cardBg: "bg-amber-50",
+                            borderColor: "border-amber-200",
+                            hoverBorder: "hover:border-amber-400",
+                            titleColor: "text-amber-900",
+                            iconGradient: "bg-gradient-to-br from-amber-500 to-orange-600"
                         }
                     ].map((event, i) => (
                         <a 
@@ -163,24 +172,24 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                             className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group cursor-pointer"
                         >
                             {/* Colorful Timeline Icon */}
-                            <div className={`flex items-center justify-center w-12 h-12 rounded-full border-4 border-white text-white shadow-md shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:scale-110 transition-transform ${event.iconClass}`}>
+                            <div className={`flex items-center justify-center w-12 h-12 rounded-full border-4 border-white text-white shadow-md shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:scale-110 transition-transform ${event.iconGradient}`}>
                                 <span className="text-sm font-bold">★</span>
                             </div>
                             
                             {/* Colorful Card */}
-                            <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-6 rounded-3xl border shadow-sm transition-all group-hover:-translate-y-1 duration-300 relative ${event.colorClass}`}>
-                                <div className="absolute top-4 right-4 text-slate-300 group-hover:text-slate-500 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                            <div className={`w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-6 rounded-3xl border shadow-sm transition-all group-hover:-translate-y-1 duration-300 relative ${event.cardBg} ${event.borderColor} ${event.hoverBorder} group-hover:shadow-lg`}>
+                                <div className="absolute top-4 right-4 opacity-50 group-hover:opacity-100 transition-opacity">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-5 h-5 ${event.titleColor}`}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                                     </svg>
                                 </div>
                                 <div className="flex flex-wrap justify-between items-start mb-3 gap-2">
-                                    <span className="font-bold text-slate-500 text-xs uppercase tracking-wide bg-white/50 px-2 py-1 rounded-md">{event.date}</span>
+                                    <span className="font-bold text-slate-500 text-xs uppercase tracking-wide bg-white/60 px-2 py-1 rounded-md">{event.date}</span>
                                     <span className="text-xs font-bold px-2 py-1 bg-white/80 rounded-lg shadow-sm">{event.loc}</span>
                                 </div>
-                                <h3 className={`font-black text-lg md:text-xl mb-1 leading-tight pr-6 ${event.textClass}`}>{event.title}</h3>
+                                <h3 className={`font-black text-lg md:text-xl mb-1 leading-tight pr-6 ${event.titleColor}`}>{event.title}</h3>
                                 <p className="text-sm text-slate-600 italic mb-4 font-medium">{event.type}</p>
-                                <div className="bg-white/60 border border-white p-3 rounded-xl">
+                                <div className="bg-white/60 border border-white/50 p-3 rounded-xl">
                                     <p className="text-slate-700 font-semibold text-sm">Topic: "{event.topic}"</p>
                                 </div>
                             </div>
