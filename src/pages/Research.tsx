@@ -127,7 +127,7 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                             loc: "London, UK 🇬🇧",
                             type: "Scientific Oral Talk",
                             topic: "Framework for Belief Medicine",
-                            link: "https://www.scitechseries.com/neurology"
+                            link: "https://www.scitechseries.com/neurology/program/scientific-program/2025/emotion-adaptive-ai-system-for-cognitive-belief-rewriting-a-framework-for-belief-medicine"
                         },
                         {
                             date: "Dec 05, 2025",
@@ -135,7 +135,7 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                             loc: "Gurugram, India 🇮🇳",
                             type: "Oral Presentation",
                             topic: "Emotion-Adaptive Framework",
-                            link: "https://www.magnivelinternational.com"
+                            link: "https://www.magnivelinternational.com/speakers/6/series-of-world-artificial-intelligence-summits"
                         },
                         {
                             date: "June 22, 2026",
@@ -143,25 +143,36 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                             loc: "Barcelona, Spain 🇪🇸",
                             type: "Invited Speaker",
                             topic: "Neurological Implications of Emotion AI",
-                            link: "https://neurology.magnusconferences.com"
+                            link: "https://neurology.magnusconferences.com/speaker/velayutham-s"
                         }
                     ].map((event, i) => (
-                        <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-600 text-white shadow-md shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                        <a 
+                            key={i} 
+                            href={event.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group cursor-pointer"
+                        >
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white bg-blue-600 text-white shadow-md shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 group-hover:scale-110 transition-transform">
                                 <span className="text-xs font-bold">★</span>
                             </div>
-                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:bg-white group-hover:-translate-y-1 duration-300">
+                            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all hover:bg-white group-hover:-translate-y-1 duration-300 relative group-hover:border-blue-200">
+                                <div className="absolute top-4 right-4 text-slate-300 group-hover:text-blue-500 transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                                    </svg>
+                                </div>
                                 <div className="flex flex-wrap justify-between items-start mb-3 gap-2">
                                     <span className="font-bold text-slate-500 text-xs uppercase tracking-wide">{event.date}</span>
                                     <span className="text-xs font-bold px-2 py-1 bg-indigo-100 text-indigo-700 rounded-lg">{event.loc}</span>
                                 </div>
-                                <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">{event.title}</h3>
+                                <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-blue-600 transition-colors pr-6">{event.title}</h3>
                                 <p className="text-sm text-slate-500 italic mb-3">{event.type}</p>
-                                <div className="bg-white border border-slate-200 p-3 rounded-xl">
+                                <div className="bg-white border border-slate-200 p-3 rounded-xl group-hover:border-blue-100 transition-colors">
                                     <p className="text-slate-700 font-medium text-sm">"{event.topic}"</p>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     ))}
                 </div>
             </div>
