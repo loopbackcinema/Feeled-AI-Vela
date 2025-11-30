@@ -49,7 +49,15 @@ export const generateVoice = async (story: Story, request: StoryRequest): Promis
 };
 
 export const generateImage = async (story: Story): Promise<{ base64Image: string; mimeType: string }> => {
-    const prompt = `Create a realistic, photorealistic image that captures the essence of the following story introduction. The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}". Story Title: "${story.title}". Introduction: "${story.introduction}"`;
+    // Modified prompt to explicitly forbid text to avoid Tamil unicode rendering issues
+    const prompt = `Create a realistic, photorealistic digital art image that captures the essence of the following story scene. 
+    The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}". 
+    Scene description: "${story.introduction}". 
+    
+    IMPORTANT RESTRICTIONS: 
+    1. Do NOT include any text, words, letters, subtitles, or labels in the image. 
+    2. The image must be purely visual/artistic.
+    3. No gibberish text.`;
 
     const response = await fetch('/api/image', {
         method: 'POST',
