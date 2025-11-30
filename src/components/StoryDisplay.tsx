@@ -256,7 +256,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         // 1. Background
         const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
         gradient.addColorStop(0, '#ffffff');
-        gradient.addColorStop(1, '#f0f9ff');
+        gradient.addColorStop(1, '#eff6ff');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 1200, 800);
 
@@ -269,56 +269,80 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.lineWidth = 5;
         ctx.strokeRect(40, 40, 1120, 720);
 
-        // 3. Top Left: Round Seal
+        // 3. Top Left: Round Seal (Enhanced)
         ctx.save();
         ctx.translate(160, 160);
-        // Outer circle
+        
+        // Outer rim
+        ctx.beginPath();
+        ctx.arc(0, 0, 95, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e3a8a';
+        ctx.fill();
+
+        // Inner gold rim
         ctx.beginPath();
         ctx.arc(0, 0, 90, 0, Math.PI * 2);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 3;
+        ctx.stroke();
         ctx.fillStyle = '#fff';
         ctx.fill();
-        ctx.strokeStyle = '#1e3a8a';
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        
-        // Inner circle
+
+        // Inner circle for icon
         ctx.beginPath();
-        ctx.arc(0, 0, 80, 0, Math.PI * 2);
-        ctx.strokeStyle = '#f59e0b';
+        ctx.arc(0, 0, 60, 0, Math.PI * 2);
+        ctx.strokeStyle = '#1e3a8a';
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Text around the circle (simplified approach for readability)
-        ctx.font = 'bold 13px "Nunito", sans-serif';
-        ctx.fillStyle = '#1e3a8a';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        // Circular Text Function
+        const drawCircularText = (text: string, radius: number, startAngle: number, endAngle: number) => {
+             ctx.font = 'bold 11px "Nunito", sans-serif';
+             ctx.fillStyle = '#1e3a8a';
+             ctx.textAlign = 'center';
+             const angleRange = endAngle - startAngle;
+             const angleStep = angleRange / (text.length - 1);
+             for (let i = 0; i < text.length; i++) {
+                 const char = text[i];
+                 ctx.save();
+                 // Rotate to angle
+                 const angle = startAngle + i * angleStep;
+                 ctx.rotate(angle);
+                 ctx.translate(0, -radius);
+                 ctx.fillText(char, 0, 0);
+                 ctx.restore();
+             }
+        };
+
+        // Top arc text: "INSTITUTE OF EMOTION ADAPTIVE EDUCATION"
+        // Angles in radians (approx -2.2 to 2.2 for top arc)
+        drawCircularText("INSTITUTE OF EMOTION ADAPTIVE EDUCATION", 72, -2.2, 2.2);
         
-        ctx.fillText('INSTITUTE OF', 0, -35);
-        ctx.font = 'bold 12px "Nunito", sans-serif';
-        ctx.fillText('EMOTION ADAPTIVE', 0, 0);
-        ctx.font = 'bold 14px "Nunito", sans-serif';
-        ctx.fillText('EDUCATION', 0, 35);
-        
-        // Star decoration in seal
+        // Bottom arc stars
         ctx.font = '20px "Nunito", sans-serif';
         ctx.fillStyle = '#f59e0b';
-        ctx.fillText('★', -50, 0);
-        ctx.fillText('★', 50, 0);
+        ctx.fillText('★', -50, 20); // visual adjustment
+        ctx.fillText('★', 50, 20);
+
+        // Center Icon (Heart/Brain symbol)
+        ctx.font = '40px "Nunito", sans-serif';
+        ctx.fillStyle = '#2563eb';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🎓', 0, 0);
+        
         ctx.restore();
 
-        // 4. Top Right: Logo Image
-        // We load the logo image to draw it on canvas
+        // 4. Top Right: Logo Image (Enhanced Size)
         const logoPromise = new Promise<void>((resolve) => {
             const img = new Image();
             img.src = '/logo.svg';
             img.onload = () => {
-                const logoSize = 100;
-                ctx.drawImage(img, 1050, 50, logoSize, logoSize);
+                const logoSize = 130; // Increased size
+                ctx.drawImage(img, 1020, 60, logoSize, logoSize);
                 resolve();
             };
             img.onerror = () => {
-                // Fallback text if image fails
                 ctx.font = 'bold 30px "Nunito", sans-serif';
                 ctx.fillStyle = '#2563eb';
                 ctx.textAlign = 'right';
@@ -333,6 +357,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.font = 'bold 80px "Nunito", sans-serif';
         ctx.fillStyle = '#1e3a8a';
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
         ctx.fillText('CERTIFICATE', 600, 180);
         
         ctx.font = 'bold 40px "Nunito", sans-serif';
@@ -342,73 +367,75 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         // 6. Recipient
         ctx.font = 'italic 28px "Nunito", sans-serif';
         ctx.fillStyle = '#4b5563';
-        ctx.fillText('This is proudly presented to', 600, 320);
+        ctx.fillText('This is proudly presented to', 600, 310);
 
         ctx.font = 'bold italic 65px "Nunito", serif';
         ctx.fillStyle = '#2563eb';
-        ctx.fillText(studentName, 600, 400);
+        ctx.fillText(studentName, 600, 390);
 
         // 7. Details
         ctx.font = '24px "Nunito", sans-serif';
         ctx.fillStyle = '#374151';
-        ctx.fillText(`Grade: ${studentClass} | School: ${schoolName}`, 600, 460);
+        ctx.fillText(`Grade: ${studentClass} | School: ${schoolName}`, 600, 450);
 
         ctx.font = 'italic 25px "Nunito", sans-serif';
         ctx.fillStyle = '#4b5563';
-        ctx.fillText('For successfully mastering the concept of', 600, 530);
+        ctx.fillText('For successfully mastering the concept of', 600, 510);
 
         // 8. Story Concept
-        const maxWidth = 1000;
+        const maxWidth = 900;
         const concept = story.title;
-        ctx.font = 'bold 35px "Nunito", sans-serif';
+        ctx.font = 'bold 36px "Nunito", sans-serif';
         ctx.fillStyle = '#1e3a8a';
         if (ctx.measureText(concept).width > maxWidth) {
              ctx.font = 'bold 30px "Nunito", sans-serif';
-             ctx.fillText(concept, 600, 580, maxWidth); 
+             ctx.fillText(concept, 600, 560, maxWidth); 
         } else {
-             ctx.fillText(concept, 600, 580);
+             ctx.fillText(concept, 600, 560);
         }
 
         // 9. Footer Line
         ctx.beginPath();
-        ctx.moveTo(350, 680);
-        ctx.lineTo(850, 680);
+        ctx.moveTo(350, 640);
+        ctx.lineTo(850, 640);
         ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 10. Bottom Text (Fixed Margins)
+        // 10. Bottom Text (Margin Fix)
+        // Moved up to ensure it doesn't touch the border (Limit y < 760)
         ctx.font = 'bold 32px "Nunito", sans-serif';
         ctx.fillStyle = '#6366f1';
-        ctx.fillText('FeelEd AI', 600, 725);
+        ctx.fillText('FeelEd AI', 600, 690);
         
         ctx.font = '22px "Nunito", sans-serif';
         ctx.fillStyle = '#94a3b8';
-        ctx.fillText('Emotion-Adaptive Education', 600, 760);
+        ctx.fillText('Emotion-Adaptive Education', 600, 725);
 
         // 11. Date and Time Stamp (Bottom Left)
-        ctx.font = 'bold 18px "Nunito", sans-serif';
-        ctx.fillStyle = '#64748b'; // Slate 500
+        ctx.font = 'bold 16px "Nunito", sans-serif';
+        ctx.fillStyle = '#64748b'; 
         ctx.textAlign = 'left';
-        ctx.fillText(`Issued: ${dateStr} | ${timeStr}`, 60, 745);
+        ctx.fillText(`Issued: ${dateStr}`, 60, 740);
+        ctx.fillText(`${timeStr}`, 60, 760);
 
         // 12. Bottom Right: QR Code
-        const qrSize = 100;
-        const qrX = 1040;
-        const qrY = 660;
+        const qrSize = 90;
+        const qrX = 1050;
+        const qrY = 650;
         
+        // QR Background
         ctx.fillStyle = '#fff';
         ctx.fillRect(qrX, qrY, qrSize, qrSize);
         ctx.strokeStyle = '#000';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 3;
         ctx.strokeRect(qrX, qrY, qrSize, qrSize);
         
+        // Mock QR Pattern
         ctx.fillStyle = '#000';
-        const cellSize = 10;
-        // Draw a simple QR pattern
+        const cellSize = 9;
         for(let i=0; i<10; i++) {
             for(let j=0; j<10; j++) {
-                // Fixed patterns for corners
                 if ((i<3 && j<3) || (i>6 && j<3) || (i<3 && j>6)) {
                      ctx.fillRect(qrX + i*cellSize, qrY + j*cellSize, cellSize, cellSize);
                 } else if (Math.random() > 0.5) {
@@ -416,13 +443,13 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 }
             }
         }
-        // Inner corner clear
+        // Inner corner clears
         ctx.fillStyle = '#fff';
-        ctx.fillRect(qrX+10, qrY+10, 10, 10);
-        ctx.fillRect(qrX+80, qrY+10, 10, 10);
-        ctx.fillRect(qrX+10, qrY+80, 10, 10);
+        ctx.fillRect(qrX+9, qrY+9, 9, 9);
+        ctx.fillRect(qrX+72, qrY+9, 9, 9);
+        ctx.fillRect(qrX+9, qrY+72, 9, 9);
         
-        ctx.font = 'bold 10px "Nunito", sans-serif';
+        ctx.font = 'bold 9px "Nunito", sans-serif';
         ctx.fillStyle = '#000';
         ctx.textAlign = 'center';
         ctx.fillText('VERIFIED', qrX + qrSize/2, qrY + qrSize + 12);
@@ -436,12 +463,12 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         }, 'image/png');
     };
 
-    const handleShareCertificate = async () => {
+    const handleUnifiedShare = async () => {
         if (!certificateBlob) return;
 
         const shareText = "I am thrilled to share that I have received a Merit Certificate from FeelEd AI! 🎓✨ https://feeledai.com";
 
-        // Auto-copy text to clipboard for user convenience (some apps drop the caption)
+        // Auto-copy text to clipboard for user convenience
         try {
             await navigator.clipboard.writeText(shareText);
         } catch (e) {
@@ -449,10 +476,10 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         }
 
         if (navigator.share) {
+            // Mobile: Share Image + Text
             try {
                 const file = new File([certificateBlob], "FeeledAI_Certificate.png", { type: "image/png" });
                 await navigator.share({
-                    // Note: 'title' is often removed to help 'text' appear as caption on some platforms
                     text: shareText,
                     files: [file],
                 });
@@ -460,16 +487,24 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 console.error("Share failed", err);
             }
         } else {
-             // Fallback to WhatsApp link (Text only, since web can't share image blobs directly)
-             const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-             window.open(url, '_blank');
-        }
-    };
+             // Desktop Fallback: Open WhatsApp Web (Text only) + Download Image
+             // Since desktop web can't share files to apps, we give them the file via download 
+             // and open WA to send the text.
+             
+             // 1. Trigger Download
+             const url = URL.createObjectURL(certificateBlob);
+             const a = document.createElement('a');
+             a.href = url;
+             a.download = "FeelEd_Certificate.png";
+             document.body.appendChild(a);
+             a.click();
+             document.body.removeChild(a);
+             URL.revokeObjectURL(url);
 
-    const handleWhatsAppCertificate = () => {
-        const shareText = "I am thrilled to share that I have received a Merit Certificate from FeelEd AI! 🎓✨ https://feeledai.com";
-        const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-        window.open(url, '_blank');
+             // 2. Open WhatsApp
+             const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+             window.open(waUrl, '_blank');
+        }
     };
 
     const handlePlayPause = useCallback(async () => {
@@ -725,35 +760,17 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                                 alt="Certificate" 
                                 className="w-full rounded-xl shadow-lg border-4 border-white mx-auto max-w-lg"
                             />
-                            <div className="flex flex-col md:flex-row justify-center gap-4">
+                            <div className="flex justify-center">
                                 <button 
-                                    onClick={handleShareCertificate}
-                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform transform hover:scale-105"
+                                    onClick={handleUnifiedShare}
+                                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-10 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform transform hover:scale-105"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.19.026.37.06.55.098a2.25 2.25 0 0 1 1.455 1.455c.038.18.072.36.098.55m0 0a2.25 2.25 0 0 0 2.186 0m0-2.186a2.25 2.25 0 0 0 0-2.186m0 2.186c-.19-.026-.37-.06-.55-.098a2.25 2.25 0 0 1-1.455-1.455c-.038-.18-.072-.36-.098-.55m0 0a2.25 2.25 0 0 0-2.186 0m0 2.186.001.001" />
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="currentColor" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.8 0-67.6-9.5-97.8-26.7l-7.1-4.2-73.3 19.3 19.3-71.6-4.7-7.5c-19.1-30.3-29.8-66-29.8-103.3 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
                                     Share Certificate
                                 </button>
-                                
-                                <button 
-                                    onClick={handleWhatsAppCertificate}
-                                    className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-transform transform hover:scale-105"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="currentColor" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.8 0-67.6-9.5-97.8-26.7l-7.1-4.2-73.3 19.3 19.3-71.6-4.7-7.5c-19.1-30.3-29.8-66-29.8-103.3 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
-                                    WhatsApp
-                                </button>
-
-                                <a 
-                                    href={URL.createObjectURL(certificateBlob)} 
-                                    download="FeelEd_Certificate.png"
-                                    className="bg-white border-2 border-amber-200 text-amber-700 font-bold py-3 px-6 rounded-xl hover:bg-amber-50 transition-colors flex items-center justify-center"
-                                >
-                                    Download
-                                </a>
                             </div>
                             <p className="text-xs text-amber-600 mt-2 italic">
-                                *Tip: If the text doesn't appear in the caption, it has been copied to your clipboard! Paste it before sending.
+                                *Tip: This will open WhatsApp or your sharing options.
                             </p>
                         </div>
                     )}
