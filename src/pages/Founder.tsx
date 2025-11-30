@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Page } from '../types';
 
 interface FounderProps {
@@ -7,6 +7,26 @@ interface FounderProps {
 }
 
 const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
+    // Smart Image Handling
+    const [imgSrc, setImgSrc] = useState<string>('/founder.jpg');
+    const [hasError, setHasError] = useState<boolean>(false);
+    const [attempts, setAttempts] = useState<number>(0);
+
+    const handleImageError = () => {
+        if (attempts === 0) {
+            setImgSrc('/Founder.jpg'); // Try Capitalized
+            setAttempts(1);
+        } else if (attempts === 1) {
+            setImgSrc('/founder.jpeg'); // Try .jpeg
+            setAttempts(2);
+        } else if (attempts === 2) {
+            setImgSrc('/Founder.jpeg'); // Try Capitalized .jpeg
+            setAttempts(3);
+        } else {
+            setHasError(true); // Give up and show fallback
+        }
+    };
+
     return (
         <div className="w-full max-w-4xl bg-white p-8 rounded-2xl shadow-lg border border-slate-200 animate-fade-in">
             <h1 className="text-3xl font-bold text-blue-600 mb-8 text-center">🌟 Founder</h1>
@@ -14,11 +34,18 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
             {/* Profile Section */}
             <div className="flex flex-col items-center mb-10">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 ring-blue-50 mb-4 bg-blue-100 flex items-center justify-center relative group">
-                    <img 
-                        src="/founder.jpg?v=10"
-                        alt="Velayutham S" 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
+                    {!hasError ? (
+                        <img 
+                            src={imgSrc}
+                            onError={handleImageError}
+                            alt="Velayutham S" 
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-6xl font-bold">
+                            V
+                        </div>
+                    )}
                 </div>
                 <h2 className="text-2xl font-bold text-slate-800">Velayutham S</h2>
                 <p className="text-blue-600 font-medium">Founder & Visionary</p>
