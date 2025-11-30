@@ -472,9 +472,18 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             // Mobile: Share Image + Text
             try {
                 const file = new File([certificateBlob], "FeeledAI_Certificate.png", { type: "image/png" });
+                
+                // Silent backup: copy text to clipboard because some apps (like WhatsApp Android) 
+                // might drop the caption when sharing an image.
+                try {
+                    await navigator.clipboard.writeText(shareText);
+                } catch (e) {
+                    // Ignore clipboard errors
+                }
+
                 await navigator.share({
                     files: [file],
-                    title: "My Merit Certificate",
+                    title: "Merit Certificate",
                     text: shareText,
                 });
             } catch (err) {
@@ -764,7 +773,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                                 </button>
                             </div>
                             <p className="text-xs text-amber-600 mt-2 italic">
-                                *Tip: This will open WhatsApp or your sharing options.
+                                *Tip: If text is missing on WhatsApp, just tap Paste! It's copied to your clipboard.
                             </p>
                         </div>
                     )}
