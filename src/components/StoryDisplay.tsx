@@ -480,8 +480,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             try {
                 const file = new File([certificateBlob], "FeeledAI_Certificate.png", { type: "image/png" });
                 await navigator.share({
-                    text: shareText,
                     files: [file],
+                    title: "My Merit Certificate",
+                    text: shareText,
                 });
             } catch (err) {
                 console.error("Share failed", err);
