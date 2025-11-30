@@ -11,61 +11,20 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
         <div className="w-full max-w-4xl bg-white p-8 rounded-2xl shadow-lg border border-slate-200 animate-fade-in">
             <h1 className="text-3xl font-bold text-blue-600 mb-8 text-center">🌟 Founder</h1>
 
-            {/* Profile Section with Embedded SVG Illustration */}
+            {/* Profile Section */}
             <div className="flex flex-col items-center mb-10">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 ring-blue-50 mb-4 bg-blue-100 flex items-center justify-center relative group">
-                    {/* Founder Illustration (Beard, White Shirt, ID Card) */}
-                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full transform transition-transform duration-500 group-hover:scale-105">
-                        <defs>
-                            <linearGradient id="skinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#8D5524" />
-                                <stop offset="100%" stopColor="#6F421B" />
-                            </linearGradient>
-                            <linearGradient id="shirtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stopColor="#FFFFFF" />
-                                <stop offset="100%" stopColor="#F3F4F6" />
-                            </linearGradient>
-                        </defs>
-                        
-                        {/* Background Circle */}
-                        <circle cx="100" cy="100" r="100" fill="#DBEAFE" />
-
-                        {/* Body/Shirt */}
-                        <path d="M40 200 L40 180 Q40 150 100 150 Q160 150 160 180 L160 200 Z" fill="url(#shirtGrad)" />
-                        
-                        {/* Neck */}
-                        <rect x="85" y="130" width="30" height="30" fill="#8D5524" />
-                        
-                        {/* Face Shape */}
-                        <ellipse cx="100" cy="100" rx="45" ry="55" fill="#8D5524" />
-
-                        {/* Beard */}
-                        <path d="M55 100 Q55 140 100 160 Q145 140 145 100 L145 90 L135 90 L135 110 Q135 125 100 125 Q65 125 65 110 L65 90 L55 90 Z" fill="#1F2937" />
-                        
-                        {/* Mustache */}
-                        <path d="M75 115 Q100 105 125 115" stroke="#1F2937" strokeWidth="6" strokeLinecap="round" fill="none" />
-
-                        {/* Mouth */}
-                        <path d="M90 130 Q100 135 110 130" stroke="#372010" strokeWidth="2" strokeLinecap="round" fill="none" />
-
-                        {/* Eyes */}
-                        <circle cx="80" cy="90" r="4" fill="white" />
-                        <circle cx="80" cy="90" r="2" fill="black" />
-                        
-                        <circle cx="120" cy="90" r="4" fill="white" />
-                        <circle cx="120" cy="90" r="2" fill="black" />
-                        
-                        {/* Eyebrows */}
-                        <path d="M70 80 Q80 75 90 80" stroke="#1F2937" strokeWidth="3" fill="none" />
-                        <path d="M110 80 Q120 75 130 80" stroke="#1F2937" strokeWidth="3" fill="none" />
-
-                        {/* Hair */}
-                        <path d="M50 80 Q50 20 100 20 Q150 20 150 80 L145 100 L135 60 Q100 40 65 60 L55 100 Z" fill="#1F2937" />
-                        
-                        {/* ID Card Lanyard */}
-                        <path d="M70 150 L100 185 L130 150" stroke="#2563EB" strokeWidth="4" fill="none" />
-                        <rect x="90" y="185" width="20" height="15" fill="#FFFFFF" stroke="#2563EB" strokeWidth="1" rx="2" />
-                    </svg>
+                    <img 
+                        src="/founder.jpg" 
+                        alt="Velayutham S" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={(e) => {
+                            // Fallback if image is not found
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.parentElement!.classList.add('bg-blue-600');
+                            e.currentTarget.parentElement!.innerHTML = '<span class="text-6xl font-bold text-white">V</span>';
+                        }}
+                    />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-800">Velayutham S</h2>
                 <p className="text-blue-600 font-medium">Founder & Visionary</p>
