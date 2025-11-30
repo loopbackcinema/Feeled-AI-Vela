@@ -241,6 +241,18 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         canvas.width = 1200;
         canvas.height = 800;
 
+        // Get Current Date and Time
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        const timeStr = now.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
         // 1. Background
         const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
         gradient.addColorStop(0, '#ffffff');
@@ -374,7 +386,13 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.fillStyle = '#94a3b8';
         ctx.fillText('Emotion-Adaptive Education', 600, 760);
 
-        // 11. Bottom Right: QR Code
+        // 11. Date and Time Stamp (Bottom Left)
+        ctx.font = 'bold 18px "Nunito", sans-serif';
+        ctx.fillStyle = '#64748b'; // Slate 500
+        ctx.textAlign = 'left';
+        ctx.fillText(`Issued: ${dateStr} | ${timeStr}`, 60, 745);
+
+        // 12. Bottom Right: QR Code
         const qrSize = 100;
         const qrX = 1040;
         const qrY = 660;
