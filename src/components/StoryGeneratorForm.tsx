@@ -32,6 +32,23 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         setNarratorVoice(NARRATOR_VOICE_OPTIONS[newLang][0]);
     };
 
+    const getVoiceLabel = (voice: string) => {
+        if (voice === 'Male') return 'Male 👨';
+        if (voice === 'Female') return 'Female 👩';
+        return voice;
+    };
+
+    const getEmotionLabel = (tone: string) => {
+        switch(tone) {
+            case 'Curious': return 'Curious 🤔';
+            case 'Inspiring': return 'Inspiring 🌟';
+            case 'Funny': return 'Funny 😂';
+            case 'Moral': return 'Moral 😌';
+            case 'Motivational': return 'Motivational 💪';
+            default: return tone;
+        }
+    };
+
     if (isLoading && submittedRequest) {
         return <LoadingIndicator request={submittedRequest} />;
     }
@@ -107,13 +124,13 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                         <div className="space-y-2">
                             <label htmlFor="narratorVoice" className="block text-xs font-bold text-slate-500 uppercase">Voice</label>
                             <select id="narratorVoice" value={narratorVoice} onChange={(e) => setNarratorVoice(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50 hover:bg-white cursor-pointer" disabled={isLoading}>
-                                {NARRATOR_VOICE_OPTIONS[language].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                {NARRATOR_VOICE_OPTIONS[language].map(opt => <option key={opt} value={opt}>{getVoiceLabel(opt)}</option>)}
                             </select>
                         </div>
                         <div className="space-y-2">
                             <label htmlFor="emotionTone" className="block text-xs font-bold text-slate-500 uppercase">Emotional Tone</label>
                             <select id="emotionTone" value={emotionTone} onChange={(e) => setEmotionTone(e.target.value)} className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-slate-50 hover:bg-white cursor-pointer" disabled={isLoading}>
-                                {EMOTION_TONE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                {EMOTION_TONE_OPTIONS.map(opt => <option key={opt} value={opt}>{getEmotionLabel(opt)}</option>)}
                             </select>
                         </div>
                     </div>
