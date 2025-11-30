@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Page } from '../types';
 
@@ -8,15 +9,32 @@ interface FounderProps {
 const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
     return (
         <div className="w-full max-w-4xl bg-white p-8 rounded-2xl shadow-lg border border-slate-200 animate-fade-in">
-            <h1 className="text-3xl font-bold text-blue-600 mb-4 text-center">🌟 Founder</h1>
+            <h1 className="text-3xl font-bold text-blue-600 mb-8 text-center">🌟 Founder</h1>
+
+            {/* Profile Image Section */}
+            <div className="flex flex-col items-center mb-10">
+                <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 ring-blue-50 mb-4 relative group">
+                     <img 
+                        src="/founder.jpg" 
+                        alt="Velayutham S" 
+                        className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                            // Fallback if image is missing
+                            (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=Velayutham+S&background=2563EB&color=fff&size=256';
+                        }}
+                    />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-800">Velayutham S</h2>
+                <p className="text-blue-600 font-medium">Founder & Visionary</p>
+            </div>
 
             <div className="space-y-8 text-slate-700 leading-relaxed">
                 <div>
                     <h2 className="text-2xl font-semibold mb-2">👤 About the Founder</h2>
                     <p>Velayutham S is the Founder and Visionary behind FeelEd AI™.</p>
                     <p>He is an independent researcher and technologist from Chennai, passionate about connecting artificial intelligence with human emotion.</p>
-                    <p className="mt-2">His work explores how emotion-aware systems can transform the way we learn, think, and evolve. Before FeelEd AI, he founded BeliefRecode AI and Loopback Cinema Technologies™, both focused on emotion-responsive systems for human development.</p>
-                    <p className="mt-2">Velayutham believes that true learning happens when a student feels understood. FeelEd AI is his effort to make education more human — by teaching through emotion, empathy, and imagination.</p>
+                    <p className="mt-2">His work explores how emotion-aware systems can transform the way we learn, think, and evolve. Before FeelEd AI, he founded BeliefRecode AI and Loopback Cinema Technologies™, both pioneering projects that explore how emotional intelligence can be integrated into storytelling, education, and interactive media.</p>
+                    <p className="mt-2">Velayutham believes that true learning happens when a student feels understood. FeelEd AI is his mission to restore empathy in education by merging AI, psychology, and storytelling into a single emotionally intelligent ecosystem.</p>
                 </div>
 
                 <div>
@@ -27,7 +45,7 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
                 
                 <div>
                     <h2 className="text-2xl font-semibold mb-2">🎯 Our Mission</h2>
-                    <p>To build an education ecosystem where emotional intelligence is at the core of every interaction — from AI models to classroom experiences. We aim to empower teachers and students with tools that make learning personal, relatable, and alive.</p>
+                    <p>To build an education ecosystem where emotional intelligence is the foundation, not an afterthought. We aim to empower teachers and students with tools that make learning personal, relatable, and alive.</p>
                 </div>
 
                 <div>
@@ -37,19 +55,19 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
 
                 <div>
                     <h2 className="text-2xl font-semibold mb-2">📩 Contact</h2>
-                    <p>Email: <a href="mailto:vela@feeledai.com" className="text-blue-600 hover:underline">vela@feeledai.com</a></p>
-                    <p>LinkedIn: <a href="https://www.linkedin.com/in/velayutham-s-loopbackcinema/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">linkedin.com/in/velayutham-s-loopbackcinema</a></p>
+                    <p>Email: <a href="mailto:founder@feeledai.com" className="text-blue-600 hover:underline">founder@feeledai.com</a></p>
+                    <p>LinkedIn: <a href="https://www.linkedin.com/in/velayutham-s-loopbackcinema" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">linkedin.com/in/velayutham-s-loopbackcinema</a></p>
                     <p>Location: Chennai, India</p>
                 </div>
 
-                <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-600">
+                <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-600 bg-blue-50 p-4 rounded-r-lg">
                     <p>“Education should not just inform the mind — it should transform the heart.”</p>
-                    <p className="font-semibold mt-2">— Velayutham S</p>
+                    <p className="font-semibold mt-2 text-blue-800">— Velayutham S</p>
                 </blockquote>
             </div>
 
-             <div className="mt-8 text-center">
-                <button onClick={() => onNavigate('generator')} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">
+             <div className="mt-12 text-center">
+                <button onClick={() => onNavigate('generator')} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition transform hover:scale-105 shadow-md">
                     Back to Story Generator
                 </button>
             </div>
