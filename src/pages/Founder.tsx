@@ -15,15 +15,10 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
             <div className="flex flex-col items-center mb-10">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 ring-blue-50 mb-4 bg-blue-100 flex items-center justify-center relative group">
                     <img 
-                        src="/founder.jpg?v=2" 
+                        src="/founder.jpg"
+                        onError={(e) => { e.currentTarget.src = "/founder.svg"; }} 
                         alt="Velayutham S" 
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        onError={(e) => {
-                            // Fallback if image is not found
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.parentElement!.classList.add('bg-blue-600');
-                            e.currentTarget.parentElement!.innerHTML = '<span class="text-6xl font-bold text-white">V</span>';
-                        }}
                     />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-800">Velayutham S</h2>

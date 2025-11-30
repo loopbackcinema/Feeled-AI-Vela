@@ -131,14 +131,10 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
             <div className="mt-16 bg-white p-8 rounded-[2rem] border-2 border-slate-100 shadow-lg flex flex-col md:flex-row items-center gap-8 relative z-10 hover:border-blue-200 transition-colors">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-100 shadow-md shrink-0 bg-blue-50 flex items-center justify-center">
                     <img 
-                        src="/founder.jpg?v=2" 
+                        src="/founder.jpg" 
+                        onError={(e) => { e.currentTarget.src = "/founder.svg"; }}
                         alt="Velayutham S" 
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.parentElement!.classList.add('bg-blue-600', 'flex', 'items-center', 'justify-center');
-                            e.currentTarget.parentElement!.innerHTML = '<span class="text-4xl font-bold text-white">V</span>';
-                        }}
                     />
                 </div>
                 <div className="text-center md:text-left">
