@@ -16,8 +16,12 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
 
             {/* Header */}
             <div className="text-center mb-12 relative z-10">
-                <div className="inline-block animate-bounce mb-2">
-                    <span className="text-4xl">🚀</span>
+                <div className="inline-block mb-4">
+                    <img 
+                        src="/logo.svg" 
+                        alt="FeelEd AI Logo" 
+                        className="w-24 h-24 md:w-32 md:h-32 mx-auto drop-shadow-xl hover:scale-110 transition-transform duration-300"
+                    />
                 </div>
                 <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 mb-4 drop-shadow-sm">
                     About FeelEd AI
