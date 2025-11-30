@@ -269,35 +269,36 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.lineWidth = 5;
         ctx.strokeRect(40, 40, 1120, 720);
 
-        // 3. Top Left: Round Seal (Enhanced)
+        // 3. Top Left: Round Seal (Enhanced Size)
         ctx.save();
-        ctx.translate(160, 160);
+        ctx.translate(160, 160); // Position
+        const sealRadius = 110;  // Larger seal
         
         // Outer rim
         ctx.beginPath();
-        ctx.arc(0, 0, 95, 0, Math.PI * 2);
+        ctx.arc(0, 0, sealRadius, 0, Math.PI * 2);
         ctx.fillStyle = '#1e3a8a';
         ctx.fill();
 
         // Inner gold rim
         ctx.beginPath();
-        ctx.arc(0, 0, 90, 0, Math.PI * 2);
+        ctx.arc(0, 0, sealRadius - 5, 0, Math.PI * 2);
         ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 4;
         ctx.stroke();
         ctx.fillStyle = '#fff';
         ctx.fill();
 
-        // Inner circle for icon
+        // Inner circle
         ctx.beginPath();
-        ctx.arc(0, 0, 60, 0, Math.PI * 2);
+        ctx.arc(0, 0, sealRadius - 40, 0, Math.PI * 2);
         ctx.strokeStyle = '#1e3a8a';
         ctx.lineWidth = 2;
         ctx.stroke();
 
         // Circular Text Function
         const drawCircularText = (text: string, radius: number, startAngle: number, endAngle: number) => {
-             ctx.font = 'bold 11px "Nunito", sans-serif';
+             ctx.font = 'bold 13px "Nunito", sans-serif'; // Increased font size
              ctx.fillStyle = '#1e3a8a';
              ctx.textAlign = 'center';
              const angleRange = endAngle - startAngle;
@@ -314,22 +315,21 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
              }
         };
 
-        // Top arc text: "INSTITUTE OF EMOTION ADAPTIVE EDUCATION"
-        // Angles in radians (approx -2.2 to 2.2 for top arc)
-        drawCircularText("INSTITUTE OF EMOTION ADAPTIVE EDUCATION", 72, -2.2, 2.2);
+        // Top arc text
+        drawCircularText("INSTITUTE OF EMOTION ADAPTIVE EDUCATION", sealRadius - 18, -2.4, 2.4);
         
         // Bottom arc stars
-        ctx.font = '20px "Nunito", sans-serif';
+        ctx.font = '24px "Nunito", sans-serif';
         ctx.fillStyle = '#f59e0b';
-        ctx.fillText('★', -50, 20); // visual adjustment
-        ctx.fillText('★', 50, 20);
+        ctx.fillText('★', -60, 30);
+        ctx.fillText('★', 60, 30);
 
-        // Center Icon (Heart/Brain symbol)
-        ctx.font = '40px "Nunito", sans-serif';
+        // Center Icon
+        ctx.font = '50px "Nunito", sans-serif';
         ctx.fillStyle = '#2563eb';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🎓', 0, 0);
+        ctx.fillText('🎓', 0, 5);
         
         ctx.restore();
 
@@ -338,12 +338,12 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             const img = new Image();
             img.src = '/logo.svg';
             img.onload = () => {
-                const logoSize = 130; // Increased size
-                ctx.drawImage(img, 1020, 60, logoSize, logoSize);
+                const logoSize = 150; // Increased size for visibility
+                ctx.drawImage(img, 1000, 50, logoSize, logoSize);
                 resolve();
             };
             img.onerror = () => {
-                ctx.font = 'bold 30px "Nunito", sans-serif';
+                ctx.font = 'bold 36px "Nunito", sans-serif';
                 ctx.fillStyle = '#2563eb';
                 ctx.textAlign = 'right';
                 ctx.fillText('FeelEd AI', 1150, 100);
@@ -402,8 +402,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 10. Bottom Text (Margin Fix)
-        // Moved up to ensure it doesn't touch the border (Limit y < 760)
+        // 10. Bottom Text & URL (Enhanced Marketing)
         ctx.font = 'bold 32px "Nunito", sans-serif';
         ctx.fillStyle = '#6366f1';
         ctx.fillText('FeelEd AI', 600, 690);
@@ -411,18 +410,23 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.font = '22px "Nunito", sans-serif';
         ctx.fillStyle = '#94a3b8';
         ctx.fillText('Emotion-Adaptive Education', 600, 725);
+        
+        // ** Alternate Option: Permanent URL on Image **
+        ctx.font = 'bold 20px "Nunito", sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('https://feeledai.com', 600, 760);
 
         // 11. Date and Time Stamp (Bottom Left)
         ctx.font = 'bold 16px "Nunito", sans-serif';
         ctx.fillStyle = '#64748b'; 
         ctx.textAlign = 'left';
-        ctx.fillText(`Issued: ${dateStr}`, 60, 740);
-        ctx.fillText(`${timeStr}`, 60, 760);
+        ctx.fillText(`Issued: ${dateStr}`, 60, 750);
+        ctx.fillText(`${timeStr}`, 60, 770);
 
         // 12. Bottom Right: QR Code
         const qrSize = 90;
         const qrX = 1050;
-        const qrY = 650;
+        const qrY = 660;
         
         // QR Background
         ctx.fillStyle = '#fff';
@@ -473,21 +477,25 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             try {
                 const file = new File([certificateBlob], "FeeledAI_Certificate.png", { type: "image/png" });
                 
-                // Silent backup: copy text to clipboard because some apps (like WhatsApp Android) 
-                // might drop the caption when sharing an image.
-                try {
-                    await navigator.clipboard.writeText(shareText);
-                } catch (e) {
-                    // Ignore clipboard errors
-                }
-
-                await navigator.share({
+                // Optimized Share Data: Sending ONLY files and text is the most reliable way 
+                // to get the caption to show up on apps like WhatsApp on Android.
+                // Including 'title' or 'url' fields can sometimes cause the app to treat it as a link share 
+                // and drop the image, or a file share and drop the text.
+                const shareData: ShareData = {
                     files: [file],
-                    title: "Merit Certificate",
                     text: shareText,
-                });
+                };
+
+                if (navigator.canShare && navigator.canShare(shareData)) {
+                    await navigator.share(shareData);
+                } else {
+                     // If file sharing is not supported by the device (e.g., some desktops), fall back
+                     throw new Error("File sharing not supported");
+                }
             } catch (err) {
-                console.error("Share failed", err);
+                console.error("Share failed or canceled", err);
+                // Even if it fails, the user can still download/copy using other methods if needed,
+                // but the primary action is done.
             }
         } else {
              // Desktop Fallback: Open WhatsApp Web (Text only) + Download Image
@@ -772,9 +780,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                                     Share Certificate
                                 </button>
                             </div>
-                            <p className="text-xs text-amber-600 mt-2 italic">
-                                *Tip: If text is missing on WhatsApp, just tap Paste! It's copied to your clipboard.
-                            </p>
                         </div>
                     )}
                 </div>
