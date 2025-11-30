@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, Story } from '../types';
 import { sendChatMessage } from '../services/geminiService';
@@ -43,7 +42,7 @@ const StoryChat: React.FC<StoryChatProps> = ({ story }) => {
     };
 
     return (
-        <div className="mt-8 bg-white rounded-2xl shadow-lg border border-indigo-100 overflow-hidden animate-fadeInUp">
+        <div className="mt-8 bg-white rounded-2xl shadow-lg border border-indigo-100 overflow-hidden">
             <div className="bg-indigo-600 p-4 flex items-center justify-between">
                 <h3 className="text-white font-bold text-lg flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">

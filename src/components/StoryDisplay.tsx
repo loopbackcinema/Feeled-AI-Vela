@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Story, QuizQuestion } from '../types';
 import Spinner from './Spinner';
@@ -14,8 +13,8 @@ interface StoryDisplayProps {
     onTryAnother: () => void;
 }
 
-const StorySection: React.FC<{ title: string; content: string; delay: number }> = ({ title, content, delay }) => (
-    <div className="mb-6 animate-fadeInUp bg-slate-50 p-4 rounded-xl border-l-4 border-blue-400" style={{ animationDelay: `${delay}ms`, opacity: 0 }}>
+const StorySection: React.FC<{ title: string; content: string }> = ({ title, content }) => (
+    <div className="mb-6 bg-slate-50 p-4 rounded-xl border-l-4 border-blue-400 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 mb-2 capitalize flex items-center gap-2">
             {title === 'Introduction' && '✨'}
             {title === 'Emotional_trigger' && '❤️'}
@@ -45,7 +44,7 @@ const QuizSection: React.FC<{ quiz: QuizQuestion[] }> = ({ quiz }) => {
     if (!quiz || quiz.length === 0) return null;
 
     return (
-        <div className="mt-12 bg-indigo-50/80 p-6 md:p-8 rounded-3xl border border-indigo-100 animate-fadeInUp" style={{ animationDelay: '500ms' }}>
+        <div className="mt-12 bg-indigo-50/80 p-6 md:p-8 rounded-3xl border border-indigo-100 shadow-md">
             <h3 className="text-2xl font-bold text-indigo-900 mb-6 text-center flex items-center justify-center gap-2">
                 <span>🧠</span> Knowledge Check
             </h3>
@@ -258,11 +257,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         const url = `https://wa.me/?text=${text}`;
         window.open(url, '_blank', 'noopener,noreferrer');
     };
-
-    const handleShareFacebook = () => {
-        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(story.introduction)}`;
-        window.open(url, '_blank', 'noopener,noreferrer');
-    };
     
     const scrollToChat = () => {
         chatSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -288,12 +282,12 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
     
     return (
         <div className="w-full max-w-4xl mx-auto glass-panel p-6 md:p-10 rounded-3xl shadow-2xl border border-white/40">
-            <h2 className="text-4xl font-extrabold text-center mb-2 text-blue-700 animate-fadeInUp tracking-tight">{story.title}</h2>
-            <div className="flex justify-center items-center gap-2 mb-6 animate-fadeInUp" style={{ animationDelay: '100ms', opacity: 0 }}>
+            <h2 className="text-4xl font-extrabold text-center mb-2 text-blue-700 tracking-tight">{story.title}</h2>
+            <div className="flex justify-center items-center gap-2 mb-6">
                  <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-blue-400">Tone: {story.emotion_tone}</span>
             </div>
 
-            <div className="my-8 animate-fadeInUp transform hover:scale-[1.01] transition-transform duration-500" style={{ animationDelay: '200ms', opacity: 0 }}>
+            <div className="my-8 transform hover:scale-[1.01] transition-transform duration-500">
                 {isImageLoading && (
                     <div className="w-full aspect-video bg-indigo-50 rounded-2xl animate-pulse mb-6 flex items-center justify-center border-4 border-white shadow-lg">
                         <span className="text-indigo-300 font-semibold">Dreaming up an image...</span>
@@ -311,7 +305,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 )}
             </div>
 
-            <div className="my-8 text-center animate-fadeInUp" style={{ animationDelay: '200ms', opacity: 0 }}>
+            <div className="my-8 text-center">
                  <button 
                     onClick={handlePlayPause} 
                     disabled={isAudioLoading || isDecoding || !base64Audio}
@@ -331,16 +325,16 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             </div>
             
             <div className="story-content space-y-2 mt-10">
-                <StorySection title="Introduction" content={story.introduction} delay={300} />
-                <StorySection title="Emotional_trigger" content={story.emotional_trigger} delay={450} />
-                <StorySection title="Concept_explanation" content={story.concept_explanation} delay={600} />
-                <StorySection title="Resolution" content={story.resolution} delay={750} />
+                <StorySection title="Introduction" content={story.introduction} />
+                <StorySection title="Emotional_trigger" content={story.emotional_trigger} />
+                <StorySection title="Concept_explanation" content={story.concept_explanation} />
+                <StorySection title="Resolution" content={story.resolution} />
                 
-                <hr className="my-8 border-t-2 border-slate-100 animate-fadeInUp" style={{ animationDelay: '900ms', opacity: 0 }} />
+                <hr className="my-8 border-t-2 border-slate-100" />
                 
                 <div className="grid md:grid-cols-2 gap-4">
-                     <StorySection title="Moral_message" content={story.moral_message} delay={1050} />
-                     <StorySection title="Conclusion" content={story.conclusion} delay={1200} />
+                     <StorySection title="Moral_message" content={story.moral_message} />
+                     <StorySection title="Conclusion" content={story.conclusion} />
                 </div>
             </div>
 

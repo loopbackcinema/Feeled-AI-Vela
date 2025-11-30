@@ -78,7 +78,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         
         Generate the story in a 5-part structure: Introduction, Emotional Trigger, Concept Explanation, Resolution, and Moral Message, plus a title and conclusion.
         
-        ALSO, generate a "Quiz" with 3 multiple-choice questions based on the Concept Explanation to test understanding. Each question MUST have exactly 4 options and one clearly correct answer.
+        IMPORTANT: You MUST also generate a "Quiz" with exactly 3 multiple-choice questions based on the story's concept. 
+        - Each question must have exactly 4 options.
+        - One option must be the correct answer.
+        - The questions should test comprehension of the concept explained in the story.
         
         Return the output strictly in the specified JSON format.`;
         
