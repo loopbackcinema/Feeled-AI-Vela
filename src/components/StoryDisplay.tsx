@@ -29,17 +29,37 @@ const StorySection: React.FC<{ title: string; content: string }> = ({ title, con
     </div>
 );
 
-const QuizSection: React.FC<{ quiz: QuizQuestion[] }> = ({ quiz }) => {
+interface QuizSectionProps {
+    quiz: QuizQuestion[];
+    onQuizComplete: (score: number) => void;
+}
+
+const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [showResult, setShowResult] = useState<{ [key: number]: boolean }>({});
+    const [score, setScore] = useState(0);
+    const [isCompleted, setIsCompleted] = useState(false);
 
     const handleOptionSelect = (qIndex: number, option: string) => {
-        if (showResult[qIndex]) return; // Prevent changing after showing result
+        if (showResult[qIndex]) return; 
         setAnswers(prev => ({ ...prev, [qIndex]: option }));
     };
 
     const handleCheckAnswer = (qIndex: number) => {
+        const isCorrect = answers[qIndex] === quiz[qIndex].answer;
+        if (isCorrect) {
+            setScore(prev => prev + 1);
+        }
         setShowResult(prev => ({ ...prev, [qIndex]: true }));
+        
+        // Check if all questions are answered
+        const nextResults = { ...showResult, [qIndex]: true };
+        if (Object.keys(nextResults).length === quiz.length && !isCompleted) {
+            setIsCompleted(true);
+            // Calculate final score including this one
+            const finalScore = isCorrect ? score + 1 : score;
+            onQuizComplete(finalScore);
+        }
     };
 
     if (!quiz || quiz.length === 0) return null;
@@ -101,7 +121,7 @@ const QuizSection: React.FC<{ quiz: QuizQuestion[] }> = ({ quiz }) => {
                         )}
                     </div>
                 ))}
-                </div>
+            </div>
         </div>
     );
 };
@@ -180,14 +200,150 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
     const [canShare, setCanShare] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
     
+    // Gamification & Certificate States
+    const [showCertificateForm, setShowCertificateForm] = useState(false);
+    const [studentName, setStudentName] = useState('');
+    const [studentClass, setStudentClass] = useState('');
+    const [schoolName, setSchoolName] = useState('');
+    const [certificateBlob, setCertificateBlob] = useState<Blob | null>(null);
+    const [generatingCert, setGeneratingCert] = useState(false);
+
     // Ref for scrolling to chat
     const chatSectionRef = useRef<HTMLDivElement>(null);
+    const certRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (navigator.share) {
             setCanShare(true);
         }
     }, []);
+
+    const handleQuizComplete = (score: number) => {
+        if (score === 3) {
+            setTimeout(() => {
+                setShowCertificateForm(true);
+                setTimeout(() => {
+                    certRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }, 1000);
+        }
+    };
+
+    const generateCertificate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setGeneratingCert(true);
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Set high resolution
+        canvas.width = 1200;
+        canvas.height = 800;
+
+        // Background
+        const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
+        gradient.addColorStop(0, '#fdfbf7');
+        gradient.addColorStop(1, '#eef2ff');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1200, 800);
+
+        // Border
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 20;
+        ctx.strokeRect(20, 20, 1160, 760);
+        
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(40, 40, 1120, 720);
+
+        // Header
+        ctx.font = 'bold 80px "Nunito", sans-serif';
+        ctx.fillStyle = '#1e3a8a';
+        ctx.textAlign = 'center';
+        ctx.fillText('CERTIFICATE', 600, 150);
+        
+        ctx.font = 'bold 40px "Nunito", sans-serif';
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText('OF MERIT', 600, 210);
+
+        // Content
+        ctx.font = 'italic 30px "Nunito", sans-serif';
+        ctx.fillStyle = '#4b5563';
+        ctx.fillText('This is proudly presented to', 600, 300);
+
+        // Name
+        ctx.font = 'bold italic 70px "Nunito", serif';
+        ctx.fillStyle = '#2563eb';
+        ctx.fillText(studentName, 600, 390);
+
+        // Details
+        ctx.font = '30px "Nunito", sans-serif';
+        ctx.fillStyle = '#374151';
+        ctx.fillText(`Grade: ${studentClass} | School: ${schoolName}`, 600, 460);
+
+        ctx.font = 'italic 30px "Nunito", sans-serif';
+        ctx.fillStyle = '#4b5563';
+        ctx.fillText('For successfully mastering the concept of', 600, 530);
+
+        // Story Concept
+        ctx.font = 'bold 40px "Nunito", sans-serif';
+        ctx.fillStyle = '#1e3a8a';
+        const maxWidth = 1000;
+        const concept = story.title;
+        if (ctx.measureText(concept).width > maxWidth) {
+             ctx.fillText(concept, 600, 600, maxWidth); 
+        } else {
+             ctx.fillText(concept, 600, 600);
+        }
+
+        // Footer
+        ctx.beginPath();
+        ctx.moveTo(300, 700);
+        ctx.lineTo(900, 700);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.font = 'bold 30px "Nunito", sans-serif';
+        ctx.fillStyle = '#6366f1';
+        ctx.fillText('FeelEd AI', 600, 740);
+        
+        ctx.font = '20px "Nunito", sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('Emotion-Adaptive Education', 600, 770);
+
+        // Convert to Blob
+        canvas.toBlob((blob) => {
+            if (blob) {
+                setCertificateBlob(blob);
+            }
+            setGeneratingCert(false);
+        }, 'image/png');
+    };
+
+    const handleShareCertificate = async () => {
+        if (!certificateBlob) return;
+
+        const shareText = `I just earned a Merit Certificate in "${story.title}" on FeelEd AI! 🎓✨\n\nExperience emotion-based learning here: https://feeledai.com`;
+
+        if (navigator.share) {
+            try {
+                const file = new File([certificateBlob], "FeeledAI_Certificate.png", { type: "image/png" });
+                await navigator.share({
+                    title: 'My FeelEd AI Certificate',
+                    text: shareText,
+                    files: [file],
+                });
+            } catch (err) {
+                console.error("Share failed", err);
+            }
+        } else {
+             // Fallback to simple WhatsApp link if navigator.share fails (though this can't send the image)
+             const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+             window.open(url, '_blank');
+        }
+    };
 
     const handlePlayPause = useCallback(async () => {
         if (!base64Audio) return;
@@ -233,7 +389,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             `\n*Concept Explanation:*\n${story.concept_explanation}`,
             `\n*Resolution:*\n${story.resolution}`,
             `\n*Moral Message:*\n${story.moral_message}`,
-            `\n\n- Generated by FeelEd AI (feeledai.com)`
+            `\n\n- Generated by FeelEd AI (https://feeledai.com)`
         ].join('\n');
     }, [story]);
     
@@ -396,7 +552,82 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             </div>
 
             {/* Interactive Quiz Section */}
-            {story.quiz && story.quiz.length > 0 && <QuizSection quiz={story.quiz} />}
+            {story.quiz && story.quiz.length > 0 && <QuizSection quiz={story.quiz} onQuizComplete={handleQuizComplete} />}
+            
+            {/* Certificate Section */}
+            {showCertificateForm && (
+                <div ref={certRef} className="mt-12 bg-gradient-to-br from-yellow-50 to-amber-50 p-8 rounded-3xl border-2 border-amber-200 shadow-xl text-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-300 rounded-full blur-3xl opacity-20"></div>
+                    
+                    {!certificateBlob ? (
+                        <>
+                            <h3 className="text-3xl font-black text-amber-600 mb-2">🎉 Congratulations!</h3>
+                            <p className="text-amber-800 font-medium mb-6">You got a perfect score! Claim your Merit Certificate.</p>
+                            
+                            <form onSubmit={generateCertificate} className="max-w-md mx-auto space-y-4 relative z-10">
+                                <input 
+                                    type="text" 
+                                    placeholder="Student Name" 
+                                    value={studentName}
+                                    onChange={(e) => setStudentName(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border border-amber-200 focus:ring-2 focus:ring-amber-400 outline-none"
+                                    required
+                                />
+                                <input 
+                                    type="text" 
+                                    placeholder="Class / Grade (e.g., 5th Std)" 
+                                    value={studentClass}
+                                    onChange={(e) => setStudentClass(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border border-amber-200 focus:ring-2 focus:ring-amber-400 outline-none"
+                                    required
+                                />
+                                <input 
+                                    type="text" 
+                                    placeholder="School Name" 
+                                    value={schoolName}
+                                    onChange={(e) => setSchoolName(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border border-amber-200 focus:ring-2 focus:ring-amber-400 outline-none"
+                                    required
+                                />
+                                <button 
+                                    type="submit" 
+                                    disabled={generatingCert}
+                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg transition-transform transform hover:scale-105 disabled:opacity-70"
+                                >
+                                    {generatingCert ? 'Generating...' : 'Get Certificate 🏆'}
+                                </button>
+                            </form>
+                        </>
+                    ) : (
+                        <div className="space-y-6">
+                            <h3 className="text-2xl font-bold text-amber-700">🎓 Your Certificate is Ready!</h3>
+                            <img 
+                                src={URL.createObjectURL(certificateBlob)} 
+                                alt="Certificate" 
+                                className="w-full rounded-xl shadow-lg border-4 border-white mx-auto max-w-lg"
+                            />
+                            <div className="flex justify-center gap-4">
+                                <button 
+                                    onClick={handleShareCertificate}
+                                    className="bg-[#25D366] hover:bg-[#1ebc57] text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-transform transform hover:scale-105"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
+                                    </svg>
+                                    Share on WhatsApp
+                                </button>
+                                <a 
+                                    href={URL.createObjectURL(certificateBlob)} 
+                                    download="FeelEd_Certificate.png"
+                                    className="bg-white border-2 border-amber-200 text-amber-700 font-bold py-3 px-6 rounded-xl hover:bg-amber-50 transition-colors"
+                                >
+                                    Download
+                                </a>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
             
             {/* Interactive Story Chat */}
             <div ref={chatSectionRef}>
