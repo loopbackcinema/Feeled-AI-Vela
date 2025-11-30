@@ -178,6 +178,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
     const [isPlaying, setIsPlaying] = useState(false);
     const [isDecoding, setIsDecoding] = useState(false);
     const [canShare, setCanShare] = useState(false);
+    const [copySuccess, setCopySuccess] = useState(false);
     
     // Ref for scrolling to chat
     const chatSectionRef = useRef<HTMLDivElement>(null);
@@ -260,11 +261,13 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         if (!navigator.share) return;
 
         const text = getStoryAsText();
+        // Construct the base share data
         const shareData: ShareData = {
             title: story.title,
             text: text,
-            url: 'https://feeledai.com'
         };
+
+        let fileAttached = false;
 
         // Try to attach image if available
         if (base64Image && imageMimeType) {
@@ -276,6 +279,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     shareData.files = [file];
+                    fileAttached = true;
                 }
             } catch (e) {
                 console.error("Error preparing image for share:", e);
@@ -283,11 +287,26 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
             }
         }
 
+        // IMPORTANT: If we are sharing a file, do NOT include the URL field.
+        // Many platforms (especially Android) drop the text caption if a URL is present alongside a file.
+        // We only add the URL if we are NOT sharing a file.
+        if (!fileAttached) {
+            shareData.url = 'https://feeledai.com';
+        }
+
         try {
             await navigator.share(shareData);
         } catch (error) {
             console.error('Error sharing:', error);
         }
+    };
+
+    const handleCopyStory = () => {
+        const text = getStoryAsText();
+        navigator.clipboard.writeText(text).then(() => {
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+        });
     };
 
     const handleShareWhatsApp = () => {
@@ -420,6 +439,27 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                             Share Image + Story
                         </button>
                     )}
+
+                    <button 
+                        onClick={handleCopyStory}
+                        className="flex items-center justify-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 font-semibold py-2 px-4 rounded-xl shadow-sm transition-colors"
+                    >
+                         {copySuccess ? (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-green-600">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                </svg>
+                                Copied!
+                            </>
+                        ) : (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5" />
+                                </svg>
+                                Copy Story
+                            </>
+                        )}
+                    </button>
 
                     <button onClick={handleShareWhatsApp} className="flex items-center justify-center gap-2 bg-[#25D366] text-white hover:bg-[#20bd5a] font-semibold py-2 px-4 rounded-xl shadow-sm transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="currentColor" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.8 0-67.6-9.5-97.8-26.7l-7.1-4.2-73.3 19.3 19.3-71.6-4.7-7.5c-19.1-30.3-29.8-66-29.8-103.3 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
