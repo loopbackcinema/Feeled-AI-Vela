@@ -137,10 +137,10 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                         },
                         {
                             date: "Dec 05, 2025",
-                            title: "World Artificial Intelligence Summit 2025 (Series)",
+                            title: "AI Visionaries Summit 2025 (Series of World AI Summits)",
                             loc: "Gurugram, India 🇮🇳",
                             type: "Oral Presentation",
-                            topic: "Emotion-Adaptive Framework",
+                            topic: "FeelEd AI™: An Emotion-Adaptive Framework for Story-Based Cognitive Learning",
                             link: "https://www.magnivelinternational.com/speakers/6/series-of-world-artificial-intelligence-summits",
                             // Vibrant Violet Theme
                             cardBg: "bg-violet-50",
@@ -154,7 +154,7 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                             title: "12th International Conference on Neurology and Neurological Disorders",
                             loc: "Barcelona, Spain 🇪🇸",
                             type: "Invited Speaker",
-                            topic: "Neurological Implications of Emotion AI",
+                            topic: "Neurological Implications of Emotion-Adaptive Learning",
                             link: "https://neurology.magnusconferences.com/speaker/velayutham-s",
                             // Vibrant Amber Theme
                             cardBg: "bg-amber-50",

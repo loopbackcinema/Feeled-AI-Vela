@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Page } from '../types';
 
 interface FounderProps {
@@ -7,8 +7,6 @@ interface FounderProps {
 }
 
 const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
-    const [imgError, setImgError] = useState(false);
-
     return (
         <div className="w-full max-w-4xl bg-white p-8 rounded-2xl shadow-lg border border-slate-200 animate-fade-in">
             <h1 className="text-3xl font-bold text-blue-600 mb-8 text-center">🌟 Founder</h1>
@@ -16,16 +14,11 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
             {/* Profile Section */}
             <div className="flex flex-col items-center mb-10">
                 <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-xl ring-4 ring-blue-50 mb-4 bg-blue-100 flex items-center justify-center relative group">
-                    {!imgError ? (
-                        <img 
-                            src="/founder.jpg?v=5"
-                            alt="Velayutham S" 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            onError={() => setImgError(true)}
-                        />
-                    ) : (
-                         <span className="text-6xl font-bold text-blue-300">V</span>
-                    )}
+                    <img 
+                        src="/founder.jpg?v=10"
+                        alt="Velayutham S" 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
                 </div>
                 <h2 className="text-2xl font-bold text-slate-800">Velayutham S</h2>
                 <p className="text-blue-600 font-medium">Founder & Visionary</p>

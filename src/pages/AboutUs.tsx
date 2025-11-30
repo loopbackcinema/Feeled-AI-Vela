@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Page } from '../types';
 
 interface AboutUsProps {
@@ -7,8 +7,6 @@ interface AboutUsProps {
 }
 
 const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
-    const [imgError, setImgError] = useState(false);
-
     return (
         <div className="w-full max-w-5xl bg-white p-6 md:p-12 rounded-[2.5rem] shadow-2xl border-4 border-white ring-4 ring-blue-50 animate-fade-in relative overflow-hidden">
             
@@ -132,16 +130,11 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
             {/* Meet the Founder Section */}
             <div className="mt-16 bg-white p-8 rounded-[2rem] border-2 border-slate-100 shadow-lg flex flex-col md:flex-row items-center gap-8 relative z-10 hover:border-blue-200 transition-colors">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-100 shadow-md shrink-0 bg-blue-50 flex items-center justify-center">
-                    {!imgError ? (
-                        <img 
-                            src="/founder.jpg?v=5" 
-                            alt="Velayutham S" 
-                            className="w-full h-full object-cover"
-                            onError={() => setImgError(true)}
-                        />
-                    ) : (
-                        <span className="text-4xl font-bold text-blue-300">V</span>
-                    )}
+                    <img 
+                        src="/founder.jpg?v=10" 
+                        alt="Velayutham S" 
+                        className="w-full h-full object-cover"
+                    />
                 </div>
                 <div className="text-center md:text-left">
                     <h3 className="text-2xl font-bold text-slate-800 mb-2">Meet the Founder</h3>
