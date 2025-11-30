@@ -2,6 +2,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
 
 // These types must be defined here for the serverless function
+interface QuizQuestion {
+    question: string;
+    options: string[];
+    answer: string;
+}
+
 interface Story {
     title: string;
     emotion_tone: string;
@@ -11,6 +17,7 @@ interface Story {
     resolution: string;
     moral_message: string;
     conclusion: string;
+    quiz: QuizQuestion[];
 }
 
 interface StoryRequest {
@@ -32,8 +39,20 @@ const storySchema = {
         resolution: { type: Type.STRING },
         moral_message: { type: Type.STRING },
         conclusion: { type: Type.STRING },
+        quiz: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    question: { type: Type.STRING },
+                    options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    answer: { type: Type.STRING, description: "The correct answer from the options array" }
+                },
+                required: ["question", "options", "answer"]
+            }
+        }
     },
-    required: ["title", "emotion_tone", "introduction", "emotional_trigger", "concept_explanation", "resolution", "moral_message", "conclusion"],
+    required: ["title", "emotion_tone", "introduction", "emotional_trigger", "concept_explanation", "resolution", "moral_message", "conclusion", "quiz"],
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -56,7 +75,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const storyPrompt = `You are an expert educational storyteller. Convert the academic topic "${request.topic}" into an emotional, student-friendly story.
         The story must be appropriate for a ${request.std} student and be in ${request.language}.
         The emotional tone should be ${request.emotionTone}.
+        
         Generate the story in a 5-part structure: Introduction, Emotional Trigger, Concept Explanation, Resolution, and Moral Message, plus a title and conclusion.
+        
+        ALSO, generate a "Quiz" with 3 multiple-choice questions based on the Concept Explanation to test understanding. Each question MUST have exactly 4 options and one clearly correct answer.
+        
         Return the output strictly in the specified JSON format.`;
         
         const storyResponse = await ai.models.generateContent({

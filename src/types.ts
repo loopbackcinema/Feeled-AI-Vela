@@ -1,3 +1,10 @@
+
+export interface QuizQuestion {
+    question: string;
+    options: string[];
+    answer: string;
+}
+
 export interface Story {
     title: string;
     emotion_tone: string;
@@ -7,6 +14,7 @@ export interface Story {
     resolution: string;
     moral_message: string;
     conclusion: string;
+    quiz: QuizQuestion[];
 }
 
 export interface StoryRequest {
@@ -15,6 +23,11 @@ export interface StoryRequest {
     language: string;
     narratorVoice: string;
     emotionTone: string;
+}
+
+export interface ChatMessage {
+    role: 'user' | 'model';
+    text: string;
 }
 
 export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy';

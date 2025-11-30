@@ -1,5 +1,5 @@
 
-import { Story, StoryRequest } from '../types';
+import { Story, StoryRequest, ChatMessage } from '../types';
 
 export const generateStory = async (request: StoryRequest): Promise<{ story: Story }> => {
     const response = await fetch('/api/story', {
@@ -60,6 +60,20 @@ export const generateImage = async (story: Story): Promise<{ base64Image: string
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred while generating image.' }));
         throw new Error(errorData.error || `Image request failed with status ${response.status}`);
+    }
+
+    return response.json();
+};
+
+export const sendChatMessage = async (message: string, history: ChatMessage[], story: Story): Promise<{ text: string }> => {
+    const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, history, story }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to send message');
     }
 
     return response.json();
