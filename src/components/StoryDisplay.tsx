@@ -243,75 +243,137 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
 
         // Background
         const gradient = ctx.createLinearGradient(0, 0, 1200, 800);
-        gradient.addColorStop(0, '#fdfbf7');
-        gradient.addColorStop(1, '#eef2ff');
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(1, '#f0f9ff');
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 1200, 800);
 
         // Border
-        ctx.strokeStyle = '#4f46e5';
-        ctx.lineWidth = 20;
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 15;
         ctx.strokeRect(20, 20, 1160, 760);
         
         ctx.strokeStyle = '#f59e0b';
         ctx.lineWidth = 5;
         ctx.strokeRect(40, 40, 1120, 720);
 
-        // Header
-        ctx.font = 'bold 80px "Nunito", sans-serif';
+        // --- Top Left: Seal ---
+        ctx.save();
+        ctx.translate(150, 150);
+        ctx.beginPath();
+        ctx.arc(0, 0, 80, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.strokeStyle = '#1e3a8a';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(0, 0, 70, 0, Math.PI * 2);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.font = 'bold 12px "Nunito", sans-serif';
+        ctx.fillStyle = '#1e3a8a';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('INSTITUTE OF', 0, -20);
+        ctx.fillText('EMOTION ADAPTIVE', 0, 0);
+        ctx.fillText('EDUCATION', 0, 20);
+        ctx.restore();
+
+        // --- Top Right: Logo Text ---
+        ctx.font = 'bold 30px "Nunito", sans-serif';
+        ctx.fillStyle = '#2563eb';
+        ctx.textAlign = 'right';
+        ctx.fillText('FeelEd AI', 1100, 130);
+        ctx.font = '16px "Nunito", sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('Emotion-Adaptive Education', 1100, 155);
+
+        // --- Header ---
+        ctx.font = 'bold 70px "Nunito", sans-serif';
         ctx.fillStyle = '#1e3a8a';
         ctx.textAlign = 'center';
         ctx.fillText('CERTIFICATE', 600, 150);
         
-        ctx.font = 'bold 40px "Nunito", sans-serif';
+        ctx.font = 'bold 35px "Nunito", sans-serif';
         ctx.fillStyle = '#f59e0b';
-        ctx.fillText('OF MERIT', 600, 210);
+        ctx.fillText('OF MERIT', 600, 200);
 
-        // Content
-        ctx.font = 'italic 30px "Nunito", sans-serif';
+        // --- Content ---
+        ctx.font = 'italic 25px "Nunito", sans-serif';
         ctx.fillStyle = '#4b5563';
-        ctx.fillText('This is proudly presented to', 600, 300);
+        ctx.fillText('This is proudly presented to', 600, 280);
 
-        // Name
-        ctx.font = 'bold italic 70px "Nunito", serif';
+        // --- Name ---
+        ctx.font = 'bold italic 60px "Nunito", serif';
         ctx.fillStyle = '#2563eb';
-        ctx.fillText(studentName, 600, 390);
+        ctx.fillText(studentName, 600, 360);
 
-        // Details
-        ctx.font = '30px "Nunito", sans-serif';
+        // --- Details ---
+        ctx.font = '24px "Nunito", sans-serif';
         ctx.fillStyle = '#374151';
-        ctx.fillText(`Grade: ${studentClass} | School: ${schoolName}`, 600, 460);
+        ctx.fillText(`Grade: ${studentClass} | School: ${schoolName}`, 600, 420);
 
-        ctx.font = 'italic 30px "Nunito", sans-serif';
+        ctx.font = 'italic 25px "Nunito", sans-serif';
         ctx.fillStyle = '#4b5563';
-        ctx.fillText('For successfully mastering the concept of', 600, 530);
+        ctx.fillText('For successfully mastering the concept of', 600, 490);
 
-        // Story Concept
-        ctx.font = 'bold 40px "Nunito", sans-serif';
+        // --- Story Concept ---
+        ctx.font = 'bold 35px "Nunito", sans-serif';
         ctx.fillStyle = '#1e3a8a';
         const maxWidth = 1000;
         const concept = story.title;
         if (ctx.measureText(concept).width > maxWidth) {
-             ctx.fillText(concept, 600, 600, maxWidth); 
+             ctx.font = 'bold 30px "Nunito", sans-serif';
+             ctx.fillText(concept, 600, 550, maxWidth); 
         } else {
-             ctx.fillText(concept, 600, 600);
+             ctx.fillText(concept, 600, 550);
         }
 
-        // Footer
+        // --- Footer Line ---
         ctx.beginPath();
-        ctx.moveTo(300, 700);
-        ctx.lineTo(900, 700);
+        ctx.moveTo(300, 650);
+        ctx.lineTo(900, 650);
         ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 2;
         ctx.stroke();
 
+        // --- Bottom Text ---
         ctx.font = 'bold 30px "Nunito", sans-serif';
         ctx.fillStyle = '#6366f1';
-        ctx.fillText('FeelEd AI', 600, 740);
+        ctx.fillText('FeelEd AI', 600, 690);
         
         ctx.font = '20px "Nunito", sans-serif';
         ctx.fillStyle = '#94a3b8';
-        ctx.fillText('Emotion-Adaptive Education', 600, 770);
+        ctx.fillText('Emotion-Adaptive Education', 600, 720);
+
+        // --- Bottom Right: Mock QR Code ---
+        const qrSize = 90;
+        const qrX = 1050;
+        const qrY = 650;
+        
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(qrX, qrY, qrSize, qrSize);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+        
+        ctx.fillStyle = '#000';
+        const cellSize = 10;
+        for(let i=0; i<9; i++) {
+            for(let j=0; j<9; j++) {
+                if (Math.random() > 0.5 || (i<3 && j<3) || (i>6 && j<3) || (i<3 && j>6)) {
+                    ctx.fillRect(qrX + i*cellSize, qrY + j*cellSize, cellSize, cellSize);
+                }
+            }
+        }
+        ctx.font = '10px "Nunito", sans-serif';
+        ctx.fillStyle = '#000';
+        ctx.textAlign = 'center';
+        ctx.fillText('Scan to Verify', qrX + qrSize/2, qrY + qrSize + 15);
 
         // Convert to Blob
         canvas.toBlob((blob) => {
@@ -325,7 +387,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
     const handleShareCertificate = async () => {
         if (!certificateBlob) return;
 
-        const shareText = `I just earned a Merit Certificate in "${story.title}" on FeelEd AI! 🎓✨\n\nExperience emotion-based learning here: https://feeledai.com`;
+        const shareText = `I am thrilled to share that I have received a Merit Certificate from FeelEd AI! 🎓✨\n\nExperience emotion-based learning here: https://feeledai.com`;
 
         if (navigator.share) {
             try {
@@ -339,7 +401,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 console.error("Share failed", err);
             }
         } else {
-             // Fallback to simple WhatsApp link if navigator.share fails (though this can't send the image)
+             // Fallback to WhatsApp link
              const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
              window.open(url, '_blank');
         }
@@ -417,18 +479,14 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         if (!navigator.share) return;
 
         const text = getStoryAsText();
-        // Construct the base share data
         const shareData: ShareData = {
             title: story.title,
             text: text,
         };
 
         let fileAttached = false;
-
-        // Try to attach image if available
         if (base64Image && imageMimeType) {
             try {
-                // Convert base64 to blob to file
                 const res = await fetch(`data:${imageMimeType};base64,${base64Image}`);
                 const blob = await res.blob();
                 const file = new File([blob], "story_image.png", { type: imageMimeType });
@@ -439,13 +497,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 }
             } catch (e) {
                 console.error("Error preparing image for share:", e);
-                // Continue sharing without image if it fails
             }
         }
 
-        // IMPORTANT: If we are sharing a file, do NOT include the URL field.
-        // Many platforms (especially Android) drop the text caption if a URL is present alongside a file.
-        // We only add the URL if we are NOT sharing a file.
         if (!fileAttached) {
             shareData.url = 'https://feeledai.com';
         }
@@ -609,12 +663,12 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                             <div className="flex justify-center gap-4">
                                 <button 
                                     onClick={handleShareCertificate}
-                                    className="bg-[#25D366] hover:bg-[#1ebc57] text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-transform transform hover:scale-105"
+                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg flex items-center gap-2 transition-transform transform hover:scale-105"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592z"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.19.026.37.06.55.098a2.25 2.25 0 0 1 1.455 1.455c.038.18.072.36.098.55m0 0a2.25 2.25 0 0 0 2.186 0m0-2.186a2.25 2.25 0 0 0 0-2.186m0 2.186c-.19-.026-.37-.06-.55-.098a2.25 2.25 0 0 1-1.455-1.455c-.038-.18-.072-.36-.098-.55m0 0a2.25 2.25 0 0 0-2.186 0m0 2.186.001.001" />
                                     </svg>
-                                    Share on WhatsApp
+                                    Share Achievement
                                 </button>
                                 <a 
                                     href={URL.createObjectURL(certificateBlob)} 
@@ -624,6 +678,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                                     Download
                                 </a>
                             </div>
+                            <p className="text-xs text-amber-600 mt-2 italic">
+                                *Tip: Click 'Share Achievement' to share via WhatsApp, Instagram, or Facebook!
+                            </p>
                         </div>
                     )}
                 </div>
