@@ -212,6 +212,8 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
     const chatSectionRef = useRef<HTMLDivElement>(null);
     const certRef = useRef<HTMLDivElement>(null);
 
+    const MARKETING_TEXT = "I am thrilled to share that I have received a Merit Certificate from FeelEd AI! 🎓✨ https://feeledai.com";
+
     useEffect(() => {
         if (navigator.share) {
             setCanShare(true);
@@ -269,10 +271,10 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.lineWidth = 5;
         ctx.strokeRect(40, 40, 1120, 720);
 
-        // 3. Top Left: Round Seal (Enhanced Size)
+        // 3. Top Left: Round Seal (Curved Text)
         ctx.save();
         ctx.translate(160, 160); // Position
-        const sealRadius = 110;  // Larger seal
+        const sealRadius = 110; 
         
         // Outer rim
         ctx.beginPath();
@@ -296,9 +298,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Circular Text Function
+        // Circular Text
         const drawCircularText = (text: string, radius: number, startAngle: number, endAngle: number) => {
-             ctx.font = 'bold 13px "Nunito", sans-serif'; // Increased font size
+             ctx.font = 'bold 12px "Nunito", sans-serif'; 
              ctx.fillStyle = '#1e3a8a';
              ctx.textAlign = 'center';
              const angleRange = endAngle - startAngle;
@@ -306,7 +308,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
              for (let i = 0; i < text.length; i++) {
                  const char = text[i];
                  ctx.save();
-                 // Rotate to angle
                  const angle = startAngle + i * angleStep;
                  ctx.rotate(angle);
                  ctx.translate(0, -radius);
@@ -315,15 +316,8 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
              }
         };
 
-        // Top arc text
-        drawCircularText("INSTITUTE OF EMOTION ADAPTIVE EDUCATION", sealRadius - 18, -2.4, 2.4);
+        drawCircularText("INSTITUTE OF EMOTION ADAPTIVE EDUCATION", sealRadius - 18, -2.5, 2.5);
         
-        // Bottom arc stars
-        ctx.font = '24px "Nunito", sans-serif';
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillText('★', -60, 30);
-        ctx.fillText('★', 60, 30);
-
         // Center Icon
         ctx.font = '50px "Nunito", sans-serif';
         ctx.fillStyle = '#2563eb';
@@ -333,13 +327,13 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         
         ctx.restore();
 
-        // 4. Top Right: Logo Image (Enhanced Size)
+        // 4. Top Right: Logo Image
         const logoPromise = new Promise<void>((resolve) => {
             const img = new Image();
             img.src = '/logo.svg';
             img.onload = () => {
-                const logoSize = 150; // Increased size for visibility
-                ctx.drawImage(img, 1000, 50, logoSize, logoSize);
+                const logoSize = 160; 
+                ctx.drawImage(img, 980, 50, logoSize, logoSize);
                 resolve();
             };
             img.onerror = () => {
@@ -396,46 +390,44 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
 
         // 9. Footer Line
         ctx.beginPath();
-        ctx.moveTo(350, 640);
-        ctx.lineTo(850, 640);
+        ctx.moveTo(350, 630);
+        ctx.lineTo(850, 630);
         ctx.strokeStyle = '#cbd5e1';
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 10. Bottom Text & URL (Enhanced Marketing)
+        // 10. Bottom Text & URL
         ctx.font = 'bold 32px "Nunito", sans-serif';
         ctx.fillStyle = '#6366f1';
-        ctx.fillText('FeelEd AI', 600, 690);
+        ctx.fillText('FeelEd AI', 600, 680);
         
         ctx.font = '22px "Nunito", sans-serif';
         ctx.fillStyle = '#94a3b8';
-        ctx.fillText('Emotion-Adaptive Education', 600, 725);
+        ctx.fillText('Emotion-Adaptive Education', 600, 715);
         
-        // ** Alternate Option: Permanent URL on Image **
-        ctx.font = 'bold 20px "Nunito", sans-serif';
-        ctx.fillStyle = '#64748b';
-        ctx.fillText('https://feeledai.com', 600, 760);
+        // Permanent URL on Image
+        ctx.font = 'bold 24px "Nunito", sans-serif';
+        ctx.fillStyle = '#475569';
+        ctx.fillText('https://feeledai.com', 600, 755);
 
-        // 11. Date and Time Stamp (Bottom Left)
+        // 11. Date and Time Stamp
         ctx.font = 'bold 16px "Nunito", sans-serif';
         ctx.fillStyle = '#64748b'; 
         ctx.textAlign = 'left';
-        ctx.fillText(`Issued: ${dateStr}`, 60, 750);
-        ctx.fillText(`${timeStr}`, 60, 770);
+        ctx.fillText(`Issued: ${dateStr}`, 60, 740);
+        ctx.fillText(`${timeStr}`, 60, 760);
 
         // 12. Bottom Right: QR Code
         const qrSize = 90;
         const qrX = 1050;
         const qrY = 660;
         
-        // QR Background
         ctx.fillStyle = '#fff';
         ctx.fillRect(qrX, qrY, qrSize, qrSize);
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 3;
         ctx.strokeRect(qrX, qrY, qrSize, qrSize);
         
-        // Mock QR Pattern
         ctx.fillStyle = '#000';
         const cellSize = 9;
         for(let i=0; i<10; i++) {
@@ -447,7 +439,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 }
             }
         }
-        // Inner corner clears
         ctx.fillStyle = '#fff';
         ctx.fillRect(qrX+9, qrY+9, 9, 9);
         ctx.fillRect(qrX+72, qrY+9, 9, 9);
@@ -458,7 +449,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         ctx.textAlign = 'center';
         ctx.fillText('VERIFIED', qrX + qrSize/2, qrY + qrSize + 12);
 
-        // Convert to Blob
         canvas.toBlob((blob) => {
             if (blob) {
                 setCertificateBlob(blob);
@@ -467,42 +457,30 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         }, 'image/png');
     };
 
-    const handleUnifiedShare = async () => {
+    const handleCertificateShare = async () => {
         if (!certificateBlob) return;
 
-        const shareText = "I am thrilled to share that I have received a Merit Certificate from FeelEd AI! 🎓✨ https://feeledai.com";
-
         if (navigator.share) {
-            // Mobile: Share Image + Text
             try {
                 const file = new File([certificateBlob], "FeeledAI_Certificate.png", { type: "image/png" });
                 
-                // Optimized Share Data: Sending ONLY files and text is the most reliable way 
-                // to get the caption to show up on apps like WhatsApp on Android.
-                // Including 'title' or 'url' fields can sometimes cause the app to treat it as a link share 
-                // and drop the image, or a file share and drop the text.
+                // Share File + Text
+                // (Note: Some apps might drop text, so we also provide the specific social buttons)
                 const shareData: ShareData = {
                     files: [file],
-                    text: shareText,
+                    text: MARKETING_TEXT,
                 };
 
                 if (navigator.canShare && navigator.canShare(shareData)) {
                     await navigator.share(shareData);
                 } else {
-                     // If file sharing is not supported by the device (e.g., some desktops), fall back
                      throw new Error("File sharing not supported");
                 }
             } catch (err) {
-                console.error("Share failed or canceled", err);
-                // Even if it fails, the user can still download/copy using other methods if needed,
-                // but the primary action is done.
+                console.error("Share failed", err);
             }
         } else {
-             // Desktop Fallback: Open WhatsApp Web (Text only) + Download Image
-             // Since desktop web can't share files to apps, we give them the file via download 
-             // and open WA to send the text.
-             
-             // 1. Trigger Download
+             // Fallback for desktop: Download
              const url = URL.createObjectURL(certificateBlob);
              const a = document.createElement('a');
              a.href = url;
@@ -511,11 +489,24 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
              a.click();
              document.body.removeChild(a);
              URL.revokeObjectURL(url);
-
-             // 2. Open WhatsApp
-             const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
-             window.open(waUrl, '_blank');
         }
+    };
+
+    const handleSocialShare = (platform: 'whatsapp' | 'facebook' | 'twitter') => {
+        const text = encodeURIComponent(MARKETING_TEXT);
+        const url = encodeURIComponent("https://feeledai.com");
+        
+        let shareUrl = '';
+        if (platform === 'whatsapp') {
+            shareUrl = `https://wa.me/?text=${text}`;
+        } else if (platform === 'facebook') {
+            // FB often ignores 'quote' params now, but this is the standard sharer
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`;
+        } else if (platform === 'twitter') {
+            shareUrl = `https://twitter.com/intent/tweet?text=${text}`;
+        }
+        
+        window.open(shareUrl, '_blank', 'noopener,noreferrer');
     };
 
     const handlePlayPause = useCallback(async () => {
@@ -771,14 +762,32 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                                 alt="Certificate" 
                                 className="w-full rounded-xl shadow-lg border-4 border-white mx-auto max-w-lg"
                             />
+                            
+                            {/* Primary Action: Share Certificate Image */}
                             <div className="flex justify-center">
                                 <button 
-                                    onClick={handleUnifiedShare}
-                                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-10 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform transform hover:scale-105"
+                                    onClick={handleCertificateShare}
+                                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-3 px-10 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-transform transform hover:scale-105 w-full md:w-auto"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="currentColor" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.8 0-67.6-9.5-97.8-26.7l-7.1-4.2-73.3 19.3 19.3-71.6-4.7-7.5c-19.1-30.3-29.8-66-29.8-103.3 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
-                                    Share Certificate
+                                    Share Certificate (Image)
                                 </button>
+                            </div>
+
+                            {/* Secondary Action: Share Link/Status (Guarantees Text) */}
+                            <div className="pt-4 border-t border-amber-200">
+                                <p className="text-amber-800 text-sm font-semibold mb-3">Or share the news (Text + Link) via:</p>
+                                <div className="flex justify-center gap-4">
+                                    <button onClick={() => handleSocialShare('whatsapp')} className="bg-[#25D366] text-white p-3 rounded-full shadow hover:scale-110 transition">
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 448 512"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.8 0-67.6-9.5-97.8-26.7l-7.1-4.2-73.3 19.3 19.3-71.6-4.7-7.5c-19.1-30.3-29.8-66-29.8-103.3 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
+                                    </button>
+                                    <button onClick={() => handleSocialShare('facebook')} className="bg-[#1877F2] text-white p-3 rounded-full shadow hover:scale-110 transition">
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 512 512"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"/></svg>
+                                    </button>
+                                    <button onClick={() => handleSocialShare('twitter')} className="bg-black text-white p-3 rounded-full shadow hover:scale-110 transition">
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 512 512"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM365.7 444h33.5L110.5 80.9H74.5L365.7 444z"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
