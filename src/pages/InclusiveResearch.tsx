@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Page } from '../types';
 
@@ -13,7 +12,7 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
             {/* Header Section */}
             <div className="text-center space-y-8">
                 <div className="inline-flex items-center gap-4 px-8 py-2.5 rounded-full bg-slate-50 text-slate-700 text-[10px] font-black uppercase tracking-[0.4em] border border-slate-200 shadow-sm">
-                    Inclusive Learning Research
+                    Ongoing Research & Exploration
                 </div>
                 <h1 className="text-6xl md:text-9xl font-black text-slate-900 tracking-tighter leading-tight">
                     ♿ <span className="shimmer-indigo">Inclusive</span> Learning
@@ -23,8 +22,8 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 </p>
             </div>
 
-            {/* Our Position / Ethical Stance */}
-            <div className="bg-white border-2 border-slate-200 p-12 md:p-24 rounded-[4rem] shadow-2xl space-y-12 relative overflow-hidden">
+            {/* Our Position Section */}
+            <div className="bg-white border-2 border-slate-200 p-12 md:p-20 rounded-[4rem] shadow-2xl space-y-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[120px] -mr-40 -mt-40"></div>
                 <h2 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-4">
                     <span className="text-blue-500">📍</span> Our Position (Read This First)
@@ -42,21 +41,21 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
             {/* Why This Matters */}
             <div className="grid lg:grid-cols-2 gap-16 items-start">
                 <div className="space-y-8">
-                    <h2 className="text-4xl font-black text-slate-900 tracking-tight">Why This Research Matters</h2>
-                    <p className="text-xl text-slate-500 font-bold leading-relaxed">
-                        Traditional digital learning systems assume vision, hearing, and uniform sensory access. Blind and deaf learners experience stories, concepts, and emotions through different channels.
+                    <h2 className="text-4xl font-black text-slate-900 tracking-tight text-center lg:text-left">Why This Research Matters</h2>
+                    <p className="text-xl text-slate-500 font-bold leading-relaxed text-center lg:text-left">
+                        Traditional digital learning systems often assume uniform sensory access. Blind and deaf learners experience stories, concepts, and emotions through different channels. Ignoring this reality leads to exclusion.
                     </p>
-                    <div className="bg-indigo-600 text-white p-10 rounded-[3rem] shadow-xl">
+                    <div className="bg-indigo-600 text-white p-10 rounded-[3rem] shadow-xl text-center">
                         <p className="text-2xl font-black italic">"Can learning stories adapt not only to emotion, but also to sensory context?"</p>
                     </div>
                 </div>
                 <div className="bg-slate-50 p-12 rounded-[4rem] border border-slate-200 shadow-xl space-y-10">
-                    <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">Assumptions we challenge:</h3>
+                    <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">Sensory Realities We Study:</h3>
                     <div className="grid grid-cols-1 gap-6">
                         {[
-                            { t: "Vision-centric layouts", i: "👁️" },
-                            { t: "Hearing-centric cues", i: "👂" },
-                            { t: "Mainstream sensory design", i: "🧩" }
+                            { t: "Vision-independent learning", i: "🦯" },
+                            { t: "Hearing-independent cues", i: "🤟" },
+                            { t: "Multi-modal emotional signals", i: "🧩" }
                         ].map((part, i) => (
                             <div key={i} className="flex items-center gap-6 p-6 rounded-3xl bg-white border border-slate-100">
                                 <span className="text-3xl">{part.i}</span>
@@ -107,17 +106,17 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 </div>
             </div>
 
-            {/* What We Are Exploring Section */}
+            {/* Explorations Section */}
             <div className="bg-slate-900 text-white p-20 md:p-32 rounded-[5rem] shadow-4xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(79,70,229,0.15)_0%,transparent_70%)]"></div>
                 <div className="relative z-10 space-y-16">
-                    <h2 className="text-5xl font-black tracking-tight text-center">Research Explorations</h2>
+                    <h2 className="text-5xl font-black tracking-tight text-center">Research Explorations (Not Claims)</h2>
                     <div className="grid md:grid-cols-2 gap-10">
                         {[
-                            "Emotion communication without sight or sound",
-                            "Story adaptation to sensory differences",
-                            "Teacher-guided emotional pacing",
-                            "Inclusive design in mainstream classrooms"
+                            "How emotion is communicated without sight or sound",
+                            "How adaptive stories respect sensory differences",
+                            "How teachers guide emotional pacing",
+                            "How inclusive design coexists in mainstream classrooms"
                         ].map((step, i) => (
                             <div key={i} className="flex items-center gap-8 p-10 bg-white/5 rounded-[2.5rem] border border-white/10">
                                 <span className="text-xl font-bold">{step}</span>
@@ -138,21 +137,21 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
 
             {/* Ethics & Safeguards */}
             <div className="bg-emerald-50 p-16 md:p-24 rounded-[4rem] border-2 border-emerald-100 shadow-sm space-y-12">
-                <h2 className="text-4xl font-black text-emerald-900">Ethics & Safeguards</h2>
+                <h2 className="text-4xl font-black text-emerald-900 text-center md:text-left">Ethics & Safeguards</h2>
                 <div className="grid md:grid-cols-2 gap-12 text-xl font-bold text-emerald-800/80">
                     <div className="space-y-4">
                         <p>• No biometric data collection</p>
-                        <p>• No profiling of children</p>
-                        <p>• No automated judgments</p>
-                        <p>• Participation only with educators and guardians</p>
+                        <p>• No facial analysis or labeling</p>
+                        <p>• No automated emotional judgments</p>
+                        <p>• Oversight by educators and guardians</p>
                     </div>
                     <div className="p-10 bg-white rounded-[3rem] border border-emerald-200">
-                        <p className="text-emerald-900">"Students are respected as active participants in a collaborative learning journey, never as mere data sources."</p>
+                        <p className="text-emerald-900">"Children are never treated as data sources — they are active participants in a collaborative learning journey."</p>
                     </div>
                 </div>
             </div>
 
-            {/* Final Details Grid */}
+            {/* Collaboration Section */}
             <div className="grid lg:grid-cols-2 gap-8">
                 <div className="bg-slate-50 p-16 rounded-[4rem] space-y-8 border border-slate-200">
                     <h3 className="text-2xl font-black text-slate-900">Who We Collaborate With</h3>
@@ -161,8 +160,7 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                             "Special Education Teachers",
                             "Schools for Blind & Deaf Children",
                             "Inclusive Education Researchers",
-                            "NGOs & Foundations",
-                            "Accessibility Experts"
+                            "Accessibility & Learning Designers"
                         ].map((tag, i) => (
                             <span key={i} className="px-5 py-2 bg-white rounded-full text-sm font-bold border border-slate-200 text-slate-600">
                                 {tag}
@@ -184,7 +182,7 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
             <div className="text-center space-y-12">
                 <h2 className="text-5xl font-black text-slate-900 tracking-tight">Interested in <span className="text-indigo-600">Contributing?</span></h2>
                 <p className="text-2xl text-slate-500 font-bold max-w-3xl mx-auto">
-                    If you are an educator, researcher, or organization working in inclusive education, we welcome dialogue.
+                    We welcome dialogue with organizations and researchers working thoughtfully in inclusive education.
                 </p>
                 <div className="flex flex-col md:flex-row justify-center gap-8">
                     <a 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Page } from '../types';
 
@@ -9,8 +8,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     return (
         <header className="w-full bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm">
-            <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                <button onClick={() => onNavigate('generator')} className="flex items-center gap-4 group">
+            <div className="container mx-auto px-6 py-4 flex justify-between items-center text-center">
+                <button onClick={() => onNavigate('generator')} className="flex items-center gap-4 group text-center">
                     <img src="/logo.svg" alt="Logo" className="w-9 h-9 group-hover:rotate-6 transition-transform" />
                     <div className="text-left">
                         <h1 className="text-xl font-bold tracking-tight text-slate-900">FeelEd AI</h1>
@@ -21,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                 <nav className="hidden lg:flex items-center space-x-2">
                     {[
                         { id: 'generator', label: 'Dashboard' },
-                        { id: 'research', label: 'Science' },
+                        { id: 'research', label: 'Scientific Portfolio' },
                         { id: 'about', label: 'Philosophy' },
                         { id: 'founder', label: 'Founder' },
                         { id: 'pilot', label: 'Pilot Program' }
