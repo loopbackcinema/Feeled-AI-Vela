@@ -46,33 +46,19 @@ const App: React.FC = () => {
                 .then(({ base64Audio }) => {
                     setBase64Audio(base64Audio);
                 })
-                .catch((audioErr) => {
-                    console.error("Audio generation failed:", audioErr);
-                    const errorMessage = audioErr instanceof Error ? audioErr.message : 'An unknown error occurred.';
-                    setError(prev => prev ? `${prev} & Audio failed: ${errorMessage}` : `Audio failed: ${errorMessage}`);
-                })
-                .finally(() => {
-                    setIsAudioLoading(false);
-                });
+                .catch((e) => console.error("Audio synthesis failed:", e))
+                .finally(() => setIsAudioLoading(false));
 
             generateImage(story)
                 .then(({ base64Image, mimeType }) => {
                     setBase64Image(base64Image);
                     setImageMimeType(mimeType);
                 })
-                .catch((imageErr) => {
-                    console.error("Image generation failed:", imageErr);
-                    const errorMessage = imageErr instanceof Error ? imageErr.message : 'An unknown error occurred.';
-                    setError(prev => prev ? `${prev} & Image failed: ${errorMessage}` : `Image failed: ${errorMessage}`);
-                })
-                .finally(() => {
-                    setIsImageLoading(false);
-                });
+                .catch((e) => console.error("Visual synthesis failed:", e))
+                .finally(() => setIsImageLoading(false));
 
         } catch (err) {
-            console.error("Story generation failed:", err);
-            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
-            setError(`Failed to generate story. Details: ${errorMessage}`);
+            setError(err instanceof Error ? err.message : 'An error occurred during pedagogical synthesis.');
             setIsLoading(false);
         }
     }, []);
@@ -105,32 +91,22 @@ const App: React.FC = () => {
                         isImageLoading={isImageLoading}
                         onTryAnother={handleTryAnother}
                     />
-                ) : (
-                    <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
-                );
-            case 'about':
-                return <AboutUs onNavigate={navigateTo} />;
-            case 'founder':
-                return <Founder onNavigate={navigateTo} />;
-            case 'research':
-                return <Research onNavigate={navigateTo} />;
-            case 'contact':
-                return <Contact onNavigate={navigateTo} />;
-            case 'privacy':
-                return <PrivacyPolicy onNavigate={navigateTo} />;
-            case 'pilot':
-                return <PilotProgram onNavigate={navigateTo} />;
-            case 'inclusive':
-                return <InclusiveResearch onNavigate={navigateTo} />;
-            default:
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
+                ) : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
+            case 'about': return <AboutUs onNavigate={navigateTo} />;
+            case 'founder': return <Founder onNavigate={navigateTo} />;
+            case 'research': return <Research onNavigate={navigateTo} />;
+            case 'pilot': return <PilotProgram onNavigate={navigateTo} />;
+            case 'contact': return <Contact onNavigate={navigateTo} />;
+            case 'privacy': return <PrivacyPolicy onNavigate={navigateTo} />;
+            case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
+            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-transparent text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+        <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
             <Header onNavigate={navigateTo} />
-            <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center">
+            <main className="flex-grow container mx-auto px-4 py-8 md:py-16 max-w-7xl">
                 {renderPage()}
             </main>
             <Footer onNavigate={navigateTo} />
