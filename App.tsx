@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Story, StoryRequest, Page } from './types';
 import { generateStoryAndVoice } from './services/geminiService';

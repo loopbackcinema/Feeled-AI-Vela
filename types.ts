@@ -1,4 +1,3 @@
-
 export interface Story {
     title: string;
     emotion_tone: string;

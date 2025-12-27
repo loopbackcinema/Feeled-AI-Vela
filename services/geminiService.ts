@@ -23,17 +23,14 @@ const storySchema = {
 };
 
 export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ story: Story; base64Audio: string }> => {
-    // Step 1: Generate the story
     const storyPrompt = `You are an expert educational storyteller. Convert the academic topic "${request.topic}" into an emotional, student-friendly story.
     The story must be appropriate for a ${request.std} student and be in ${request.language}.
     The emotional tone should be ${request.emotionTone}.
     Generate the story in a 5-part structure: Introduction, Emotional Trigger, Concept Explanation, Resolution, and Moral Message, plus a title and conclusion.
     Return the output strictly in the specified JSON format.`;
     
-    console.log("Generating story with prompt:", storyPrompt);
-
     const storyResponse = await ai.models.generateContent({
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3-flash-preview',
         contents: storyPrompt,
         config: {
             responseMimeType: "application/json",
@@ -42,11 +39,8 @@ export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ st
         },
     });
     
-    let storyJsonText = storyResponse.text.trim();
-    console.log("Received story JSON text:", storyJsonText);
-    const story: Story = JSON.parse(storyJsonText);
+    const story: Story = JSON.parse(storyResponse.text.trim());
 
-    // Step 2: Generate the voice
     const fullStoryText = [
         story.title,
         story.introduction,
@@ -60,8 +54,6 @@ export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ st
     const voiceName = request.language === 'Tamil' 
         ? (request.narratorVoice === 'Male' ? 'Fenrir' : 'Zephyr') 
         : (request.narratorVoice === 'Male' ? 'Puck' : 'Kore');
-
-    console.log(`Generating audio with voice: ${voiceName}`);
 
     const ttsResponse = await ai.models.generateContent({
       model: "gemini-2.5-flash-preview-tts",

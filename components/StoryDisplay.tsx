@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Story } from '../types';
 import Spinner from './Spinner';
