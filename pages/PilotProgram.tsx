@@ -13,7 +13,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
             {/* Hero Section */}
             <div className="text-center space-y-8">
                 <div className="inline-flex items-center gap-4 px-8 py-2.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-[0.4em] border border-indigo-100 shadow-sm">
-                    Open for Collaborative Research
+                    Pilot Program – Co-creating Emotion-Adaptive Learning with Real Classrooms
                 </div>
                 <h1 className="text-6xl md:text-9xl font-black text-slate-900 tracking-tighter leading-tight">
                     Pilot <span className="shimmer-indigo">Program</span>
@@ -94,9 +94,10 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                             </div>
                         ))}
                     </div>
-                    <div className="p-12 bg-indigo-600/20 border border-indigo-400/30 rounded-[3rem] text-center max-w-3xl mx-auto">
+                    <div className="p-12 bg-indigo-600/20 border border-indigo-400/30 rounded-[3rem] text-center max-w-3xl mx-auto space-y-4">
                         <p className="text-lg font-black text-indigo-300">Strict Ethical Oversight</p>
                         <p className="text-white/60 font-bold mt-2">There is no grading, labeling, or emotional scoring of children.</p>
+                        <p className="text-white/80 font-bold text-sm">All activities are facilitated by teachers and aligned with existing classroom practices.</p>
                     </div>
                 </div>
             </div>
@@ -127,16 +128,19 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                 <p className="text-2xl text-slate-500 font-bold max-w-3xl mx-auto">
                     Application is open to institutions aligned with our ethical framework.
                 </p>
-                <div className="flex flex-col md:flex-row justify-center gap-8">
-                    <a 
-                        href="mailto:contact@feeledai.com?subject=Pilot Program Inquiry" 
-                        className="bg-slate-900 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 transition-all border-b-[12px] border-slate-950 active:border-b-0"
-                    >
-                        Apply for Pilot Program
-                    </a>
-                    <button onClick={() => onNavigate('generator')} className="border-4 border-slate-200 text-slate-500 px-16 py-8 rounded-full font-black text-2xl hover:bg-slate-50 transition-all">
-                        Return to Dashboard
-                    </button>
+                <div className="space-y-10">
+                    <p className="text-slate-500 font-bold italic">Participation is limited to ensure ethical oversight and meaningful collaboration.</p>
+                    <div className="flex flex-col md:flex-row justify-center gap-8">
+                        <a 
+                            href="mailto:contact@feeledai.com?subject=Pilot Program Inquiry" 
+                            className="bg-slate-900 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 transition-all border-b-[12px] border-slate-950 active:border-b-0"
+                        >
+                            Apply for Pilot Program
+                        </a>
+                        <button onClick={() => onNavigate('generator')} className="border-4 border-slate-200 text-slate-500 px-16 py-8 rounded-full font-black text-2xl hover:bg-slate-50 transition-all">
+                            Back to FeelEd AI
+                        </button>
+                    </div>
                 </div>
                 <p className="text-slate-400 italic font-bold max-w-2xl mx-auto pt-10">
                     "This pilot is not about proving technology. It is about listening — to classrooms, to teachers, and to learners."
