@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Page } from '../types';
 
@@ -113,7 +112,15 @@ const researchData: Achievement[] = [
 
 const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-6xl mx-auto space-y-24 animate-fade-in py-12">
+        <div className="w-full max-w-6xl mx-auto space-y-20 animate-fade-in py-12">
+            
+            {/* Academic Disclaimer */}
+            <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl text-center">
+                <p className="text-sm font-bold text-amber-800 italic">
+                    This portfolio represents ongoing academic and exploratory work. It does not imply clinical validation or commercial deployment.
+                </p>
+            </div>
+
             <div className="text-center space-y-6">
                 <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl">
                     Verified Academic Record
@@ -167,7 +174,7 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                                 className="inline-flex items-center gap-4 text-indigo-600 font-black text-sm group"
                             >
                                 <span className="group-hover:underline decoration-2 underline-offset-8">Verify Official Record</span>
-                                <svg className="w-5 h-5 transform transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                <svg className="w-5 h-5 transform transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /></svg>
                             </a>
                         </div>
                     </div>

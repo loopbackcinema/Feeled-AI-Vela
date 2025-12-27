@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Page } from '../types';
 
@@ -8,74 +7,83 @@ interface InclusiveResearchProps {
 
 const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-5xl mx-auto space-y-24 animate-fade-in py-12 px-6 pb-32">
+        <div className="w-full max-w-5xl mx-auto space-y-20 animate-fade-in py-12 px-6 pb-32">
             
             {/* Header Section */}
             <div className="text-center space-y-8">
                 <div className="inline-flex items-center gap-4 px-8 py-2.5 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.4em] border border-slate-700 shadow-2xl">
-                    Academic Specialized Domain: Neuro-Accessibility
+                    Specialized Domain: Neuro-Accessibility & Inclusive Design
                 </div>
                 <h1 className="text-6xl md:text-9xl font-black text-slate-900 tracking-tighter leading-tight">
                     ♿ <span className="shimmer-indigo">Inclusive</span> Learning
                 </h1>
                 <p className="text-2xl text-slate-500 font-bold max-w-4xl mx-auto leading-relaxed">
-                    How Emotion-Adaptive Storytelling Supports Blind & Deaf Learners
+                    Supporting Blind & Deaf Learners Through Emotion-Adaptive Storytelling
                 </p>
             </div>
 
-            {/* Position Statement */}
-            <div className="bg-white border-2 border-slate-200 p-12 md:p-24 rounded-[4rem] shadow-2xl space-y-12 relative overflow-hidden">
+            {/* Our Position Section */}
+            <div className="bg-white border-2 border-slate-200 p-12 md:p-20 rounded-[4rem] shadow-2xl space-y-10 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[120px] -mr-40 -mt-40"></div>
                 <h2 className="text-4xl font-black text-slate-900 tracking-tight flex items-center gap-4">
-                    <span className="text-blue-500">📍</span> Research Position Statement
+                    <span className="text-blue-500">📍</span> Our Position (Read This First)
                 </h2>
-                <div className="space-y-8 text-2xl text-slate-600 leading-relaxed font-medium">
+                <div className="space-y-8 text-xl text-slate-600 leading-relaxed font-medium">
                     <p>
-                        FeelEd AI’s work with blind and deaf children is an ongoing collaborative research initiative. We explore how narrative can bridge sensory gaps without requiring "standard" visual or auditory input.
+                        FeelEd AI’s work with blind and deaf children is not a completed solution.
+                        It is an ongoing collaborative research initiative exploring how emotion-adaptive storytelling can support inclusive learning experiences — responsibly, ethically, and with humility.
                     </p>
                     <div className="p-10 bg-slate-900 text-white rounded-[3rem] font-bold shadow-3xl border-b-[12px] border-indigo-600/30">
-                        "We do not seek to 'fix' sensory differences. We seek to design learning environments that respect diverse sensory realities as valid ways of knowing the world."
+                        "We do not claim to “fix” disability. We seek to design learning environments that respect different sensory realities."
                     </div>
                 </div>
             </div>
 
-            {/* Framework Comparison */}
-            <div className="grid lg:grid-cols-2 gap-12">
-                <div className="space-y-8 p-12 bg-slate-50 rounded-[4rem] border border-slate-200">
-                    <h3 className="text-3xl font-black text-slate-900">The Problem</h3>
-                    <p className="text-lg text-slate-500 font-bold leading-relaxed">
-                        Standard EdTech assumes a "Sensory Baseline": Vision for reading and Hearing for instructions. This creates an invisible wall for millions of learners.
+            {/* Why This Research Matters */}
+            <div className="grid lg:grid-cols-2 gap-16 items-start">
+                <div className="space-y-8">
+                    <h2 className="text-4xl font-black text-slate-900 tracking-tight">Why This Research Matters</h2>
+                    <p className="text-xl text-slate-500 font-bold leading-relaxed">
+                        Traditional digital learning systems assume: Vision, Hearing, and Uniform sensory access.
                     </p>
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4 text-rose-600 font-black"><span>❌</span> Visual-only progress bars</div>
-                        <div className="flex items-center gap-4 text-rose-600 font-black"><span>❌</span> Audio-only emotional cues</div>
+                    <p className="text-xl text-slate-500 font-bold leading-relaxed">
+                        Blind and deaf learners experience stories, concepts, and emotions through different channels.
+                        Ignoring this reality leads to exclusion — even in well-intended EdTech.
+                    </p>
+                    <div className="bg-indigo-600 text-white p-10 rounded-[3rem] shadow-xl">
+                        <p className="text-2xl font-black italic text-center">"Can learning stories adapt not only to emotion, but also to sensory context?"</p>
                     </div>
                 </div>
-                <div className="space-y-8 p-12 bg-indigo-600 rounded-[4rem] text-white shadow-2xl">
-                    <h3 className="text-3xl font-black">The FeelEd Hypothesis</h3>
-                    <p className="text-lg text-indigo-100 font-bold leading-relaxed">
-                        Can emotional intelligence translate across modalities? Can a story "feel" the same through rhythm and vibration as it does through a visual scene?
-                    </p>
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4 text-indigo-200 font-black"><span>✅</span> Audio-Descriptive Narratives</div>
-                        <div className="flex items-center gap-4 text-indigo-200 font-black"><span>✅</span> Kinetic Typography for Emotion</div>
+                <div className="bg-slate-50 p-12 rounded-[4rem] border border-slate-200 shadow-xl space-y-10">
+                    <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">Sensory Exploration Areas</h3>
+                    <div className="grid grid-cols-1 gap-6">
+                        {[
+                            { t: "Vision-independent models", i: "👁️" },
+                            { t: "Non-auditory emotional cues", i: "👂" },
+                            { t: "Multimodal sensory context", i: "🧩" }
+                        ].map((part, i) => (
+                            <div key={i} className="flex items-center gap-6 p-6 rounded-3xl bg-white border border-slate-100">
+                                <span className="text-3xl">{part.i}</span>
+                                <span className="font-black text-slate-800">{part.t}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
 
-            {/* Tracks */}
+            {/* Research Focus Areas */}
             <div className="grid lg:grid-cols-2 gap-8">
                 <div className="bg-white p-16 rounded-[4rem] border-2 border-slate-100 shadow-sm space-y-10 hover:border-indigo-200 transition-colors">
                     <div className="flex items-center gap-6">
                         <span className="text-5xl">🦯</span>
-                        <h3 className="text-3xl font-black text-slate-900 leading-tight">Blind & Low-Vision Research</h3>
+                        <h3 className="text-3xl font-black text-slate-900">For Blind & Low-Vision Learners</h3>
                     </div>
                     <ul className="space-y-6">
                         {[
                             "Audio-first storytelling structures",
-                            "Emotional tone via voice rhythm & pacing",
-                            "High-fidelity descriptive environment design",
-                            "Spatial sound used as emotional metadata"
+                            "Emotional tone conveyed through voice, rhythm, and pacing",
+                            "Descriptive narrative design (not visual dependence)",
+                            "Emotion conveyed through sound variation, pauses, and narration flow"
                         ].map((item, i) => (
                             <li key={i} className="flex items-start gap-4 text-slate-700 font-bold">
                                 <span className="text-indigo-500 mt-1">●</span> {item}
@@ -86,14 +94,14 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 <div className="bg-white p-16 rounded-[4rem] border-2 border-slate-100 shadow-sm space-y-10 hover:border-indigo-200 transition-colors">
                     <div className="flex items-center gap-6">
                         <span className="text-5xl">🤟</span>
-                        <h3 className="text-3xl font-black text-slate-900 leading-tight">Deaf & Hard-of-Hearing Research</h3>
+                        <h3 className="text-3xl font-black text-slate-900">For Deaf & Hard-of-Hearing Learners</h3>
                     </div>
                     <ul className="space-y-6">
                         {[
-                            "Visual rhythm-based narrative flow",
-                            "Sign-language friendly text structures",
-                            "Emotion expressed via timing and motion cues",
-                            "Reduced reliance on audio-centric signals"
+                            "Visual rhythm-based storytelling",
+                            "Text + sign-language friendly narrative pacing",
+                            "Emotion expressed through scene timing, visual emphasis, and motion cues",
+                            "Reduced reliance on audio-centric emotional signals"
                         ].map((item, i) => (
                             <li key={i} className="flex items-start gap-4 text-slate-700 font-bold">
                                 <span className="text-indigo-500 mt-1">●</span> {item}
@@ -103,44 +111,117 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 </div>
             </div>
 
-            {/* Ethics Cards */}
+            {/* What We Are Exploring (Not Claiming) */}
+            <div className="bg-slate-900 text-white p-20 md:p-32 rounded-[5rem] shadow-4xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(79,70,229,0.15)_0%,transparent_70%)]"></div>
+                <div className="relative z-10 space-y-16">
+                    <div className="text-center space-y-6">
+                        <h2 className="text-5xl font-black tracking-tight">What We Are Exploring (Not Claiming)</h2>
+                        <p className="text-xl text-slate-400 font-bold max-w-3xl mx-auto">
+                            This initiative is iterative, supervised, and research-guided. We are exploring:
+                        </p>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-10">
+                        {[
+                            "How emotion can be communicated without sight or sound",
+                            "How adaptive stories can respect sensory differences",
+                            "How teachers and facilitators guide emotional pacing",
+                            "How inclusive design can coexist with mainstream classrooms"
+                        ].map((step, i) => (
+                            <div key={i} className="flex items-center gap-8 p-10 bg-white/5 rounded-[2.5rem] border border-white/10">
+                                <span className="text-indigo-500 font-black text-2xl">0{i+1}</span>
+                                <span className="text-xl font-bold">{step}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-12 bg-rose-600/20 border border-rose-400/30 rounded-[3rem] space-y-6">
+                        <p className="text-xl font-black text-rose-300 uppercase tracking-widest text-center">What This Is NOT</p>
+                        <div className="grid md:grid-cols-2 gap-6 text-sm md:text-lg font-bold text-white/80">
+                            <p>❌ Not a medical or therapeutic intervention</p>
+                            <p>❌ Not a diagnostic or rehabilitation system</p>
+                            <p>❌ Not a replacement for special educators</p>
+                            <p>❌ Not a finished assistive product</p>
+                        </div>
+                        <p className="text-center text-rose-100 font-bold text-xl pt-4 border-t border-white/5">It is research-driven learning exploration, not clinical technology.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Ethics & Safeguards */}
             <div className="bg-emerald-50 p-16 md:p-24 rounded-[4rem] border-2 border-emerald-100 shadow-sm space-y-12">
-                <h2 className="text-4xl font-black text-emerald-900 text-center">Ethics & Safeguards</h2>
-                <div className="grid md:grid-cols-2 gap-12">
-                    <div className="space-y-6 text-xl font-bold text-emerald-700">
-                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> No biometric profiling of disabled learners</p>
-                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> No automated medical or clinical claims</p>
-                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> Research conducted only with guardian consent</p>
-                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> All AI outputs are teacher-moderated</p>
+                <h2 className="text-4xl font-black text-emerald-900">Ethics & Safeguards</h2>
+                <div className="grid md:grid-cols-2 gap-12 text-xl font-bold text-emerald-800/80">
+                    <div className="space-y-6 text-emerald-700 font-bold">
+                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> No biometric data collection</p>
+                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> No facial analysis or emotional labeling</p>
+                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> No profiling of children</p>
+                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> No automated judgments</p>
+                        <p className="flex items-center gap-4"><span className="w-2 h-2 bg-emerald-500 rounded-full"></span> Participation occurs only with guardians and institutional oversight.</p>
                     </div>
                     <div className="p-10 bg-white rounded-[3rem] border border-emerald-200 shadow-sm flex items-center justify-center">
-                        <p className="text-emerald-900 leading-relaxed font-black text-center text-2xl italic">
-                            "Innovation should never come at the cost of child privacy or dignity."
+                        <p className="text-emerald-900 leading-relaxed font-black text-center text-2xl">
+                            "Children are never treated as data sources — they are participants in a learning journey."
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* Final Section */}
+            {/* Collaboration Section */}
+            <div className="grid lg:grid-cols-2 gap-8">
+                <div className="bg-slate-50 p-16 rounded-[4rem] space-y-8 border border-slate-200">
+                    <h3 className="text-2xl font-black text-slate-900">Who We Collaborate With</h3>
+                    <p className="text-slate-500 font-bold">Inclusive learning must be co-created. We invite collaboration from:</p>
+                    <div className="flex flex-wrap gap-3">
+                        {[
+                            "Special education teachers",
+                            "Schools for blind & deaf children",
+                            "Inclusive education researchers",
+                            "NGOs & foundations",
+                            "Accessibility & learning design experts"
+                        ].map((tag, i) => (
+                            <span key={i} className="px-5 py-2 bg-white rounded-full text-sm font-bold border border-slate-200 text-slate-600">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+                <div className="bg-slate-50 p-16 rounded-[4rem] space-y-8 border border-slate-200">
+                    <h3 className="text-2xl font-black text-slate-900">Current Status</h3>
+                    <div className="space-y-4 font-bold text-slate-600">
+                        <div className="flex items-center gap-4"><span className="w-3 h-3 bg-amber-500 rounded-full"></span> Research & exploration phase</div>
+                        <div className="flex items-center gap-4"><span className="w-3 h-3 bg-amber-500 rounded-full"></span> Small-scale supervised pilots (where applicable)</div>
+                        <div className="flex items-center gap-4"><span className="w-3 h-3 bg-amber-500 rounded-full"></span> Continuous ethical review</div>
+                        <p className="text-xs text-slate-400 mt-4">This page will evolve as learning and collaboration deepen.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Closing Note & CTA */}
             <div className="text-center space-y-12">
-                <h2 className="text-5xl font-black text-slate-900 tracking-tight">Support This <span className="text-indigo-600">Frontier</span></h2>
-                <p className="text-2xl text-slate-500 font-bold max-w-3xl mx-auto">
-                    We invite Special Education Teachers, Neuroscientists, and Accessibility experts to co-create these adaptive models.
-                </p>
+                <div className="space-y-6">
+                    <h2 className="text-5xl font-black text-slate-900 tracking-tight">Interested in <span className="text-indigo-600">Contributing?</span></h2>
+                    <p className="text-2xl text-slate-500 font-bold max-w-3xl mx-auto">
+                        If you are an educator, researcher, or organization working in inclusive education and believe in thoughtful, ethical experimentation, we welcome dialogue.
+                    </p>
+                </div>
                 <div className="flex flex-col md:flex-row justify-center gap-8">
                     <a 
-                        href="mailto:contact@feeledai.com?subject=Inclusive Learning Collaboration" 
+                        href="mailto:contact@feeledai.com?subject=Inclusive Learning Research Inquiry" 
                         className="bg-indigo-600 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 transition-all border-b-[12px] border-indigo-900 active:border-b-0"
                     >
-                        Collaborate with the Lab
+                        Collaborate on Research
                     </a>
                     <button onClick={() => onNavigate('research')} className="border-4 border-slate-200 text-slate-500 px-16 py-8 rounded-full font-black text-2xl hover:bg-slate-50 transition-all">
                         Back to Portfolio
                     </button>
                 </div>
-                <div className="pt-24 border-t border-slate-100 max-w-xl mx-auto">
-                    <p className="text-slate-400 font-bold italic">
-                        "Inclusive learning is about changing assumptions, not just adding features."
+                <div className="pt-24 space-y-8 border-t border-slate-100 max-w-3xl mx-auto">
+                    <h3 className="text-3xl font-black text-slate-900 italic">Closing Note</h3>
+                    <p className="text-2xl text-slate-500 font-bold italic leading-relaxed">
+                        "Inclusive learning is not about adding features. It is about changing assumptions."
+                    </p>
+                    <p className="text-slate-400 font-bold leading-relaxed">
+                        FeelEd AI approaches this work with respect — for children, for educators, and for the complexity of human learning.
                     </p>
                 </div>
             </div>
