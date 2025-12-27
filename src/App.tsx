@@ -12,6 +12,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Founder from './pages/Founder';
 import Research from './pages/Research';
 import PilotProgram from './pages/PilotProgram';
+import InclusiveResearch from './pages/InclusiveResearch';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('generator');
@@ -119,6 +120,8 @@ const App: React.FC = () => {
                 return <PrivacyPolicy onNavigate={navigateTo} />;
             case 'pilot':
                 return <PilotProgram onNavigate={navigateTo} />;
+            case 'inclusive':
+                return <InclusiveResearch onNavigate={navigateTo} />;
             default:
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
