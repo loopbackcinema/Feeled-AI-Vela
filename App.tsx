@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Story, StoryRequest, Page } from './types';
 import { generateStory, generateVoice, generateImage } from './services/geminiService';
@@ -12,6 +11,9 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Founder from './pages/Founder';
 import Research from './pages/Research';
 import PilotProgram from './pages/PilotProgram';
+import InclusiveResearch from './pages/InclusiveResearch';
+import Teachers from './pages/Teachers';
+import Parents from './pages/Parents';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('generator');
@@ -42,9 +44,7 @@ const App: React.FC = () => {
             setIsImageLoading(true);
 
             generateVoice(story, request)
-                .then(({ base64Audio }) => {
-                    setBase64Audio(base64Audio);
-                })
+                .then(({ base64Audio }) => setBase64Audio(base64Audio))
                 .catch((e) => console.error("Audio synthesis failed:", e))
                 .finally(() => setIsAudioLoading(false));
 
@@ -63,7 +63,7 @@ const App: React.FC = () => {
     }, []);
     
     const navigateTo = (page: Page) => {
-        window.scrollTo({ top: 0, behavior: 'instant' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentPage(page);
     };
 
@@ -97,6 +97,9 @@ const App: React.FC = () => {
             case 'pilot': return <PilotProgram onNavigate={navigateTo} />;
             case 'contact': return <Contact onNavigate={navigateTo} />;
             case 'privacy': return <PrivacyPolicy onNavigate={navigateTo} />;
+            case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
+            case 'teachers': return <Teachers onNavigate={navigateTo} />;
+            case 'parents': return <Parents onNavigate={navigateTo} />;
             default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };
