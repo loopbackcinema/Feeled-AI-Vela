@@ -1,33 +1,8 @@
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
 
-// These types must be defined here for the serverless function
-interface QuizQuestion {
-    question: string;
-    options: string[];
-    answer: string;
-}
-
-interface Story {
-    title: string;
-    emotion_tone: string;
-    introduction: string;
-    emotional_trigger: string;
-    concept_explanation: string;
-    resolution: string;
-    moral_message: string;
-    conclusion: string;
-    quiz: QuizQuestion[];
-}
-
-interface StoryRequest {
-    topic: string;
-    std: string;
-    language: string;
-    narratorVoice: string;
-    emotionTone: string;
-}
-
+// Updated schema to include quiz for knowledge checking
 const storySchema = {
     type: Type.OBJECT,
     properties: {
@@ -46,7 +21,7 @@ const storySchema = {
                 properties: {
                     question: { type: Type.STRING },
                     options: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    answer: { type: Type.STRING, description: "The correct answer from the options array" }
+                    answer: { type: Type.STRING }
                 },
                 required: ["question", "options", "answer"]
             }
@@ -56,56 +31,34 @@ const storySchema = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (req.method !== 'POST') {
-        res.setHeader('Allow', ['POST']);
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
-
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
     const API_KEY = process.env.API_KEY;
-    if (!API_KEY) {
-        console.error("API_KEY environment variable not found.");
-        return res.status(500).json({ error: "Server configuration error: The API_KEY is not set in the Vercel project settings. Please add the environment variable and redeploy." });
-    }
-    
+    if (!API_KEY) return res.status(500).json({ error: "API_KEY not set" });
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     try {
-        const request: StoryRequest = req.body;
-        
-        const storyPrompt = `You are an expert educational storyteller. Convert the academic topic "${request.topic}" into an emotional, student-friendly story.
-        The story must be appropriate for a ${request.std} student and be in ${request.language}.
-        The emotional tone should be ${request.emotionTone}.
-        
+        const { topic, std, language, emotionTone } = req.body;
+        const prompt = `You are an expert educational storyteller. Convert the academic topic "${topic}" into an emotional, student-friendly story.
+        The story must be appropriate for a ${std} student and be in ${language}.
+        The emotional tone should be ${emotionTone}.
         Generate the story in a 5-part structure: Introduction, Emotional Trigger, Concept Explanation, Resolution, and Moral Message, plus a title and conclusion.
+        Also generate a 3-question multiple choice quiz to test understanding of the concept.
+        Return output strictly in JSON format.`;
         
-        IMPORTANT: You MUST also generate a "Quiz" with exactly 3 multiple-choice questions based on the story's concept. 
-        - Each question must have exactly 4 options.
-        - One option must be the correct answer.
-        - The questions should test comprehension of the concept explained in the story.
-        
-        Return the output strictly in the specified JSON format.`;
-        
-        const storyResponse = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: storyPrompt,
+        // Use gemini-3-pro-preview for high-quality storytelling and complex reasoning
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: storySchema,
-                temperature: 0.7,
             },
         });
         
-        const storyJsonText = storyResponse.text;
-        if (!storyJsonText) {
-            throw new Error("Failed to get a valid text response from the AI model. The response was empty.");
-        }
-        const story: Story = JSON.parse(storyJsonText.trim());
-
+        const story = JSON.parse(response.text.trim());
         res.status(200).json({ story });
-
     } catch (error) {
-        console.error('Error in /api/story:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        res.status(500).json({ error: `Failed to generate story text. Details: ${errorMessage}` });
+        console.error('Gemini Story Generation Error:', error);
+        res.status(500).json({ error: 'Generation failed' });
     }
 }

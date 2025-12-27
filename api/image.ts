@@ -1,4 +1,3 @@
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Modality } from "@google/genai";
 
@@ -14,8 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const API_KEY = process.env.API_KEY;
     if (!API_KEY) {
-        console.error("API_KEY environment variable not found.");
-        return res.status(500).json({ error: "Server configuration error: API_KEY is not set." });
+        return res.status(500).json({ error: "API_KEY not set" });
     }
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
@@ -42,17 +40,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 break;
             }
         }
-
-        if (!base64Image || !mimeType) {
-            console.error("Image data or MIME type not found in Gemini response:", JSON.stringify(imageResponse, null, 2));
-            throw new Error("Image data or MIME type not found in the AI response.");
-        }
         
         res.status(200).json({ base64Image, mimeType });
 
     } catch (error) {
-        console.error('Error in /api/image:', error);
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        res.status(500).json({ error: `Failed to generate image. Details: ${errorMessage}` });
+        res.status(500).json({ error: 'Failed to generate image' });
     }
 }

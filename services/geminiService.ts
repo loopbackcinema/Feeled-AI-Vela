@@ -1,48 +1,29 @@
-import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { Story, StoryRequest } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// services/geminiService.ts
+import { Story, StoryRequest, ChatMessage } from '../types';
 
-const storySchema = {
-    type: Type.OBJECT,
-    properties: {
-        title: { type: Type.STRING },
-        emotion_tone: { type: Type.STRING },
-        introduction: { type: Type.STRING },
-        emotional_trigger: { type: Type.STRING },
-        concept_explanation: { type: Type.STRING },
-        resolution: { type: Type.STRING },
-        moral_message: { type: Type.STRING },
-        conclusion: { type: Type.STRING },
-    },
-    required: ["title", "emotion_tone", "introduction", "emotional_trigger", "concept_explanation", "resolution", "moral_message", "conclusion"],
-};
-
-export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ story: Story; base64Audio: string }> => {
-    // 1. Generate Story Text
-    const storyPrompt = `You are an expert educational storyteller. Convert the academic topic "${request.topic}" into an emotional, student-friendly story.
-    The story must be appropriate for a ${request.std} student and be in ${request.language}.
-    The emotional tone should be ${request.emotionTone}.
-    Generate the story in a 5-part structure: Introduction, Emotional Trigger, Concept Explanation, Resolution, and Moral Message, plus a title and conclusion.
-    Return the output strictly in the specified JSON format.`;
-    
-    const storyResponse = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: storyPrompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: storySchema,
-            temperature: 0.7,
-        },
+/**
+ * Generates the story text from the backend API.
+ */
+export const generateStory = async (request: StoryRequest): Promise<{ story: Story }> => {
+    const response = await fetch('/api/story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
     });
-    
-    if (!storyResponse.text) {
-        throw new Error("Empty response from story generator.");
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred while generating story text.' }));
+        throw new Error(errorData.error || `Story request failed with status ${response.status}`);
     }
 
-    const story: Story = JSON.parse(storyResponse.text.trim());
+    return response.json();
+};
 
-    // 2. Generate Voice (TTS)
+/**
+ * Generates audio for the story using Gemini TTS.
+ */
+export const generateVoice = async (story: Story, request: StoryRequest): Promise<{ base64Audio: string }> => {
     const fullStoryText = [
         story.title,
         story.introduction,
@@ -53,28 +34,77 @@ export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ st
         story.conclusion
     ].join('. ');
 
-    const voiceName = request.language === 'Tamil' 
-        ? (request.narratorVoice === 'Male' ? 'Fenrir' : 'Zephyr') 
-        : (request.narratorVoice === 'Male' ? 'Puck' : 'Kore');
+    const audioRequest = {
+        fullStoryText,
+        language: request.language,
+        narratorVoice: request.narratorVoice,
+        emotionTone: request.emotionTone,
+    };
 
-    const ttsResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash-preview-tts",
-      contents: [{ parts: [{ text: `Say with a ${request.emotionTone} tone: ${fullStoryText}` }] }],
-      config: {
-        responseModalities: [Modality.AUDIO],
-        speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: voiceName }
-            },
-        },
-      },
+    const response = await fetch('/api/audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(audioRequest),
     });
 
-    const base64Audio = ttsResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-
-    if (!base64Audio) {
-        throw new Error("Audio data not found in TTS response.");
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred while generating audio.' }));
+        throw new Error(errorData.error || `Audio request failed with status ${response.status}`);
     }
+
+    return response.json();
+};
+
+/**
+ * Generates a thematic image for the story using Gemini Image Generation.
+ */
+export const generateImage = async (story: Story): Promise<{ base64Image: string; mimeType: string }> => {
+    const prompt = `Create a realistic, photorealistic digital art image that captures the essence of the following story scene. 
+    The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}". 
+    Scene description: "${story.introduction}". 
     
+    IMPORTANT RESTRICTIONS: 
+    1. Do NOT include any text, words, letters, subtitles, or labels in the image. 
+    2. The image must be purely visual/artistic.
+    3. No gibberish text.`;
+
+    const response = await fetch('/api/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred while generating image.' }));
+        throw new Error(errorData.error || `Image request failed with status ${response.status}`);
+    }
+
+    return response.json();
+};
+
+/**
+ * Legacy support for combined story and voice generation.
+ */
+export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ story: Story; base64Audio: string }> => {
+    const { story } = await generateStory(request);
+    const { base64Audio } = await generateVoice(story, request);
     return { story, base64Audio };
+};
+
+/**
+ * Sends a message to the narrator chatbot.
+ * Fixes the import error: Module '"../services/geminiService"' has no exported member 'sendChatMessage'.
+ */
+export const sendChatMessage = async (message: string, history: ChatMessage[], story: Story): Promise<{ text: string }> => {
+    const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, history, story }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to send message');
+    }
+
+    return response.json();
 };
