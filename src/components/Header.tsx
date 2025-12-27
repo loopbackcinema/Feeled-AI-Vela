@@ -11,6 +11,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
 
     const navItems = [
         { id: 'generator', label: 'Dashboard' },
+        { id: 'inclusive', label: '♿ Inclusive Learning' },
         { id: 'teachers', label: 'For Teachers' },
         { id: 'parents', label: 'For Parents' },
         { id: 'research', label: 'Scientific Portfolio' },
@@ -35,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                 </button>
                 
                 {/* Desktop Navigation */}
-                <nav className="hidden lg:flex items-center space-x-1">
+                <nav className="hidden xl:flex items-center space-x-1">
                     {navItems.map((item) => (
                         <button 
                             key={item.id}

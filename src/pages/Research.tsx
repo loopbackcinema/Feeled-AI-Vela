@@ -174,20 +174,20 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                 ))}
             </div>
 
-            {/* Inclusive Learning Research Section */}
-            <div className="bg-gradient-to-br from-indigo-50 to-slate-50 border-4 border-white rounded-[4rem] p-12 md:p-20 shadow-2xl relative overflow-hidden text-center">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+            {/* FEATURED: Inclusive Learning Research Section */}
+            <div className="bg-gradient-to-br from-indigo-900 to-slate-900 border-4 border-white rounded-[4rem] p-12 md:p-20 shadow-2xl relative overflow-hidden text-center text-white">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/20 rounded-full blur-[100px] -mr-40 -mt-40"></div>
                 <div className="relative z-10 space-y-8">
-                    <span className="text-5xl">♿</span>
-                    <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter">Inclusive Learning Research</h2>
-                    <p className="text-xl text-slate-500 font-bold max-w-3xl mx-auto leading-relaxed">
+                    <span className="text-6xl animate-pulse">♿</span>
+                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">Specialized Domain: <span className="text-indigo-400">Inclusive Learning</span></h2>
+                    <p className="text-xl text-slate-300 font-bold max-w-3xl mx-auto leading-relaxed">
                         Supporting Blind & Deaf Learners Through Emotion-Adaptive Storytelling. Explore our ongoing collaborative research initiative exploring how emotion-adaptive storytelling can support inclusive learning experiences.
                     </p>
                     <button 
                         onClick={() => onNavigate('inclusive')}
-                        className="bg-indigo-600 text-white px-16 py-6 rounded-full font-black text-xl shadow-4xl hover:scale-105 transition-transform border-b-[10px] border-indigo-900 active:border-b-0 active:translate-y-2"
+                        className="bg-white text-slate-900 px-16 py-7 rounded-full font-black text-xl shadow-4xl hover:scale-105 transition-transform border-b-[10px] border-slate-200 active:border-b-0 active:translate-y-2"
                     >
-                        Explore Inclusive Research Details
+                        Explore Research Methodology
                     </button>
                 </div>
             </div>
