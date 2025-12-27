@@ -181,7 +181,7 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                     <span className="text-6xl animate-pulse">♿</span>
                     <h2 className="text-4xl md:text-6xl font-black tracking-tighter">Specialized Domain: <span className="text-indigo-400">Inclusive Learning</span></h2>
                     <p className="text-xl text-slate-300 font-bold max-w-3xl mx-auto leading-relaxed">
-                        Supporting Blind & Deaf Learners Through Emotion-Adaptive Storytelling. Explore our ongoing collaborative research initiative exploring how emotion-adaptive storytelling can support inclusive learning experiences.
+                        Explore our ongoing collaborative research initiative exploring how emotion-adaptive storytelling supports Blind & Deaf learners through specialized sensory channels.
                     </p>
                     <button 
                         onClick={() => onNavigate('inclusive')}
