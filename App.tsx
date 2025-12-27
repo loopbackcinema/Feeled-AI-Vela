@@ -28,14 +28,16 @@ const App: React.FC = () => {
             setBase64Audio(result.base64Audio);
             setCurrentPage('story');
         } catch (err) {
-            console.error(err);
-            setError('Failed to generate story. Please try again.');
+            console.error("Generation error:", err);
+            const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+            setError(`Failed to generate story. ${errorMessage}`);
         } finally {
             setIsLoading(false);
         }
     }, []);
     
     const navigateTo = (page: Page) => {
+        window.scrollTo(0, 0);
         setCurrentPage(page);
     };
 
@@ -50,7 +52,15 @@ const App: React.FC = () => {
             case 'generator':
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
             case 'story':
-                return generatedStory && base64Audio ? <StoryDisplay story={generatedStory} base64Audio={base64Audio} onTryAnother={handleTryAnother} /> : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
+                return generatedStory && base64Audio ? (
+                    <StoryDisplay 
+                        story={generatedStory} 
+                        base64Audio={base64Audio} 
+                        onTryAnother={handleTryAnother} 
+                    />
+                ) : (
+                    <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
+                );
             case 'about':
                 return <AboutUs onNavigate={navigateTo} />;
             case 'contact':
@@ -63,7 +73,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+        <div className="min-h-screen flex flex-col bg-transparent text-slate-800">
             <Header />
             <main className="flex-grow container mx-auto px-4 py-8 md:py-12 flex flex-col items-center justify-center">
                 {renderPage()}

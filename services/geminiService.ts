@@ -1,11 +1,7 @@
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { Story, StoryRequest } from '../types';
 
-const API_KEY = process.env.API_KEY;
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 const storySchema = {
     type: Type.OBJECT,
@@ -23,6 +19,7 @@ const storySchema = {
 };
 
 export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ story: Story; base64Audio: string }> => {
+    // 1. Generate Story Text
     const storyPrompt = `You are an expert educational storyteller. Convert the academic topic "${request.topic}" into an emotional, student-friendly story.
     The story must be appropriate for a ${request.std} student and be in ${request.language}.
     The emotional tone should be ${request.emotionTone}.
@@ -39,8 +36,13 @@ export const generateStoryAndVoice = async (request: StoryRequest): Promise<{ st
         },
     });
     
+    if (!storyResponse.text) {
+        throw new Error("Empty response from story generator.");
+    }
+
     const story: Story = JSON.parse(storyResponse.text.trim());
 
+    // 2. Generate Voice (TTS)
     const fullStoryText = [
         story.title,
         story.introduction,
