@@ -1,4 +1,3 @@
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
 
@@ -37,23 +36,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const { topic, std, language, emotionTone } = req.body;
-        const prompt = `You are an expert educational storyteller. 
-        TASK: Convert the academic topic "${topic}" into an emotional, student-friendly story.
+        const prompt = `You are a world-class educational storyteller and pedagogical expert.
+        
+        TASK: Convert the academic topic "${topic}" into a deeply emotional, immersive, and student-friendly story.
         TARGET AUDIENCE: A ${std} student.
         LANGUAGE: ${language}.
-        EMOTIONAL TONE: ${emotionTone}.
+        EMOTIONAL ARC: ${emotionTone}.
         
-        STORY STRUCTURE:
-        1. Introduction: Set the scene and introduce characters.
-        2. Emotional Trigger: A problem or curiosity that makes the character feel deeply.
-        3. Concept Explanation: The core educational concept explained through the story's events.
-        4. Resolution: How the character solves the problem using the concept.
-        5. Moral Message: A life lesson derived from the story.
-        6. Conclusion: A warm wrap-up.
+        STORY REQUIREMENTS:
+        1. Introduction: Hook the reader and introduce the protagonist and the setting.
+        2. Emotional Trigger: Create a high-arousal emotional moment or problem that requires the educational concept to solve.
+        3. Concept Explanation: Integrate the core educational explanation naturally into the narrative events.
+        4. Resolution: Show how the character triumphs using their newfound understanding.
+        5. Moral Message: Deliver a powerful, inspiring life lesson.
+        6. Conclusion: Provide a heartwarming and educational closure.
 
-        QUIZ: Generate exactly 3 multiple-choice questions (A, B, C, D) that test understanding of the concept explained in the story.
+        QUIZ GENERATION:
+        Generate exactly 3 high-quality multiple-choice questions. 
+        Questions must specifically test the understanding of how the educational concept worked within the story.
+        Include 4 options for each question (A, B, C, D).
         
-        Return output strictly in JSON format.`;
+        Return output strictly in JSON format matching the schema.`;
         
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
@@ -69,6 +72,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(200).json({ story });
     } catch (error) {
         console.error('Gemini Story Generation Error:', error);
-        res.status(500).json({ error: 'Generation failed' });
+        res.status(500).json({ error: 'Pedagogical generation failed' });
     }
 }
