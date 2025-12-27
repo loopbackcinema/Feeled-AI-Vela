@@ -11,12 +11,42 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <footer className="w-full bg-white border-t border-slate-200/60 mt-auto">
             <div className="container mx-auto px-4 py-12 text-center text-slate-500">
                 <div className="flex justify-center items-center gap-4 md:gap-8 mb-8 flex-wrap">
-                    <button onClick={() => onNavigate('pilot')} className="hover:text-blue-600 transition-colors font-bold text-blue-600/80">Pilot Program</button>
-                    <button onClick={() => onNavigate('about')} className="hover:text-blue-600 transition-colors font-bold">About Us</button>
-                    <button onClick={() => onNavigate('founder')} className="hover:text-blue-600 transition-colors font-bold">Founder</button>
-                    <button onClick={() => onNavigate('research')} className="hover:text-blue-600 transition-colors font-bold">Research</button>
-                    <button onClick={() => onNavigate('contact')} className="hover:text-blue-600 transition-colors font-bold">Contact</button>
-                    <button onClick={() => onNavigate('privacy')} className="hover:text-blue-600 transition-colors font-bold">Privacy Policy</button>
+                    <button 
+                        onClick={() => onNavigate('pilot')} 
+                        className="hover:text-blue-600 transition-colors font-bold text-blue-600/80"
+                    >
+                        Pilot Program
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('about')} 
+                        className="hover:text-blue-600 transition-colors font-bold"
+                    >
+                        Philosophy
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('founder')} 
+                        className="hover:text-blue-600 transition-colors font-bold"
+                    >
+                        Founder
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('research')} 
+                        className="hover:text-blue-600 transition-colors font-bold"
+                    >
+                        Scientific Portfolio
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('contact')} 
+                        className="hover:text-blue-600 transition-colors font-bold"
+                    >
+                        Contact
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('privacy')} 
+                        className="hover:text-blue-600 transition-colors font-bold"
+                    >
+                        Privacy Policy
+                    </button>
                 </div>
 
                 <div className="flex justify-center items-center gap-6 mb-8">
