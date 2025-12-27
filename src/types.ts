@@ -23,6 +23,7 @@ export interface StoryRequest {
     language: string;
     narratorVoice: string;
     emotionTone: string;
+    difficulty?: 'Easy' | 'Medium' | 'Hard';
 }
 
 export interface ChatMessage {
@@ -31,3 +32,9 @@ export interface ChatMessage {
 }
 
 export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents';
+
+export interface UserSettings {
+    isHighContrast: boolean;
+    isDyslexicFont: boolean;
+    uiLanguage: 'English' | 'Tamil';
+}
