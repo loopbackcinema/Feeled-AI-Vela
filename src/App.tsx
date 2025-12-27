@@ -45,9 +45,7 @@ const App: React.FC = () => {
             setIsImageLoading(true);
 
             generateVoice(story, request)
-                .then(({ base64Audio }) => {
-                    setBase64Audio(base64Audio);
-                })
+                .then(({ base64Audio }) => setBase64Audio(base64Audio))
                 .catch((e) => console.error("Audio synthesis failed:", e))
                 .finally(() => setIsAudioLoading(false));
 
