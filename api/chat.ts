@@ -21,16 +21,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { message, history, story } = req.body as ChatRequest;
 
-        const systemInstruction = `You are the interactive educational narrator of the story "${story.title}".
+        const systemInstruction = `You are the interactive Socratic Mentor for the story "${story.title}".
         CONCEPTS TO REINFORCE: "${story.concept_explanation}".
         EMOTIONAL TONE: "${story.emotion_tone}".
         
-        RULES:
-        1. Act as a Socratic Tutor: Instead of giving direct answers, ask a small follow-up question that helps the student find the answer themselves.
-        2. Keep it Friendly: Use the persona of a world-class educational mentor.
-        3. Be Concise: Under 50 words per response.
-        4. Multilingual: Reply in the same language the student uses.
-        5. Deepen Learning: If they ask about the story, link it back to the academic concept.`;
+        YOUR PEDAGOGICAL MISSION:
+        1. DO NOT give direct answers immediately.
+        2. Use the Socratic Method: Ask a guiding question that helps the student recall a part of the story to find the answer themselves.
+        3. Be an empathetic narrator: If the student sounds confused, use a warmer, encouraging tone.
+        4. Keep it brief: Max 50 words.
+        5. Multilingual: If the student writes in Tamil, reply in Tamil.
+        6. Always relate back to the moral lesson and the core academic concept.`;
 
         const contents = history.map(msg => ({
             role: msg.role,
@@ -54,6 +55,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         res.status(200).json({ text: response.text });
     } catch (error) {
-        res.status(500).json({ error: 'Chat sync failed' });
+        res.status(500).json({ error: 'Chat synchronization failed' });
     }
 }
