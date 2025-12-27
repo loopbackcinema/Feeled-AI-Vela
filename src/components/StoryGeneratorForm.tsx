@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { StoryRequest } from '../types';
 import { STD_OPTIONS, LANGUAGE_OPTIONS, NARRATOR_VOICE_OPTIONS, EMOTION_TONE_OPTIONS } from '../constants';
@@ -9,10 +10,6 @@ interface StoryGeneratorFormProps {
     error: string | null;
 }
 
-const LANGUAGE_CODES: { [key: string]: string } = {
-    "English": "en-US", "Tamil": "ta-IN", "Hindi": "hi-IN", "Bengali": "bn-IN", "Telugu": "te-IN", "Marathi": "mr-IN", "Kannada": "kn-IN", "Gujarati": "gu-IN", "Malayalam": "ml-IN", "Punjabi": "pa-IN", "Odia": "or-IN"
-};
-
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
     const [topic, setTopic] = useState('');
     const [std, setStd] = useState(STD_OPTIONS[4]);
@@ -20,7 +17,6 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [narratorVoice, setNarratorVoice] = useState(NARRATOR_VOICE_OPTIONS.English[0]);
     const [emotionTone, setEmotionTone] = useState(EMOTION_TONE_OPTIONS[0]);
     const [submittedRequest, setSubmittedRequest] = useState<StoryRequest | null>(null);
-    const [isListening, setIsListening] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,153 +26,91 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         onSubmit(request);
     };
 
-    const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const newLang = e.target.value as keyof typeof NARRATOR_VOICE_OPTIONS;
-        setLanguage(newLang);
-        setNarratorVoice(NARRATOR_VOICE_OPTIONS[newLang][0]);
-    };
-
-    const startListening = () => {
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert("Speech input is not supported in this browser.");
-            return;
-        }
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.lang = LANGUAGE_CODES[language] || 'en-US';
-        recognition.interimResults = false;
-        recognition.onstart = () => setIsListening(true);
-        recognition.onresult = (event: any) => { setTopic(event.results[0][0].transcript); setIsListening(false); };
-        recognition.onend = () => setIsListening(false);
-        recognition.start();
-    };
-
-    if (isLoading && submittedRequest) {
-        return <LoadingIndicator request={submittedRequest} />;
-    }
+    if (isLoading && submittedRequest) return <LoadingIndicator request={submittedRequest} />;
 
     return (
-        <div className="w-full max-w-4xl mx-auto space-y-16 animate-fade-in py-10 relative">
-            
-            {/* Hero Section */}
-            <div className="text-center space-y-10">
-                {/* Animation: Magic Story Engine v2.5 Tag with Shimmer */}
-                <div className="inline-flex items-center gap-3 px-8 py-3 rounded-full animate-shimmer border-2 border-blue-200 text-blue-900 text-sm font-black uppercase tracking-[0.3em] shadow-xl">
-                    <span className="relative flex h-4 w-4">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-600"></span>
-                    </span>
-                    Magic Story Engine v2.5
-                </div>
-
-                {/* Animation: Bubble effect on "Dream. Spark. Learn." */}
-                <h1 className="text-7xl md:text-9xl font-black text-slate-900 tracking-tighter leading-none flex flex-wrap justify-center gap-x-6 md:gap-x-12">
-                    <span className="animate-bubble-1 inline-block text-blue-700">Dream.</span>
-                    <span className="animate-bubble-2 inline-block bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500">Spark.</span>
-                    <span className="animate-bubble-3 inline-block text-blue-700">Learn.</span>
+        <div className="w-full max-w-5xl mx-auto space-y-12 animate-fade-in py-12">
+            <div className="text-center space-y-4">
+                <span className="px-4 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] border border-blue-100">
+                    Proprietary Affective Engine
+                </span>
+                <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight">
+                    Professional <span className="shimmer-text">Learning Engine</span>
                 </h1>
-
-                {/* Animation: Shaky effect on sub-headline */}
-                <p className="text-2xl md:text-4xl text-slate-600 font-extrabold max-w-3xl mx-auto leading-relaxed">
-                    <span className="animate-magic-shake inline-block">
-                        Turn boring lessons into <span className="text-blue-600 underline decoration-blue-300 decoration-[6px] underline-offset-[14px]">magical stories!</span> 🧚‍♀️
-                    </span>
+                <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+                    Convert complex educational concepts into verified narrative learning experiences for students.
                 </p>
             </div>
 
-            {/* Form Container with Light Blue Glassmorphism */}
-            <div className="glass-panel p-10 md:p-20 rounded-[4.5rem] shadow-[0_60px_100px_-20px_rgba(37,99,235,0.25)] border-4 border-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[150px] pointer-events-none group-hover:bg-blue-400/20 transition-colors duration-1000"></div>
-                
-                {error && (
-                    <div className="bg-red-50 border-4 border-red-100 text-red-600 p-8 rounded-[2rem] mb-12 flex items-center gap-5 font-black shadow-inner">
-                        <span className="text-3xl">⚠️</span> {error}
-                    </div>
-                )}
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden">
+                <div className="p-8 md:p-12 space-y-10">
+                    {error && (
+                        <div className="bg-red-50 border border-red-100 text-red-700 p-4 rounded-xl text-sm font-bold flex items-center gap-3">
+                            <span className="text-xl">⚠️</span> {error}
+                        </div>
+                    )}
 
-                <form onSubmit={handleSubmit} className="space-y-16 relative z-10">
-                    <div className="space-y-8">
-                        <label className="text-sm font-black text-blue-900/60 uppercase tracking-[0.5em] ml-6">🎩 Magical Topic</label>
-                        <div className="relative group/input">
-                            <input
-                                type="text"
-                                value={topic}
-                                onChange={(e) => setTopic(e.target.value)}
-                                placeholder={isListening ? "Listening with magic..." : "e.g. Gravity, Space, Biology..."}
-                                className={`w-full px-12 py-10 text-3xl md:text-4xl font-black rounded-[3rem] border-[8px] transition-all shadow-2xl outline-none ${
-                                    isListening 
-                                    ? 'border-blue-500 bg-blue-50 text-blue-900 animate-pulse ring-[15px] ring-blue-100' 
-                                    : 'border-blue-100/40 bg-white/90 focus:border-blue-600 text-slate-800 placeholder-slate-200'
-                                }`}
-                                required
-                                disabled={isLoading}
-                            />
-                            <button
-                                type="button"
-                                onClick={startListening}
-                                className={`absolute right-10 top-1/2 -translate-y-1/2 p-8 rounded-[2rem] transition-all ${isListening ? 'bg-blue-600 text-white shadow-2xl animate-bounce' : 'text-blue-300 hover:text-blue-600 hover:bg-blue-50'}`}
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-12 h-12">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                                </svg>
-                            </button>
+                    <form onSubmit={handleSubmit} className="space-y-10">
+                        <div className="space-y-3">
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Academic Topic</label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={topic}
+                                    onChange={(e) => setTopic(e.target.value)}
+                                    placeholder="e.g., Quantum Mechanics, The Water Cycle, photosynthesis..."
+                                    className="w-full px-8 py-6 text-xl md:text-2xl font-bold rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-blue-600 focus:bg-white transition-all outline-none text-slate-800"
+                                    required
+                                />
+                                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                        <div className="space-y-4">
-                            <label className="text-xs font-black text-blue-900/50 uppercase tracking-widest ml-6">🎒 Level</label>
-                            <select value={std} onChange={(e) => setStd(e.target.value)} className="w-full px-10 py-8 rounded-[2rem] bg-white border-4 border-blue-50 font-black text-slate-700 outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer shadow-sm hover:shadow-xl">
-                                {STD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {[
+                                { label: 'Target Level', val: std, set: setStd, opts: STD_OPTIONS },
+                                { label: 'Instruction Language', val: language, set: (v: string) => { setLanguage(v as any); setNarratorVoice(NARRATOR_VOICE_OPTIONS[v as keyof typeof NARRATOR_VOICE_OPTIONS][0]); }, opts: LANGUAGE_OPTIONS },
+                                { label: 'Voice Persona', val: narratorVoice, set: setNarratorVoice, opts: NARRATOR_VOICE_OPTIONS[language] },
+                                { label: 'Emotional Tone', val: emotionTone, set: setEmotionTone, opts: EMOTION_TONE_OPTIONS }
+                            ].map((field, i) => (
+                                <div key={i} className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
+                                    <select 
+                                        value={field.val} 
+                                        onChange={(e) => field.set(e.target.value)}
+                                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-700 outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer"
+                                    >
+                                        {field.opts.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    </select>
+                                </div>
+                            ))}
                         </div>
-                        <div className="space-y-4">
-                            <label className="text-xs font-black text-blue-900/50 uppercase tracking-widest ml-6">🗣️ Language</label>
-                            <select value={language} onChange={handleLanguageChange} className="w-full px-10 py-8 rounded-[2rem] bg-white border-4 border-blue-50 font-black text-slate-700 outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer shadow-sm hover:shadow-xl">
-                                {LANGUAGE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                            </select>
-                        </div>
-                        <div className="space-y-4">
-                            <label className="text-xs font-black text-blue-900/50 uppercase tracking-widest ml-6">🎤 Narrator</label>
-                            <select value={narratorVoice} onChange={(e) => setNarratorVoice(e.target.value)} className="w-full px-10 py-8 rounded-[2rem] bg-white border-4 border-blue-50 font-black text-slate-700 outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer shadow-sm hover:shadow-xl">
-                                {NARRATOR_VOICE_OPTIONS[language].map(opt => <option key={opt} value={opt}>{opt} Persona</option>)}
-                            </select>
-                        </div>
-                        <div className="space-y-4">
-                            <label className="text-xs font-black text-blue-900/50 uppercase tracking-widest ml-6">🎭 Emotional Mood</label>
-                            <select value={emotionTone} onChange={(e) => setEmotionTone(e.target.value)} className="w-full px-10 py-8 rounded-[2rem] bg-white border-4 border-blue-50 font-black text-slate-700 outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer shadow-sm hover:shadow-xl">
-                                {EMOTION_TONE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt} Journey</option>)}
-                            </select>
-                        </div>
-                    </div>
 
-                    <button type="submit" className="w-full group/btn bg-blue-700 text-white font-black py-12 rounded-[3.5rem] shadow-[0_40px_70px_-15px_rgba(29,78,216,0.6)] hover:bg-blue-800 transition-all transform hover:scale-[1.03] active:scale-95 flex items-center justify-center gap-8 overflow-hidden relative border-b-[16px] border-blue-900">
-                        <span className="text-5xl">🚀</span>
-                        <span className="text-4xl tracking-tighter uppercase">Generate Magic Story</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-14 w-14 group-hover/btn:translate-x-5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                    </button>
-                </form>
+                        <button 
+                            type="submit" 
+                            className="w-full py-6 rounded-2xl bg-slate-900 text-white text-lg font-black tracking-tight hover:bg-slate-800 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
+                        >
+                            <span>🚀</span>
+                            Initialize Learning Engine
+                        </button>
+                    </form>
+                </div>
             </div>
 
-            {/* Light Blue Quality Badges */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 pt-10 pb-20">
-                <div className="p-14 rounded-[4rem] bg-white/60 border-4 border-white shadow-2xl hover:-translate-y-4 transition-transform duration-500 text-center">
-                    <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center text-6xl mx-auto mb-8 shadow-inner border-2 border-blue-100">🔬</div>
-                    <h3 className="font-black text-blue-900 uppercase tracking-[0.3em] text-sm mb-4">Science Driven</h3>
-                    <p className="text-xl text-slate-500 font-bold leading-relaxed">Emotional triggers optimized for memory.</p>
-                </div>
-                <div className="p-14 rounded-[4rem] bg-white/60 border-4 border-white shadow-2xl hover:-translate-y-4 transition-transform duration-500 text-center">
-                    <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center text-6xl mx-auto mb-8 shadow-inner border-2 border-blue-100">🛡️</div>
-                    <h3 className="font-black text-blue-900 uppercase tracking-[0.3em] text-sm mb-4">Privacy First</h3>
-                    <p className="text-xl text-slate-500 font-bold leading-relaxed">No data storage. Zero tracking. Safe.</p>
-                </div>
-                <div className="p-14 rounded-[4rem] bg-white/60 border-4 border-white shadow-2xl hover:-translate-y-4 transition-transform duration-500 text-center">
-                    <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center text-6xl mx-auto mb-8 shadow-inner border-2 border-blue-100">🌊</div>
-                    <h3 className="font-black text-blue-900 uppercase tracking-[0.3em] text-sm mb-4">Hyper-Real</h3>
-                    <p className="text-xl text-slate-500 font-bold leading-relaxed">Adaptive AI for total learning immersion.</p>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {[
+                    { t: 'Verified Research', d: 'Rooted in cognitive load theory and affective science.', i: '🔬' },
+                    { t: 'Safe by Design', d: 'No identifiable user data storage or tracking.', i: '🛡️' },
+                    { t: 'Universal Access', d: 'Optimized for low-bandwidth educational settings.', i: '🌍' }
+                ].map((item, i) => (
+                    <div key={i} className="bg-white p-8 rounded-3xl border border-slate-200 text-center space-y-4 hover:shadow-lg transition-shadow">
+                        <div className="text-4xl">{item.i}</div>
+                        <h3 className="font-bold text-slate-900 uppercase tracking-tighter text-sm">{item.t}</h3>
+                        <p className="text-slate-500 text-sm leading-relaxed">{item.d}</p>
+                    </div>
+                ))}
             </div>
         </div>
     );
