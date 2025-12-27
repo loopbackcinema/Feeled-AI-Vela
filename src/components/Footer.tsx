@@ -87,6 +87,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Foundation</h3>
                         <ul className="space-y-3">
                             <li><button onClick={() => onNavigate('research')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">Scientific Portfolio</button></li>
+                            <li><button onClick={() => onNavigate('inclusive')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">♿ Inclusive Learning</button></li>
                             <li><button onClick={() => onNavigate('about')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">Our Philosophy</button></li>
                             <li><button onClick={() => onNavigate('privacy')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">Privacy Data Policy</button></li>
                             <li><button onClick={() => onNavigate('contact')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">Contact Office</button></li>
