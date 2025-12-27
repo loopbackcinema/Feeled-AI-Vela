@@ -13,6 +13,8 @@ import Founder from './pages/Founder';
 import Research from './pages/Research';
 import PilotProgram from './pages/PilotProgram';
 import InclusiveResearch from './pages/InclusiveResearch';
+import Teachers from './pages/Teachers';
+import Parents from './pages/Parents';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('generator');
@@ -99,6 +101,8 @@ const App: React.FC = () => {
             case 'contact': return <Contact onNavigate={navigateTo} />;
             case 'privacy': return <PrivacyPolicy onNavigate={navigateTo} />;
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
+            case 'teachers': return <Teachers onNavigate={navigateTo} />;
+            case 'parents': return <Parents onNavigate={navigateTo} />;
             default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };

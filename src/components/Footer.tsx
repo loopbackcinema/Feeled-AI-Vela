@@ -12,6 +12,18 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <div className="container mx-auto px-4 py-12 text-center text-slate-500">
                 <div className="flex justify-center items-center gap-4 md:gap-8 mb-8 flex-wrap">
                     <button 
+                        onClick={() => onNavigate('teachers')} 
+                        className="hover:text-blue-600 transition-colors font-bold text-slate-600"
+                    >
+                        For Teachers
+                    </button>
+                    <button 
+                        onClick={() => onNavigate('parents')} 
+                        className="hover:text-blue-600 transition-colors font-bold text-slate-600"
+                    >
+                        For Parents
+                    </button>
+                    <button 
                         onClick={() => onNavigate('pilot')} 
                         className="hover:text-blue-600 transition-colors font-bold text-blue-600/80"
                     >
