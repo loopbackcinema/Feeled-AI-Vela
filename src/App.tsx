@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { Story, StoryRequest, Page } from './types';
 import { generateStory, generateVoice, generateImage } from './services/geminiService';
@@ -125,7 +124,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900 selection:bg-blue-100 selection:text-blue-900">
+        <div className="min-h-screen flex flex-col bg-transparent text-slate-900 selection:bg-blue-100 selection:text-blue-900">
             <Header onNavigate={navigateTo} />
             <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center">
                 {renderPage()}
