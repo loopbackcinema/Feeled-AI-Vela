@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Page } from '../types';
 
@@ -56,7 +55,7 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                         {[
                             { t: "Vision-independent learning", i: "👁️" },
                             { t: "Hearing-independent cues", i: "👂" },
-                            { t: "Multimodal emotional signals", i: "🧩" }
+                            { t: "Uniform sensory access (Baseline)", i: "🧩" }
                         ].map((part, i) => (
                             <div key={i} className="flex items-center gap-6 p-6 rounded-3xl bg-white border border-slate-100">
                                 <span className="text-3xl">{part.i}</span>
@@ -72,14 +71,14 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 <div className="bg-white p-16 rounded-[4rem] border-2 border-slate-100 shadow-sm space-y-10 hover:border-indigo-200 transition-colors">
                     <div className="flex items-center gap-6">
                         <span className="text-5xl">🦯</span>
-                        <h3 className="text-3xl font-black text-slate-900">For Blind Learners</h3>
+                        <h3 className="text-3xl font-black text-slate-900">For Blind & Low-Vision Learners</h3>
                     </div>
                     <ul className="space-y-6">
                         {[
                             "Audio-first storytelling structures",
                             "Emotional tone conveyed through voice, rhythm, and pacing",
                             "Descriptive narrative design (not visual dependence)",
-                            "Emotion conveyed through sound variation and narration flow"
+                            "Emotion conveyed through sound variation, pauses, and narration flow"
                         ].map((item, i) => (
                             <li key={i} className="flex items-start gap-4 text-slate-700 font-bold">
                                 <span className="text-indigo-500">●</span> {item}
@@ -90,13 +89,13 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 <div className="bg-white p-16 rounded-[4rem] border-2 border-slate-100 shadow-sm space-y-10 hover:border-indigo-200 transition-colors">
                     <div className="flex items-center gap-6">
                         <span className="text-5xl">🤟</span>
-                        <h3 className="text-3xl font-black text-slate-900">For Deaf Learners</h3>
+                        <h3 className="text-3xl font-black text-slate-900">For Deaf & Hard-of-Hearing Learners</h3>
                     </div>
                     <ul className="space-y-6">
                         {[
                             "Visual rhythm-based storytelling",
                             "Text + sign-language friendly narrative pacing",
-                            "Emotion expressed through scene timing and motion cues",
+                            "Emotion expressed through scene timing, visual emphasis, and motion cues",
                             "Reduced reliance on audio-centric emotional signals"
                         ].map((item, i) => (
                             <li key={i} className="flex items-start gap-4 text-slate-700 font-bold">
@@ -111,13 +110,13 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
             <div className="bg-slate-900 text-white p-20 md:p-32 rounded-[5rem] shadow-4xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(79,70,229,0.15)_0%,transparent_70%)]"></div>
                 <div className="relative z-10 space-y-16">
-                    <h2 className="text-5xl font-black tracking-tight text-center">Research Explorations</h2>
+                    <h2 className="text-5xl font-black tracking-tight text-center">What We Are Exploring (Not Claiming)</h2>
                     <div className="grid md:grid-cols-2 gap-10">
                         {[
                             "How emotion can be communicated without sight or sound",
-                            "How adaptive stories respect sensory differences",
-                            "How teachers guide emotional pacing",
-                            "How inclusive design coexists in mainstream classrooms"
+                            "How adaptive stories can respect sensory differences",
+                            "How teachers and facilitators guide emotional pacing",
+                            "How inclusive design can coexist with mainstream classrooms"
                         ].map((step, i) => (
                             <div key={i} className="flex items-center gap-8 p-10 bg-white/5 rounded-[2.5rem] border border-white/10">
                                 <span className="text-xl font-bold">{step}</span>
@@ -143,12 +142,13 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 <div className="grid md:grid-cols-2 gap-12 text-xl font-bold text-emerald-800/80">
                     <div className="space-y-4 text-emerald-700 font-bold">
                         <p>• No biometric data collection</p>
+                        <p>• No facial analysis or emotional labeling</p>
                         <p>• No profiling of children</p>
                         <p>• No automated judgments</p>
-                        <p>• Participation only with guardians & educators</p>
+                        <p>• Participation occurs only with educators, guardians, and institutional oversight.</p>
                     </div>
-                    <div className="p-10 bg-white rounded-[3rem] border border-emerald-200 shadow-sm">
-                        <p className="text-emerald-900 leading-relaxed font-black">"Children are respected as active participants in a collaborative learning journey, never as mere data sources."</p>
+                    <div className="p-10 bg-white rounded-[3rem] border border-emerald-200 shadow-sm flex items-center justify-center">
+                        <p className="text-emerald-900 leading-relaxed font-black text-center">"Children are never treated as data sources — they are participants in a learning journey."</p>
                     </div>
                 </div>
             </div>
@@ -159,11 +159,11 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                     <h3 className="text-2xl font-black text-slate-900">Who We Collaborate With</h3>
                     <div className="flex flex-wrap gap-3">
                         {[
-                            "Special Education Teachers",
-                            "Schools for Blind & Deaf Children",
-                            "Inclusive Education Researchers",
-                            "NGOs & Foundations",
-                            "Accessibility Experts"
+                            "Special education teachers",
+                            "Schools for blind & deaf children",
+                            "Inclusive education researchers",
+                            "NGOs & foundations",
+                            "Accessibility & learning design experts"
                         ].map((tag, i) => (
                             <span key={i} className="px-5 py-2 bg-white rounded-full text-sm font-bold border border-slate-200 text-slate-600">
                                 {tag}
@@ -175,7 +175,7 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                     <h3 className="text-2xl font-black text-slate-900">Current Status</h3>
                     <div className="space-y-4 font-bold text-slate-600">
                         <div className="flex items-center gap-4"><span className="w-3 h-3 bg-amber-500 rounded-full"></span> Research & exploration phase</div>
-                        <div className="flex items-center gap-4"><span className="w-3 h-3 bg-amber-500 rounded-full"></span> Small-scale supervised pilots</div>
+                        <div className="flex items-center gap-4"><span className="w-3 h-3 bg-amber-500 rounded-full"></span> Small-scale supervised pilots (where applicable)</div>
                         <div className="flex items-center gap-4"><span className="w-3 h-3 bg-amber-500 rounded-full"></span> Continuous ethical review</div>
                     </div>
                 </div>
@@ -185,17 +185,17 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
             <div className="text-center space-y-12">
                 <h2 className="text-5xl font-black text-slate-900 tracking-tight">Interested in <span className="text-indigo-600">Contributing?</span></h2>
                 <p className="text-2xl text-slate-500 font-bold max-w-3xl mx-auto">
-                    If you are an educator, researcher, or organization working in inclusive education, we welcome dialogue.
+                    If you are an educator, researcher, or organization working in inclusive education and believe in thoughtful, ethical experimentation, we welcome dialogue.
                 </p>
                 <div className="flex flex-col md:flex-row justify-center gap-8">
                     <a 
                         href="mailto:contact@feeledai.com?subject=Inclusive Learning Research Collaboration" 
                         className="bg-indigo-600 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 transition-all border-b-[12px] border-indigo-900 active:border-b-0"
                     >
-                        Collaborate on Inclusive Research
+                        Collaborate on Inclusive Learning Research
                     </a>
                     <button onClick={() => onNavigate('research')} className="border-4 border-slate-200 text-slate-500 px-16 py-8 rounded-full font-black text-2xl hover:bg-slate-50 transition-all">
-                        Back to Portfolio
+                        Back to Scientific Portfolio
                     </button>
                 </div>
                 <div className="pt-24 space-y-8 border-t border-slate-100 max-w-3xl mx-auto">
