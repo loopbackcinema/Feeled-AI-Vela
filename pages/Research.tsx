@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Page } from '../types';
 
@@ -5,175 +6,185 @@ interface ResearchProps {
     onNavigate: (page: Page) => void;
 }
 
+interface Achievement {
+    id: number;
+    date: string;
+    title: string;
+    event: string;
+    location: string;
+    badge: string;
+    description: string;
+    link: string;
+    metadata?: string;
+    status: 'COMPLETED' | 'UPCOMING';
+}
+
+const researchData: Achievement[] = [
+    {
+        id: 1,
+        date: "Sept 26, 2025",
+        title: "𝐃𝐢𝐬𝐫𝐮𝐩𝐭𝐢𝐯𝐞 𝐀𝐈 𝐈𝐧𝐧𝐨𝐯𝐚𝐭𝐢𝐨𝐧 𝐀𝐰𝐚𝐫𝐝",
+        event: "𝐖𝐨𝐫𝐥𝐝 𝐀𝐈 𝐒𝐮𝐦𝐦𝐢𝐭 𝟐𝟎𝟐𝟓",
+        location: "Bangalore, Karnataka, India",
+        badge: "🏆 Distinction",
+        description: "Official recognition for pioneering disruptive innovations in artificial intelligence applied to cognitive pedagogy.",
+        link: "https://www.linkedin.com/feed/update/urn:li:activity:7380928148982603776/",
+        status: 'COMPLETED'
+    },
+    {
+        id: 2,
+        date: "Nov 06-07, 2025",
+        title: "Emotion-Adaptive AI System for Cognitive Belief Rewriting: A Framework for Belief Medicine",
+        event: "3rd International Conference on Neurology & Neurological Disorders",
+        location: "London, UK",
+        badge: "🎤 Speaker Presentation",
+        description: "Scientific presentation exploring neurological frameworks for belief recoding via emotion-aware AI.",
+        link: "https://www.scitechseries.com/neurology/speaker/velayutham-s",
+        status: 'COMPLETED'
+    },
+    {
+        id: 3,
+        date: "Nov 30, 2025",
+        title: "FeelEd AI™: AN EMOTION-ADAPTIVE FRAMEWORK FOR STORY-BASED COGNITIVE LEARNING",
+        event: "Beyond Boundaries: Multidisciplinary Inquiry",
+        location: "Porbandar, Gujarat, India",
+        badge: "📚 Book Chapter",
+        metadata: "DOI: 10.11411/HENXI.2025544044 | ISBN: 978-81-987316-1-6",
+        description: "Methodology published in association with Henxi Education and Hexagon Academy.",
+        link: "https://doie.org/10.11411/HENXI.2025544044",
+        status: 'COMPLETED'
+    },
+    {
+        id: 4,
+        date: "Jan 22-24, 2026",
+        title: "FeelEd AI™: An Emotion-Adaptive Framework for Story-Based Cognitive Learning",
+        event: "Frontiers of Sustainability (FOS 2026 – GRIE)",
+        location: "Thiagarajar School of Management (TSM), Madurai",
+        badge: "🎯 Research Pitch",
+        description: "Selected for Track 5: Sustainability Education, Training & Capacity Building (Doctoral Colloquium).",
+        link: "https://fos.tsm.ac.in/",
+        status: 'UPCOMING'
+    },
+    {
+        id: 5,
+        date: "Feb 12-14, 2026",
+        title: "FeelEd AI as Pedagogy: Reimagining Learning as Emotional Becoming",
+        event: "Learning, Love, and Liberation (IIT Madras Annual Conference)",
+        location: "IIT Madras, Chennai",
+        badge: "🎓 Conference Paper",
+        description: "Humanities and Social Sciences investigation into emotional becoming in intelligent environments.",
+        link: "https://ge.iitm.ac.in/lll-2026",
+        status: 'UPCOMING'
+    },
+    {
+        id: 6,
+        date: "Feb 16-20, 2026",
+        title: "FeelEd AI: A Casebook on the Real-World Impact of AI in Education",
+        event: "India-AI Impact Summit 2026 (Official Government Initiative)",
+        location: "New Delhi, India",
+        badge: "🚀 Casebook Launch",
+        description: "Presentation of scalable AI solutions for educational impact across national demographics.",
+        link: "https://impact.indiaai.gov.in/",
+        status: 'UPCOMING'
+    },
+    {
+        id: 7,
+        date: "June 22, 2026",
+        title: "Emotion-Adaptive AI System for Cognitive Belief Rewriting",
+        event: "12th International Conference on Neurology & Neurological Disorders",
+        location: "Barcelona, Spain",
+        badge: "🌟 Featured Keynote",
+        description: "Keynote presentation on the physiological response to adaptive narrative stimulus.",
+        link: "https://neurology.magnusconferences.com/program/scientific-program/2026/emotion-adaptive-ai-system-for-cognitive-belief-rewriting-a-framework-for-belief-medicine",
+        status: 'UPCOMING'
+    },
+    {
+        id: 8,
+        date: "July 2-7, 2026",
+        title: "FeelEd AI: Narrative-Driven, Explainable Adaptivity in Low-Resource Contexts",
+        event: "64th Annual Meeting of the Association for Computational Linguistics (ACL 2026)",
+        location: "San Diego, California, USA",
+        badge: "🔬 ACL Research Paper",
+        description: "Peer-reviewed paper on explainable AI (XAI) for underserved linguistic environments.",
+        link: "https://2026.aclweb.org/",
+        status: 'UPCOMING'
+    }
+];
+
 const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-6xl mx-auto space-y-16 animate-fade-in pb-20">
-            
-            {/* Header Section */}
-            <div className="text-center space-y-4 py-8">
-                <div className="inline-block p-4 rounded-3xl bg-indigo-100 text-indigo-600 mb-6 shadow-sm">
-                    <span className="text-5xl">🧠</span>
+        <div className="w-full max-w-6xl mx-auto space-y-24 animate-fade-in py-12">
+            <div className="text-center space-y-6">
+                <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl">
+                    Verified Academic Record
                 </div>
-                <h1 className="text-4xl md:text-7xl font-black text-slate-900 tracking-tight leading-tight">
-                    Research <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-cyan-500">Science</span>
+                <h1 className="text-5xl md:text-8xl font-black text-slate-900 tracking-tighter leading-tight">
+                    Scientific <span className="text-indigo-600">Portfolio</span>
                 </h1>
-                <p className="text-2xl text-slate-500 max-w-3xl mx-auto font-medium">
-                    Decoding the hidden relationship between <span className="text-indigo-600 font-bold">Emotion</span> and <span className="text-cyan-600 font-bold">Learning</span>.
+                <p className="text-2xl text-slate-500 font-medium max-w-4xl mx-auto leading-relaxed">
+                    A record of theoretical validation and international recognition in <span className="text-slate-900 font-bold">Affective Computing</span> and <span className="text-slate-900 font-bold">Neuroscience</span>.
                 </p>
             </div>
 
-            {/* Our Philosophy Section */}
-            <div className="bg-white p-8 md:p-16 rounded-[4rem] shadow-2xl border border-slate-100 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50 rounded-full blur-[100px] -mr-48 -mt-48 opacity-50"></div>
-                <div className="relative z-10 grid md:grid-cols-2 gap-16 items-center">
-                    <div>
-                         <h2 className="text-4xl font-black text-slate-900 mb-8 flex items-center gap-4">
-                            <span className="text-4xl">🔬</span> Our Philosophy
-                         </h2>
-                         <p className="text-xl text-slate-600 leading-relaxed mb-8">
-                            Research is the foundation of every model we build. We explore how curiosity ignites, how confusion rises, and how empathy transforms understanding.
-                         </p>
-                         <div className="bg-indigo-50/50 p-8 rounded-[2.5rem] border-l-8 border-indigo-500 italic">
-                             <p className="text-2xl font-serif text-indigo-900 leading-snug">
-                                “When the mind understands and the heart agrees, learning becomes permanent.”
-                             </p>
-                         </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-6">
-                        {[
-                            { label: "EMOTION SENSING", val: "Real-time" },
-                            { label: "STORY ENGINE", val: "Adaptive" },
-                            { label: "PRIVACY", val: "On-Device" },
-                            { label: "DESIGN", val: "Human-First" }
-                        ].map((stat, i) => (
-                            <div key={i} className="bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center hover:shadow-lg transition-shadow">
-                                <div className="text-indigo-600 text-xs font-black uppercase tracking-[0.2em] mb-2">{stat.label}</div>
-                                <div className="text-slate-900 text-2xl font-black">{stat.val}</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {researchData.map((item) => (
+                    <div key={item.id} className="bg-white border border-slate-200 rounded-[3rem] p-12 flex flex-col justify-between hover:shadow-4xl transition-all border-l-[16px] border-l-slate-900 hover:-translate-y-2">
+                        <div className="space-y-8">
+                            <div className="flex justify-between items-start">
+                                <span className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg ${item.status === 'UPCOMING' ? 'bg-indigo-600' : 'bg-slate-900'}`}>
+                                    {item.badge}
+                                </span>
+                                <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{item.date}</span>
                             </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+                            
+                            <div className="space-y-4">
+                                <h3 className="text-3xl font-black text-slate-900 leading-[1.2]">{item.title}</h3>
+                                <p className="text-slate-600 font-bold text-lg leading-relaxed">{item.description}</p>
+                            </div>
 
-            {/* Core Research Areas */}
-            <div>
-                <h2 className="text-4xl font-black text-center text-slate-900 mb-12 flex items-center justify-center gap-4">
-                    <span className="text-4xl">🧩</span> Core Research Areas
-                </h2>
-                <div className="grid md:grid-cols-3 gap-8">
-                    {[
-                        { 
-                            icon: "🎯", 
-                            title: "Emotion Sensing", 
-                            desc: "Multimodal systems detecting voice tone, prosody, and micro-expressions to gauge engagement.",
-                            color: "bg-rose-50/50 border-rose-100 text-rose-900"
-                        },
-                        { 
-                            icon: "📖", 
-                            title: "Adaptive Story Intel", 
-                            desc: "Algorithms that shift story pacing and tone based on real-time emotional arousal levels.",
-                            color: "bg-amber-50/50 border-amber-100 text-amber-900"
-                        },
-                        { 
-                            icon: "💡", 
-                            title: "Reinforcement Models", 
-                            desc: "Memory retention techniques using emotional markers and micro-feedback loops.",
-                            color: "bg-emerald-50/50 border-emerald-100 text-emerald-900"
-                        },
-                        { 
-                            icon: "📊", 
-                            title: "Teacher Analytics", 
-                            desc: "Heat maps revealing silent struggles and emotional engagement in large classrooms.",
-                            color: "bg-blue-50/50 border-blue-100 text-blue-900"
-                        },
-                        { 
-                            icon: "🛡️", 
-                            title: "Ethical AI", 
-                            desc: "Zero identifiable data storage with complete parental visibility and cultural sensitivity.",
-                            color: "bg-slate-100/50 border-slate-200 text-slate-900"
-                        },
-                        { 
-                            icon: "🔍", 
-                            title: "Methodology", 
-                            desc: "Pilot Testing, Cognitive Psych, Quant Analytics, Longitudinal Tracking.",
-                            color: "bg-indigo-50/50 border-indigo-100 text-indigo-900"
-                        }
-                    ].map((area, i) => (
-                        <div key={i} className={`p-8 rounded-[2.5rem] border-2 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 ${area.color}`}>
-                            <div className="text-5xl mb-6 bg-white w-20 h-20 flex items-center justify-center rounded-3xl shadow-sm">{area.icon}</div>
-                            <h3 className="text-2xl font-black mb-4">{area.title}</h3>
-                            <p className="text-lg opacity-80 leading-relaxed font-medium">{area.desc}</p>
+                            <div className="space-y-3 bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
+                                <p className="text-sm font-black text-slate-800 flex items-center gap-4">
+                                    <span className="text-xl">📍</span> {item.location}
+                                </p>
+                                <p className="text-sm font-black text-slate-400 flex items-center gap-4">
+                                    <span className="text-xl">🏛️</span> {item.event}
+                                </p>
+                            </div>
+
+                            {item.metadata && (
+                                <div className="p-6 bg-slate-900 rounded-3xl font-mono text-[10px] text-indigo-300 border border-slate-800 break-all leading-relaxed shadow-2xl">
+                                    <span className="text-slate-500 uppercase block mb-1 tracking-widest font-black">Technical Identity</span>
+                                    {item.metadata}
+                                </div>
+                            )}
                         </div>
-                    ))}
-                </div>
-            </div>
 
-            {/* Global Recognition / Timeline */}
-            <div className="bg-slate-900 text-white p-10 md:p-20 rounded-[4rem] shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-indigo-500 rounded-full blur-[200px] opacity-10 -mr-[25rem] -mt-[25rem]"></div>
-                
-                <h2 className="text-4xl font-black mb-16 flex items-center gap-4 justify-center md:justify-start">
-                    <span className="text-4xl">📚</span> Global Recognition
-                </h2>
-
-                <div className="space-y-12">
-                    {[
-                        {
-                            date: "NOV 06, 2025",
-                            loc: "London, UK 🇬🇧",
-                            title: "4th International Conference on Neurology & Neurological Disorders",
-                            type: "Scientific Oral Talk",
-                            topic: "Framework for Belief Medicine"
-                        },
-                        {
-                            date: "DEC 05, 2025",
-                            loc: "Gurugram, India 🇮🇳",
-                            title: "AI Visionaries Summit 2025 (Series of World AI Summits)",
-                            type: "Oral Presentation",
-                            topic: "FeelEd AI™: An Emotion-Adaptive Framework for Story-Based Cognitive Learning"
-                        },
-                        {
-                            date: "JUNE 22, 2026",
-                            loc: "Barcelona, Spain 🇪🇸",
-                            title: "12th International Conference on Neurology and Neurological Disorders",
-                            type: "Invited Speaker",
-                            topic: "Neurological Implications of Emotion-Adaptive Learning"
-                        }
-                    ].map((event, i) => (
-                        <div key={i} className="relative pl-12 border-l-4 border-indigo-500/30 pb-12 last:pb-0">
-                            <div className="absolute left-[-1.15rem] top-0 w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center border-4 border-slate-900 shadow-lg">
-                                <span className="text-xs">★</span>
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4 mb-4">
-                                <span className="bg-indigo-500/20 text-indigo-300 px-4 py-1 rounded-full text-sm font-black tracking-widest">{event.date}</span>
-                                <span className="text-slate-400 font-bold">{event.loc}</span>
-                            </div>
-                            <h3 className="text-3xl font-black mb-2 text-indigo-100 leading-tight">{event.title}</h3>
-                            <p className="text-lg text-slate-400 font-bold italic mb-4">{event.type}</p>
-                            <div className="bg-white/5 border border-white/10 p-6 rounded-3xl inline-block max-w-2xl">
-                                <p className="text-indigo-200 font-bold">Topic: "{event.topic}"</p>
-                            </div>
+                        <div className="mt-12 pt-8 border-t border-slate-100">
+                            <a 
+                                href={item.link} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-flex items-center gap-4 text-indigo-600 font-black text-sm group"
+                            >
+                                <span className="group-hover:underline decoration-2 underline-offset-8">Verify Official Record</span>
+                                <svg className="w-5 h-5 transform transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </a>
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ))}
             </div>
 
-            {/* Join Research Footer */}
-            <div className="bg-white p-10 md:p-16 rounded-[4rem] text-center border-4 border-indigo-50 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-100 rounded-full blur-3xl opacity-30 -mr-24 -mt-24"></div>
-                <h2 className="text-4xl font-black text-slate-900 mb-6 flex items-center justify-center gap-4">
-                    <span className="text-4xl">💛</span> Join Our Research
-                </h2>
-                <p className="text-2xl text-slate-500 mb-10 max-w-3xl mx-auto font-medium">
-                    We welcome collaborations with universities, AI labs, and neuroscientists. Let's build the future of empathetic AI together.
-                </p>
-                <div className="flex flex-col md:flex-row justify-center gap-6">
-                    <a href="mailto:founder@feeledai.com" className="bg-indigo-600 text-white font-black py-5 px-12 rounded-full text-xl shadow-xl hover:bg-indigo-700 transition transform hover:scale-105">
-                        Partner With Us
-                    </a>
-                    <button onClick={() => onNavigate('generator')} className="bg-white border-4 border-indigo-50 text-slate-600 font-black py-5 px-12 rounded-full text-xl hover:bg-indigo-50 transition">
-                        Back to App
-                    </button>
+            <div className="bg-slate-900 rounded-[5rem] p-16 md:p-32 text-center text-white relative overflow-hidden shadow-4xl">
+                <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-indigo-600 rounded-full blur-[200px] opacity-20 -mr-[20rem] -mt-[20rem]"></div>
+                <div className="relative z-10 space-y-12">
+                    <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-tight">Academic <span className="text-indigo-400">Collaboration</span></h2>
+                    <p className="text-2xl text-slate-400 font-bold max-w-4xl mx-auto leading-relaxed">
+                        We are actively establishing partnerships with global AI laboratories and neurological institutes to expand our empirical dataset.
+                    </p>
+                    <div className="flex flex-col md:flex-row gap-8 justify-center pt-8">
+                        <a href="mailto:founder@feeledai.com" className="bg-white text-slate-900 px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:scale-105 transition-transform border-b-[12px] border-slate-200">Submit Inquiry</a>
+                        <button onClick={() => onNavigate('generator')} className="border-4 border-white/20 text-white px-16 py-8 rounded-full font-black text-2xl hover:bg-white/10 transition-colors">Return to Lab</button>
+                    </div>
                 </div>
             </div>
         </div>
