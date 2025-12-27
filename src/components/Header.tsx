@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                         { id: 'research', label: 'Science' },
                         { id: 'about', label: 'Philosophy' },
                         { id: 'founder', label: 'Founder' },
-                        { id: 'showcase', label: 'Showcase' }
+                        { id: 'pilot', label: 'Pilot Program' }
                     ].map((item) => (
                         <button 
                             key={item.id}

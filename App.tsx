@@ -11,7 +11,7 @@ import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Founder from './pages/Founder';
 import Research from './pages/Research';
-import Showcase from './pages/Showcase';
+import PilotProgram from './pages/PilotProgram';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('generator');
@@ -45,7 +45,7 @@ const App: React.FC = () => {
                 .then(({ base64Audio }) => {
                     setBase64Audio(base64Audio);
                 })
-                .catch((e) => console.error("Audio failure:", e))
+                .catch((e) => console.error("Audio synthesis failed:", e))
                 .finally(() => setIsAudioLoading(false));
 
             generateImage(story)
@@ -53,7 +53,7 @@ const App: React.FC = () => {
                     setBase64Image(base64Image);
                     setImageMimeType(mimeType);
                 })
-                .catch((e) => console.error("Image failure:", e))
+                .catch((e) => console.error("Visual synthesis failed:", e))
                 .finally(() => setIsImageLoading(false));
 
         } catch (err) {
@@ -94,9 +94,9 @@ const App: React.FC = () => {
             case 'about': return <AboutUs onNavigate={navigateTo} />;
             case 'founder': return <Founder onNavigate={navigateTo} />;
             case 'research': return <Research onNavigate={navigateTo} />;
+            case 'pilot': return <PilotProgram onNavigate={navigateTo} />;
             case 'contact': return <Contact onNavigate={navigateTo} />;
             case 'privacy': return <PrivacyPolicy onNavigate={navigateTo} />;
-            case 'showcase': return <Showcase onNavigate={navigateTo} />;
             default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };
@@ -104,7 +104,7 @@ const App: React.FC = () => {
     return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
             <Header onNavigate={navigateTo} />
-            <main className="flex-grow container mx-auto px-4 py-12 md:py-24 max-w-7xl">
+            <main className="flex-grow container mx-auto px-4 py-8 md:py-16 max-w-7xl">
                 {renderPage()}
             </main>
             <Footer onNavigate={navigateTo} />

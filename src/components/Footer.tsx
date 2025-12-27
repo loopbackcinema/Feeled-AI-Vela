@@ -11,7 +11,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <footer className="w-full bg-white border-t border-slate-200/60 mt-auto">
             <div className="container mx-auto px-4 py-12 text-center text-slate-500">
                 <div className="flex justify-center items-center gap-4 md:gap-8 mb-8 flex-wrap">
-                    <button onClick={() => onNavigate('showcase')} className="hover:text-blue-600 transition-colors font-bold text-blue-600/80">Showcase</button>
+                    <button onClick={() => onNavigate('pilot')} className="hover:text-blue-600 transition-colors font-bold text-blue-600/80">Pilot Program</button>
                     <button onClick={() => onNavigate('about')} className="hover:text-blue-600 transition-colors font-bold">About Us</button>
                     <button onClick={() => onNavigate('founder')} className="hover:text-blue-600 transition-colors font-bold">Founder</button>
                     <button onClick={() => onNavigate('research')} className="hover:text-blue-600 transition-colors font-bold">Research</button>
@@ -28,7 +28,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                     </a>
                 </div>
 
-                <p className="text-sm font-bold text-slate-400">&copy; 2025 FeelEd AI. All rights reserved. Registered for the Build the Future Showcase.</p>
+                <p className="text-sm font-bold text-slate-400">&copy; 2025 FeelEd AI. All rights reserved.</p>
             </div>
         </footer>
     );

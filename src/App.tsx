@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Story, StoryRequest, Page } from './types';
 import { generateStory, generateVoice, generateImage } from './services/geminiService';
@@ -10,7 +11,7 @@ import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Founder from './pages/Founder';
 import Research from './pages/Research';
-import Showcase from './pages/Showcase';
+import PilotProgram from './pages/PilotProgram';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('generator');
@@ -116,8 +117,8 @@ const App: React.FC = () => {
                 return <Contact onNavigate={navigateTo} />;
             case 'privacy':
                 return <PrivacyPolicy onNavigate={navigateTo} />;
-            case 'showcase':
-                return <Showcase onNavigate={navigateTo} />;
+            case 'pilot':
+                return <PilotProgram onNavigate={navigateTo} />;
             default:
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
