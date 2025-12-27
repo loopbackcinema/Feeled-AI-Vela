@@ -11,6 +11,7 @@ import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Founder from './pages/Founder';
 import Research from './pages/Research';
+import Showcase from './pages/Showcase';
 
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = useState<Page>('generator');
@@ -32,13 +33,11 @@ const App: React.FC = () => {
         setImageMimeType(null);
 
         try {
-            // Step 1: Generate story text
             const { story } = await generateStory(request);
             setGeneratedStory(story);
             setCurrentPage('story');
-            setIsLoading(false); // Story is loaded, stop main loader
+            setIsLoading(false);
 
-            // Step 2: Generate audio and image in the background concurrently
             setIsAudioLoading(true);
             setIsImageLoading(true);
 
@@ -78,6 +77,7 @@ const App: React.FC = () => {
     }, []);
     
     const navigateTo = (page: Page) => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentPage(page);
     };
 
@@ -117,15 +117,17 @@ const App: React.FC = () => {
                 return <Contact onNavigate={navigateTo} />;
             case 'privacy':
                 return <PrivacyPolicy onNavigate={navigateTo} />;
+            case 'showcase':
+                return <Showcase onNavigate={navigateTo} />;
             default:
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800">
+        <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-slate-900 selection:bg-blue-100 selection:text-blue-900">
             <Header onNavigate={navigateTo} />
-            <main className="flex-grow container mx-auto px-4 py-8 md:py-12 flex flex-col items-center justify-center">
+            <main className="flex-grow container mx-auto px-4 py-8 md:py-16 flex flex-col items-center justify-center">
                 {renderPage()}
             </main>
             <Footer onNavigate={navigateTo} />
