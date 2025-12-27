@@ -2,7 +2,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Updated schema to include quiz for knowledge checking
 const storySchema = {
     type: Type.OBJECT,
     properties: {
@@ -38,14 +37,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const { topic, std, language, emotionTone } = req.body;
-        const prompt = `You are an expert educational storyteller. Convert the academic topic "${topic}" into an emotional, student-friendly story.
-        The story must be appropriate for a ${std} student and be in ${language}.
-        The emotional tone should be ${emotionTone}.
-        Generate the story in a 5-part structure: Introduction, Emotional Trigger, Concept Explanation, Resolution, and Moral Message, plus a title and conclusion.
-        Also generate a 3-question multiple choice quiz to test understanding of the concept.
+        const prompt = `You are an expert educational storyteller. 
+        TASK: Convert the academic topic "${topic}" into an emotional, student-friendly story.
+        TARGET AUDIENCE: A ${std} student.
+        LANGUAGE: ${language}.
+        EMOTIONAL TONE: ${emotionTone}.
+        
+        STORY STRUCTURE:
+        1. Introduction: Set the scene and introduce characters.
+        2. Emotional Trigger: A problem or curiosity that makes the character feel deeply.
+        3. Concept Explanation: The core educational concept explained through the story's events.
+        4. Resolution: How the character solves the problem using the concept.
+        5. Moral Message: A life lesson derived from the story.
+        6. Conclusion: A warm wrap-up.
+
+        QUIZ: Generate exactly 3 multiple-choice questions (A, B, C, D) that test understanding of the concept explained in the story.
+        
         Return output strictly in JSON format.`;
         
-        // Use gemini-3-pro-preview for high-quality storytelling and complex reasoning
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
             contents: prompt,
@@ -55,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
         });
         
+        if (!response.text) throw new Error("Empty response from Gemini");
         const story = JSON.parse(response.text.trim());
         res.status(200).json({ story });
     } catch (error) {
