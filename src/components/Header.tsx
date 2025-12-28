@@ -24,6 +24,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     return (
         <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                {/* Updated Logo to point to Dashboard (Student Hub) */}
                 <button onClick={() => handleLinkClick('dashboard')} className="flex items-center gap-3 transition-opacity hover:opacity-80">
                     <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">F</div>
                     <div className="text-left">
@@ -32,8 +33,8 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                     </div>
                 </button>
                 
-                {/* Desktop Navigation */}
-                <nav className="hidden xl:flex items-center space-x-2">
+                {/* Desktop Navigation - Fixed breakpoint from xl:flex to lg:flex */}
+                <nav className="hidden lg:flex items-center space-x-2">
                     {navItems.map((item) => (
                         <button 
                             key={item.id}
@@ -53,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                         Contact
                     </button>
 
-                    {/* Mobile Menu Button */}
+                    {/* Mobile Menu Button - Visible only on screens smaller than lg */}
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"

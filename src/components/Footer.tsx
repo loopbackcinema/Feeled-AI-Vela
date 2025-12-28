@@ -12,7 +12,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     {/* Branding */}
                     <div className="space-y-6">
-                        <button onClick={() => onNavigate('generator')} className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
+                        <button onClick={() => onNavigate('dashboard')} className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
                             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">F</div>
                             <h2 className="text-xl font-black text-slate-900 tracking-tight">FeelEd AI</h2>
                         </button>
@@ -67,7 +67,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                         <ul className="space-y-3">
                             <li><button onClick={() => onNavigate('teachers')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">👩‍🏫 For Teachers</button></li>
                             <li><button onClick={() => onNavigate('parents')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">👨‍👩‍👧 For Parents</button></li>
-                            <li><button onClick={() => onNavigate('generator')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">🎓 For Students</button></li>
+                            <li><button onClick={() => onNavigate('dashboard')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">🎓 For Students</button></li>
                         </ul>
                     </div>
 
