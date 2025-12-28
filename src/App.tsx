@@ -17,7 +17,6 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
-    // Audit: Ensuring 'dashboard' is the absolute first page the user sees.
     const [currentPage, setCurrentPage] = useState<Page>('dashboard');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
