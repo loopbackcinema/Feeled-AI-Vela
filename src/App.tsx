@@ -17,7 +17,8 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+    // Default to 'generator' (Teacher Studio) as the main landing page
+    const [currentPage, setCurrentPage] = useState<Page>('generator');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
@@ -73,7 +74,8 @@ const App: React.FC = () => {
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
-        setCurrentPage('dashboard'); // Redirect to dashboard to keep context
+        // Navigate back to the appropriate form based on user intent (conceptually defaulting to generator for now)
+        setCurrentPage('generator'); 
     };
 
     const renderPage = () => {
@@ -97,7 +99,7 @@ const App: React.FC = () => {
                         isImageLoading={isImageLoading}
                         onTryAnother={handleTryAnother}
                     />
-                ) : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
+                ) : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
             case 'about': return <AboutUs onNavigate={navigateTo} />;
             case 'founder': return <Founder onNavigate={navigateTo} />;
             case 'research': return <Research onNavigate={navigateTo} />;
@@ -107,7 +109,7 @@ const App: React.FC = () => {
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
             case 'teachers': return <Teachers onNavigate={navigateTo} />;
             case 'parents': return <Parents onNavigate={navigateTo} />;
-            default: return <StudentDashboard onNavigate={navigateTo} />;
+            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
         }
     };
 
