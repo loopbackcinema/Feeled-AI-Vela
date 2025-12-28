@@ -5,6 +5,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
+import StudentDashboard from './pages/StudentDashboard'; // New Import
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -16,7 +17,7 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState<Page>('generator');
+    const [currentPage, setCurrentPage] = useState<Page>('dashboard'); // Default to the colorful dashboard
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
@@ -77,6 +78,7 @@ const App: React.FC = () => {
 
     const renderPage = () => {
         switch (currentPage) {
+            case 'dashboard': return <StudentDashboard onNavigate={navigateTo} />; // New Dashboard
             case 'generator':
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
             case 'story':
@@ -100,7 +102,7 @@ const App: React.FC = () => {
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
             case 'teachers': return <Teachers onNavigate={navigateTo} />;
             case 'parents': return <Parents onNavigate={navigateTo} />;
-            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
+            default: return <StudentDashboard onNavigate={navigateTo} />;
         }
     };
 

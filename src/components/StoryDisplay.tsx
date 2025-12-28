@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Story, QuizQuestion } from '../types';
 import Spinner from './Spinner';
 import StoryChat from './StoryChat';
@@ -13,28 +13,20 @@ interface StoryDisplayProps {
     onTryAnother: () => void;
 }
 
-const StorySection: React.FC<{ title: string; content: string }> = ({ title, content }) => {
-    const getIcon = (t: string) => {
-        const lower = t.toLowerCase();
-        if (lower.includes('introduction')) return '✨';
-        if (lower.includes('trigger')) return '❤️';
-        if (lower.includes('explanation')) return '💡';
-        if (lower.includes('resolution')) return '✅';
-        if (lower.includes('moral')) return '🌟';
-        if (lower.includes('conclusion')) return '🎓';
-        return '📖';
-    };
-
-    return (
-        <div className="mb-6 bg-white p-6 md:p-8 rounded-[2rem] border-l-8 border-blue-500 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 break-inside-avoid">
-            <h3 className="text-xl font-black text-slate-800 mb-3 capitalize flex items-center gap-3">
-                <span className="text-3xl">{getIcon(title)}</span>
-                {title.replace(/_/g, ' ')}
-            </h3>
-            <p className="text-slate-700 leading-relaxed text-lg font-medium">{content}</p>
-        </div>
-    );
-};
+const StorySection: React.FC<{ title: string; content: string }> = ({ title, content }) => (
+    <div className="mb-6 bg-slate-50 p-6 rounded-2xl border-l-8 border-indigo-400 shadow-sm transition-transform hover:translate-x-2 break-inside-avoid">
+        <h3 className="text-lg font-black text-slate-800 mb-2 capitalize flex items-center gap-3">
+            {title === 'Introduction' && '✨'}
+            {title === 'Emotional_trigger' && '❤️'}
+            {title === 'Concept_explanation' && '💡'}
+            {title === 'Resolution' && '✅'}
+            {title === 'Moral_message' && '🌟'}
+            {title === 'Conclusion' && '🎓'}
+            {title.replace(/_/g, ' ')}
+        </h3>
+        <p className="text-slate-700 leading-relaxed text-xl font-medium">{content}</p>
+    </div>
+);
 
 interface QuizSectionProps {
     quiz: QuizQuestion[];
@@ -45,6 +37,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [showResult, setShowResult] = useState<{ [key: number]: boolean }>({});
     const [score, setScore] = useState(0);
+    const [isCompleted, setIsCompleted] = useState(false);
 
     const handleOptionSelect = (qIndex: number, option: string) => {
         if (showResult[qIndex]) return; 
@@ -54,71 +47,53 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
     const handleCheckAnswer = (qIndex: number) => {
         const isCorrect = answers[qIndex] === quiz[qIndex].answer;
         if (isCorrect) setScore(prev => prev + 1);
+        setShowResult(prev => ({ ...prev, [qIndex]: true }));
         
-        setShowResult(prev => {
-            const next = { ...prev, [qIndex]: true };
-            if (Object.keys(next).length === quiz.length) {
-                onQuizComplete(isCorrect ? score + 1 : score);
-            }
-            return next;
-        });
+        const nextResults = { ...showResult, [qIndex]: true };
+        if (Object.keys(nextResults).length === quiz.length && !isCompleted) {
+            setIsCompleted(true);
+            onQuizComplete(isCorrect ? score + 1 : score);
+        }
     };
 
     return (
-        <div className="mt-16 bg-white p-8 md:p-12 rounded-[3.5rem] shadow-2xl border-4 border-indigo-50 relative overflow-hidden break-inside-avoid">
+        <div className="mt-16 bg-white p-8 md:p-12 rounded-[3.5rem] border-4 border-indigo-50 shadow-2xl break-inside-avoid">
             <h3 className="text-3xl font-black text-indigo-900 mb-10 text-center flex items-center justify-center gap-4">
-                <span className="text-4xl animate-bounce">🧠</span> Knowledge Check
+                <span>🧠</span> Knowledge Verification
             </h3>
-            <div className="space-y-12">
+            <div className="space-y-10">
                 {quiz.map((q, index) => (
                     <div key={index} className="space-y-6">
-                        <p className="text-xl font-black text-slate-800 leading-snug">{index + 1}. {q.question}</p>
-                        <div className="grid gap-4 no-print">
+                        <p className="text-xl font-black text-slate-800">{index + 1}. {q.question}</p>
+                        <div className="grid md:grid-cols-2 gap-4">
                             {q.options.map((option) => {
                                 const isSelected = answers[index] === option;
-                                const isCorrect = option === q.answer;
+                                const isCorrect = option === quiz[index].answer;
                                 const isRevealed = showResult[index];
                                 
-                                let btnStyle = "w-full text-left px-6 py-5 rounded-2xl border-4 transition-all font-bold text-lg ";
+                                let btnStyle = "w-full text-left px-6 py-4 rounded-2xl border-4 font-bold transition-all ";
                                 if (isRevealed) {
-                                    if (isCorrect) btnStyle += "bg-green-50 border-green-500 text-green-700 ring-8 ring-green-100/50";
-                                    else if (isSelected) btnStyle += "bg-red-50 border-red-500 text-red-700";
-                                    else btnStyle += "border-slate-100 text-slate-300";
+                                    if (isCorrect) btnStyle += "bg-green-50 border-green-500 text-green-800";
+                                    else if (isSelected) btnStyle += "bg-red-50 border-red-500 text-red-800";
+                                    else btnStyle += "border-slate-100 text-slate-300 opacity-50";
                                 } else {
-                                    if (isSelected) btnStyle += "bg-blue-50 border-blue-500 text-blue-800 shadow-md transform scale-[1.02]";
-                                    else btnStyle += "bg-slate-50 border-slate-100 text-slate-600 hover:border-blue-200 hover:bg-white";
+                                    if (isSelected) btnStyle += "bg-blue-50 border-blue-600 text-blue-800 scale-[1.02] shadow-lg";
+                                    else btnStyle += "bg-slate-50 border-slate-100 hover:border-blue-200 text-slate-600";
                                 }
 
                                 return (
-                                    <button
-                                        key={option}
-                                        onClick={() => handleOptionSelect(index, option)}
-                                        className={btnStyle}
-                                        disabled={isRevealed}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <span>{option}</span>
-                                            {isRevealed && isCorrect && <span className="text-2xl animate-pulse">✓</span>}
-                                            {isRevealed && isSelected && !isCorrect && <span className="text-2xl">✗</span>}
-                                        </div>
+                                    <button key={option} onClick={() => handleOptionSelect(index, option)} className={btnStyle} disabled={isRevealed}>
+                                        {option}
                                     </button>
                                 );
                             })}
                         </div>
-                        {/* Print friendly version of options */}
-                        <div className="hidden print:block space-y-2">
-                             {q.options.map((opt, i) => (
-                                 <div key={i} className="text-lg font-medium">○ {opt}</div>
-                             ))}
-                        </div>
                         {!showResult[index] && (
-                            <button 
-                                onClick={() => handleCheckAnswer(index)}
-                                disabled={!answers[index]}
-                                className="bg-slate-900 text-white px-12 py-5 rounded-[2rem] font-black hover:bg-indigo-600 transition-all disabled:opacity-30 shadow-2xl ml-auto block transform hover:scale-105 active:scale-95 no-print"
-                            >
-                                Submit Answer
-                            </button>
+                            <div className="flex justify-end pt-4 no-print">
+                                <button onClick={() => handleCheckAnswer(index)} disabled={!answers[index]} className="bg-indigo-600 text-white px-8 py-3 rounded-full font-black shadow-xl hover:bg-indigo-700 transition active:scale-95 disabled:opacity-50">
+                                    Verify Answer
+                                </button>
+                            </div>
                         )}
                     </div>
                 ))}
@@ -127,14 +102,12 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
     );
 };
 
-// Audio decoding helpers
+// Audio Utilities
 function decode(base64: string): Uint8Array {
     const binaryString = atob(base64);
     const len = binaryString.length;
     const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
+    for (let i = 0; i < len; i++) bytes[i] = binaryString.charCodeAt(i);
     return bytes;
 }
 
@@ -142,9 +115,7 @@ async function decodePcmAudioData(data: Uint8Array, ctx: AudioContext): Promise<
     const dataInt16 = new Int16Array(data.buffer);
     const buffer = ctx.createBuffer(1, dataInt16.length, 24000);
     const channelData = buffer.getChannelData(0);
-    for (let i = 0; i < dataInt16.length; i++) {
-        channelData[i] = dataInt16[i] / 32768.0;
-    }
+    for (let i = 0; i < dataInt16.length; i++) channelData[i] = dataInt16[i] / 32768.0;
     return buffer;
 }
 
@@ -153,8 +124,9 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [isDecoding, setIsDecoding] = useState(false);
-    
-    const chatSectionRef = useRef<HTMLDivElement>(null);
+    const [showCertificateForm, setShowCertificateForm] = useState(false);
+
+    const handlePrint = () => window.print();
 
     const handlePlayPause = useCallback(async () => {
         if (!base64Audio) return;
@@ -171,7 +143,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
                 const source = audioCtx.createBufferSource();
                 source.buffer = audioBuffer;
                 source.connect(audioCtx.destination);
-                source.onended = () => setIsPlaying(false);
+                source.onended = () => { setIsPlaying(false); audioSourceRef.current = null; };
                 source.start(0);
                 audioSourceRef.current = source;
                 setIsPlaying(true);
@@ -180,97 +152,86 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, base64Audio, isAudio
         }
     }, [isPlaying, isDecoding, base64Audio]);
 
-    const handlePrint = () => {
-        window.print();
-    };
-
     return (
-        <div className="w-full max-w-4xl mx-auto animate-fade-in pb-32 px-4 print:p-0 print:max-w-none">
+        <div className="w-full max-w-4xl mx-auto animate-fade-in pb-32 px-4 print:max-w-full print:p-0">
             {/* Header */}
-            <div className="text-center mb-16 space-y-4">
-                <h2 className="text-5xl md:text-7xl font-black text-blue-800 tracking-tighter leading-tight drop-shadow-md print:text-4xl">{story.title}</h2>
-                <div className="flex flex-wrap justify-center gap-4 no-print">
-                    <div className="inline-flex items-center px-8 py-2.5 rounded-full bg-blue-50 border-4 border-blue-100 text-blue-600 font-black text-sm uppercase tracking-[0.2em] shadow-sm">
-                        Emotional Arc: {story.emotion_tone}
-                    </div>
-                    <button 
-                        onClick={handlePrint}
-                        className="bg-slate-900 text-white px-8 py-2.5 rounded-full font-black text-xs uppercase tracking-widest hover:bg-indigo-600 transition-all flex items-center gap-3 shadow-lg"
-                    >
+            <div className="text-center mb-16 space-y-6">
+                <h2 className="text-5xl md:text-7xl font-black text-indigo-900 tracking-tighter print:text-4xl">{story.title}</h2>
+                <div className="flex justify-center gap-4 no-print">
+                    <span className="px-5 py-2 rounded-full bg-indigo-50 border-2 border-indigo-100 text-indigo-600 font-black text-xs uppercase tracking-widest">
+                        Tone: {story.emotion_tone}
+                    </span>
+                    <button onClick={handlePrint} className="flex items-center gap-2 px-5 py-2 rounded-full bg-slate-900 text-white font-black text-xs uppercase hover:bg-slate-800 transition shadow-lg hover:shadow-xl">
                         <span>🖨️</span> Save as PDF
                     </button>
                 </div>
-                {/* Print only subtitle */}
-                <div className="hidden print:block text-slate-500 font-black text-xs uppercase tracking-[0.3em]">
-                    Learning Artifact Generated by FeelEd AI
-                </div>
             </div>
 
-            {/* Thematic Visual */}
-            <div className="mb-16">
+            {/* Visual */}
+            <div className="mb-16 transform transition-all hover:scale-[1.01]">
                 {isImageLoading ? (
-                    <div className="w-full aspect-video bg-white rounded-[4rem] shadow-2xl border-8 border-white flex flex-col items-center justify-center animate-pulse no-print">
-                        <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-5xl mb-4 shadow-inner">🎨</div>
-                        <p className="text-slate-400 font-black text-xl">AI is painting the world for you...</p>
+                    <div className="w-full aspect-video bg-indigo-50 rounded-[3rem] animate-pulse border-4 border-white shadow-xl flex items-center justify-center no-print">
+                        <p className="text-indigo-300 font-black text-xl">Creating mental imagery...</p>
                     </div>
                 ) : base64Image && (
-                    <div className="relative group overflow-hidden rounded-[4rem] shadow-[0_40px_70px_-15px_rgba(0,0,0,0.4)] border-[16px] border-white ring-2 ring-slate-100 transition-all duration-700 hover:scale-[1.02] print:rounded-3xl print:border-4 print:shadow-none">
-                        <img 
-                            src={`data:${imageMimeType};base64,${base64Image}`} 
-                            alt={story.title} 
-                            className="w-full h-auto object-cover transform transition-transform duration-[3s] group-hover:scale-110"
-                        />
+                    <div className="relative rounded-[3rem] overflow-hidden border-[12px] border-white shadow-3xl ring-2 ring-slate-100 print:rounded-2xl print:border-4 print:shadow-none">
+                        <img src={`data:${imageMimeType};base64,${base64Image}`} alt={story.title} className="w-full h-auto object-cover" />
                     </div>
                 )}
             </div>
 
-            {/* Narration Toggle */}
-            <div className="sticky top-28 z-40 flex justify-center mb-16 pointer-events-none no-print">
+            {/* Voice Toggle */}
+            <div className="flex justify-center mb-16 no-print">
                  <button 
                     onClick={handlePlayPause} 
                     disabled={isAudioLoading || isDecoding || !base64Audio}
-                    className="pointer-events-auto bg-white/90 backdrop-blur-2xl border-4 border-white shadow-[0_30px_60px_-10px_rgba(37,99,235,0.3)] px-12 py-6 rounded-full font-black text-blue-700 flex items-center gap-6 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 ring-[12px] ring-blue-50/50 group"
+                    className="bg-white/90 backdrop-blur-xl border-4 border-white shadow-[0_30px_60px_-10px_rgba(79,70,229,0.3)] px-12 py-6 rounded-full font-black text-indigo-700 flex items-center gap-6 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 ring-8 ring-indigo-50/50"
                 >
                     {isAudioLoading || isDecoding ? <Spinner /> : (
-                        <div className={`w-14 h-14 rounded-[1.5rem] flex items-center justify-center ${isPlaying ? 'bg-red-500' : 'bg-blue-600'} text-white shadow-2xl transition-all duration-300 group-hover:rotate-6`}>
-                            {isPlaying ? (
-                                <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8v4h2V8H7zm4 0v4h2V8h-2z"/></svg>
-                            ) : (
-                                <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 1 00-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/></svg>
-                            )}
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isPlaying ? 'bg-rose-500' : 'bg-indigo-600'} text-white shadow-xl`}>
+                            {isPlaying ? '■' : '▶'}
                         </div>
                     )}
                     <span className="text-2xl uppercase tracking-tighter">
-                        {isAudioLoading ? 'Creating Voice...' : isDecoding ? 'Preparing...' : isPlaying ? 'Stop Story' : 'Narrate Story'}
+                        {isAudioLoading ? 'Synthesizing...' : isDecoding ? 'Buffering...' : isPlaying ? 'Stop Narration' : 'Narrate Story'}
                     </span>
                  </button>
             </div>
             
-            {/* Story Sections */}
-            <div className="space-y-10">
+            {/* Story Flow */}
+            <div className="space-y-8 print:space-y-6">
                 <StorySection title="Introduction" content={story.introduction} />
-                <StorySection title="Emotional Trigger" content={story.emotional_trigger} />
-                <StorySection title="Concept Explanation" content={story.concept_explanation} />
+                <StorySection title="Emotional_trigger" content={story.emotional_trigger} />
+                <StorySection title="Concept_explanation" content={story.concept_explanation} />
                 <StorySection title="Resolution" content={story.resolution} />
-                <div className="grid md:grid-cols-2 gap-10 print:grid-cols-1">
-                    <StorySection title="Moral Message" content={story.moral_message} />
-                    <StorySection title="Conclusion" content={story.conclusion} />
+                <div className="grid md:grid-cols-2 gap-8 print:block print:space-y-6">
+                     <StorySection title="Moral_message" content={story.moral_message} />
+                     <StorySection title="Conclusion" content={story.conclusion} />
                 </div>
             </div>
 
             {/* Quiz */}
-            <QuizSection quiz={story.quiz} onQuizComplete={() => {}} />
-            
-            {/* Interactive Chatbot */}
-            <div ref={chatSectionRef} className="mt-24 no-print">
+            <div className="print:break-before-page">
+                <QuizSection quiz={story.quiz} onQuizComplete={(score) => {
+                    if (score === 3) setShowCertificateForm(true);
+                }} />
+            </div>
+
+            {/* Chat */}
+            <div className="mt-24 no-print">
                 <StoryChat story={story} />
             </div>
 
-            {/* Restart CTA */}
+            {/* Restart */}
             <div className="mt-24 text-center no-print">
-                <button onClick={onTryAnother} className="bg-gradient-to-r from-blue-700 to-indigo-700 text-white font-black py-8 px-20 rounded-[3rem] hover:shadow-[0_40px_80px_-10px_rgba(37,99,235,0.4)] transition-all transform hover:scale-105 uppercase tracking-tighter text-2xl border-b-[12px] border-indigo-900 active:border-b-0 active:translate-y-2">
-                    ✨ Create Another Magic Story
+                <button onClick={onTryAnother} className="bg-slate-900 text-white font-black py-8 px-20 rounded-[3rem] shadow-4xl hover:bg-indigo-700 transition-all transform hover:scale-105 uppercase tracking-tighter text-2xl border-b-[12px] border-slate-950 active:border-b-0">
+                    ✨ Generate New Journey
                 </button>
+            </div>
+            
+            {/* Footer for Print */}
+            <div className="hidden print:block text-center mt-12 text-slate-400 font-bold uppercase tracking-widest text-xs">
+                Generated by FeelEd AI - Emotion-Adaptive Learning
             </div>
         </div>
     );

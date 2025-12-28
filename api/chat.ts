@@ -31,7 +31,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         3. Empathetic Framing: If the student sounds frustrated or confused, validate their feeling first ("It's okay to find this tricky!"), then guide them.
         4. Hyper-Concise: Responses must be strictly under 45 words.
         5. Multilingual Fluidity: If the student writes in Tamil, reply in Tamil.
-        6. Concept Anchor: Every second response must explicitly link a story character's action back to the scientific/historical concept being taught.`;
+        6. Concept Anchor: Link story actions back to the concept being taught.
+        7. Professional Tone: Maintain the voice of a world-class educational mentor.`;
 
         const contents = history.map(msg => ({
             role: msg.role,

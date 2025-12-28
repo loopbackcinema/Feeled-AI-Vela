@@ -35,13 +35,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     try {
-        const { topic, std, language, emotionTone } = req.body;
+        const { topic, std, language, emotionTone, difficulty } = req.body;
         const prompt = `You are a world-class educational storyteller and pedagogical expert.
         
         TASK: Convert the academic topic "${topic}" into a deeply emotional, immersive, and student-friendly story.
         TARGET AUDIENCE: A ${std} student.
         LANGUAGE: ${language}.
         EMOTIONAL ARC: ${emotionTone}.
+        DIFFICULTY LEVEL: ${difficulty || 'Intermediate'}.
         
         STORY REQUIREMENTS:
         1. Introduction: Hook the reader and introduce the protagonist and the setting.
