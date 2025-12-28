@@ -17,7 +17,7 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
-    // FORCE DEFAULT TO DASHBOARD
+    // Audit: Ensuring 'dashboard' is the absolute first page the user sees.
     const [currentPage, setCurrentPage] = useState<Page>('dashboard');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
@@ -47,7 +47,7 @@ const App: React.FC = () => {
 
             generateVoice(story, request)
                 .then(({ base64Audio }) => setBase64Audio(base64Audio))
-                .catch((e) => console.error("Audio failed:", e))
+                .catch((e) => console.error("Audio Synthesis Error:", e))
                 .finally(() => setIsAudioLoading(false));
 
             generateImage(story)
@@ -55,41 +55,40 @@ const App: React.FC = () => {
                     setBase64Image(base64Image);
                     setImageMimeType(mimeType);
                 })
-                .catch((e) => console.error("Visual failed:", e))
+                .catch((e) => console.error("Visual Synthesis Error:", e))
                 .finally(() => setIsImageLoading(false));
 
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Synthesis failed.');
+            setError(err instanceof Error ? err.message : 'Something went wrong with the AI Engine.');
             setIsLoading(false);
         }
     }, []);
     
-    const navigateTo = useCallback((page: Page) => {
-        console.log("Navigating to:", page);
+    const navigateTo = (page: Page) => {
+        console.debug("Navigating to:", page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentPage(page);
-    }, []);
+    };
 
-    const handleTryAnother = useCallback(() => {
+    const handleTryAnother = () => {
         setGeneratedStory(null);
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
         navigateTo('dashboard');
-    }, [navigateTo]);
+    };
 
-    const pageContent = useMemo(() => {
+    const renderPage = () => {
         switch (currentPage) {
             case 'dashboard': 
-                return <StudentDashboard key="dash" onNavigate={navigateTo} />;
+                return <StudentDashboard onNavigate={navigateTo} />;
             case 'student-generator':
-                return <StoryGeneratorForm key="std-gen" onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
+                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
             case 'generator':
-                return <StoryGeneratorForm key="pro-gen" onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
+                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
             case 'story':
                 return generatedStory ? (
                     <StoryDisplay
-                        key="story-view"
                         story={generatedStory}
                         base64Audio={base64Audio}
                         isAudioLoading={isAudioLoading}
@@ -110,15 +109,13 @@ const App: React.FC = () => {
             case 'parents': return <Parents onNavigate={navigateTo} />;
             default: return <StudentDashboard onNavigate={navigateTo} />;
         }
-    }, [currentPage, generatedStory, base64Audio, base64Image, imageMimeType, isLoading, isAudioLoading, isImageLoading, error, handleGenerateStory, handleTryAnother, navigateTo]);
+    };
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
             <Header onNavigate={navigateTo} />
-            <main className="flex-grow">
-                <div className="container mx-auto px-4 py-8 md:py-16 max-w-7xl animate-fade-in">
-                    {pageContent}
-                </div>
+            <main className="flex-grow container mx-auto px-4 py-8 md:py-16 max-w-7xl">
+                {renderPage()}
             </main>
             <Footer onNavigate={navigateTo} />
         </div>
