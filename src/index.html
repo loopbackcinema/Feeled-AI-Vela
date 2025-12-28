@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FeelEd AI | Student Adventure Portal</title>
+    <title>FeelEd AI | Professional & Student Learning Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,11 +38,19 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(236, 72, 153, 0); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(236, 72, 153, 0.3); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s infinite ease-in-out;
         }
 
         .shimmer-indigo {
@@ -64,9 +72,12 @@
             transform: scale(1.05) translateY(-15px);
         }
 
-        /* Hide Scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @media print {
+            .no-print { display: none !important; }
+        }
     </style>
     <script type="importmap">
     {

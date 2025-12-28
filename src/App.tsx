@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Story, StoryRequest, Page } from './types';
 import { generateStory, generateVoice, generateImage } from './services/geminiService';
 import Header from './components/Header';
@@ -17,6 +17,7 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
+    // FORCE DEFAULT TO DASHBOARD
     const [currentPage, setCurrentPage] = useState<Page>('dashboard');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
@@ -63,31 +64,32 @@ const App: React.FC = () => {
         }
     }, []);
     
-    const navigateTo = (page: Page) => {
+    const navigateTo = useCallback((page: Page) => {
         console.log("Navigating to:", page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentPage(page);
-    };
+    }, []);
 
-    const handleTryAnother = () => {
+    const handleTryAnother = useCallback(() => {
         setGeneratedStory(null);
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
         navigateTo('dashboard');
-    };
+    }, [navigateTo]);
 
-    const renderPage = () => {
+    const pageContent = useMemo(() => {
         switch (currentPage) {
             case 'dashboard': 
-                return <StudentDashboard onNavigate={navigateTo} />;
+                return <StudentDashboard key="dash" onNavigate={navigateTo} />;
             case 'student-generator':
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
+                return <StoryGeneratorForm key="std-gen" onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
             case 'generator':
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
+                return <StoryGeneratorForm key="pro-gen" onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
             case 'story':
                 return generatedStory ? (
                     <StoryDisplay
+                        key="story-view"
                         story={generatedStory}
                         base64Audio={base64Audio}
                         isAudioLoading={isAudioLoading}
@@ -108,13 +110,15 @@ const App: React.FC = () => {
             case 'parents': return <Parents onNavigate={navigateTo} />;
             default: return <StudentDashboard onNavigate={navigateTo} />;
         }
-    };
+    }, [currentPage, generatedStory, base64Audio, base64Image, imageMimeType, isLoading, isAudioLoading, isImageLoading, error, handleGenerateStory, handleTryAnother, navigateTo]);
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
             <Header onNavigate={navigateTo} />
-            <main className="flex-grow container mx-auto px-4 py-8 md:py-16 max-w-7xl">
-                {renderPage()}
+            <main className="flex-grow">
+                <div className="container mx-auto px-4 py-8 md:py-16 max-w-7xl animate-fade-in">
+                    {pageContent}
+                </div>
             </main>
             <Footer onNavigate={navigateTo} />
         </div>
