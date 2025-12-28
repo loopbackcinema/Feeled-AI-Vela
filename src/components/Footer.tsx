@@ -67,7 +67,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                         <ul className="space-y-3">
                             <li><button onClick={() => onNavigate('teachers')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">👩‍🏫 For Teachers</button></li>
                             <li><button onClick={() => onNavigate('parents')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">👨‍👩‍👧 For Parents</button></li>
-                            <li><button onClick={() => onNavigate('dashboard')} className="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors">🎓 For Students</button></li>
+                            <li><button onClick={() => onNavigate('dashboard')} className="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors">🎓 Student Dashboard</button></li>
                         </ul>
                     </div>
 
