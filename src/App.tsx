@@ -17,7 +17,6 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
-    // Audit: Changed default page to 'dashboard' (The new colorful Student Hub)
     const [currentPage, setCurrentPage] = useState<Page>('dashboard');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
@@ -65,6 +64,7 @@ const App: React.FC = () => {
     }, []);
     
     const navigateTo = (page: Page) => {
+        console.log("Navigating to:", page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentPage(page);
     };
@@ -74,7 +74,7 @@ const App: React.FC = () => {
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
-        navigateTo('dashboard'); // Go back to student hub
+        navigateTo('dashboard');
     };
 
     const renderPage = () => {
@@ -82,10 +82,8 @@ const App: React.FC = () => {
             case 'dashboard': 
                 return <StudentDashboard onNavigate={navigateTo} />;
             case 'student-generator':
-                // Colorful Student Version
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
             case 'generator':
-                // Professional Teacher Version
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
             case 'story':
                 return generatedStory ? (
