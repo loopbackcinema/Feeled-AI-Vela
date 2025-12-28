@@ -31,7 +31,7 @@ export interface ChatMessage {
     text: string;
 }
 
-export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'dashboard';
+export type Page = 'generator' | 'student-generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'dashboard';
 
 export interface UserProfile {
     role: 'teacher' | 'student' | 'parent';

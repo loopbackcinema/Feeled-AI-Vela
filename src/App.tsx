@@ -5,7 +5,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
-import StudentDashboard from './pages/StudentDashboard'; // New Import
+import StudentDashboard from './pages/StudentDashboard';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -17,7 +17,7 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState<Page>('dashboard'); // Default to the colorful dashboard
+    const [currentPage, setCurrentPage] = useState<Page>('dashboard');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
@@ -73,14 +73,19 @@ const App: React.FC = () => {
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
-        setCurrentPage('generator');
+        setCurrentPage('dashboard'); // Redirect to dashboard to keep context
     };
 
     const renderPage = () => {
         switch (currentPage) {
-            case 'dashboard': return <StudentDashboard onNavigate={navigateTo} />; // New Dashboard
+            case 'dashboard': 
+                return <StudentDashboard onNavigate={navigateTo} />;
             case 'generator':
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
+                // Professional Teacher View
+                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
+            case 'student-generator':
+                // Colorful Student View
+                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
             case 'story':
                 return generatedStory ? (
                     <StoryDisplay

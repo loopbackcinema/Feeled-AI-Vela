@@ -25,7 +25,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({ onNavigate }) => {
                 
                 {/* 1. Magic Story Generator (The Main Tool) */}
                 <button 
-                    onClick={() => onNavigate('generator')}
+                    onClick={() => onNavigate('student-generator')}
                     className="group relative bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[3rem] p-8 text-left shadow-[0_20px_50px_-12px_rgba(99,102,241,0.5)] hover:scale-105 transition-all duration-300 h-80 flex flex-col justify-between overflow-hidden border-4 border-white/20"
                 >
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
