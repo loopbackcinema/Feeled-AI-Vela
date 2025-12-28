@@ -17,8 +17,8 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 
 const App: React.FC = () => {
-    // Default to 'generator' (Teacher Studio) as the main landing page
-    const [currentPage, setCurrentPage] = useState<Page>('generator');
+    // Audit: Changed default page to 'dashboard' (The new colorful Student Hub)
+    const [currentPage, setCurrentPage] = useState<Page>('dashboard');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
@@ -47,7 +47,7 @@ const App: React.FC = () => {
 
             generateVoice(story, request)
                 .then(({ base64Audio }) => setBase64Audio(base64Audio))
-                .catch((e) => console.error("Audio synthesis failed:", e))
+                .catch((e) => console.error("Audio failed:", e))
                 .finally(() => setIsAudioLoading(false));
 
             generateImage(story)
@@ -55,11 +55,11 @@ const App: React.FC = () => {
                     setBase64Image(base64Image);
                     setImageMimeType(mimeType);
                 })
-                .catch((e) => console.error("Visual synthesis failed:", e))
+                .catch((e) => console.error("Visual failed:", e))
                 .finally(() => setIsImageLoading(false));
 
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred during pedagogical synthesis.');
+            setError(err instanceof Error ? err.message : 'Synthesis failed.');
             setIsLoading(false);
         }
     }, []);
@@ -74,20 +74,19 @@ const App: React.FC = () => {
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
-        // Navigate back to the appropriate form based on user intent (conceptually defaulting to generator for now)
-        setCurrentPage('generator'); 
+        navigateTo('dashboard'); // Go back to student hub
     };
 
     const renderPage = () => {
         switch (currentPage) {
             case 'dashboard': 
                 return <StudentDashboard onNavigate={navigateTo} />;
-            case 'generator':
-                // Professional Teacher View
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
             case 'student-generator':
-                // Colorful Student View
+                // Colorful Student Version
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
+            case 'generator':
+                // Professional Teacher Version
+                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
             case 'story':
                 return generatedStory ? (
                     <StoryDisplay
@@ -99,7 +98,7 @@ const App: React.FC = () => {
                         isImageLoading={isImageLoading}
                         onTryAnother={handleTryAnother}
                     />
-                ) : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
+                ) : <StudentDashboard onNavigate={navigateTo} />;
             case 'about': return <AboutUs onNavigate={navigateTo} />;
             case 'founder': return <Founder onNavigate={navigateTo} />;
             case 'research': return <Research onNavigate={navigateTo} />;
@@ -109,7 +108,7 @@ const App: React.FC = () => {
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
             case 'teachers': return <Teachers onNavigate={navigateTo} />;
             case 'parents': return <Parents onNavigate={navigateTo} />;
-            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
+            default: return <StudentDashboard onNavigate={navigateTo} />;
         }
     };
 
