@@ -23,7 +23,6 @@ export interface StoryRequest {
     language: string;
     narratorVoice: string;
     emotionTone: string;
-    difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
 }
 
 export interface ChatMessage {
@@ -31,11 +30,4 @@ export interface ChatMessage {
     text: string;
 }
 
-export type Page = 'generator' | 'student-generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'dashboard';
-
-export interface UserProfile {
-    role: 'teacher' | 'student' | 'parent';
-    name: string;
-    uiLanguage: 'English' | 'Tamil';
-    isHighContrast: boolean;
-}
+export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'research-pilot';

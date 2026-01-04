@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Page } from '../types';
 
@@ -21,6 +20,14 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                 <p className="text-2xl text-slate-500 font-bold max-w-4xl mx-auto leading-relaxed">
                     Co-creating Emotion-Adaptive Learning with Real Classrooms
                 </p>
+                <div className="pt-4">
+                    <button 
+                        onClick={() => onNavigate('research-pilot')}
+                        className="bg-indigo-600 text-white px-10 py-4 rounded-full font-black text-lg shadow-xl hover:bg-indigo-700 hover:scale-105 transition-all flex items-center gap-2 mx-auto"
+                    >
+                        <span>🎙️</span> Try Voice Pilot Demo
+                    </button>
+                </div>
             </div>
 
             {/* Purpose Statement */}
@@ -96,7 +103,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                     </div>
                     <div className="p-12 bg-indigo-600/20 border border-indigo-400/30 rounded-[3rem] text-center max-w-3xl mx-auto space-y-4">
                         <p className="text-lg font-black text-indigo-300">Strict Ethical Oversight</p>
-                        <p className="text-white/60 font-bold">There is no grading, labeling, or emotional scoring of children.</p>
+                        <p className="text-white/60 font-bold mt-2">There is no grading, labeling, or emotional scoring of children.</p>
                         <p className="text-white/80 font-bold text-sm">All activities are facilitated by teachers and aligned with existing classroom practices.</p>
                     </div>
                 </div>
@@ -128,16 +135,19 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                 <p className="text-2xl text-slate-500 font-bold max-w-3xl mx-auto">
                     Application is open to institutions aligned with our ethical framework.
                 </p>
-                <div className="flex flex-col md:flex-row justify-center gap-8">
-                    <a 
-                        href="mailto:contact@feeledai.com?subject=Pilot Program Inquiry" 
-                        className="bg-slate-900 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 transition-all border-b-[12px] border-slate-950 active:border-b-0"
-                    >
-                        Apply for Pilot Program
-                    </a>
-                    <button onClick={() => onNavigate('generator')} className="border-4 border-slate-200 text-slate-500 px-16 py-8 rounded-full font-black text-2xl hover:bg-slate-50 transition-all">
-                        Back to FeelEd AI
-                    </button>
+                <div className="space-y-10">
+                    <p className="text-slate-500 font-bold italic">Participation is limited to ensure ethical oversight and meaningful collaboration.</p>
+                    <div className="flex flex-col md:flex-row justify-center gap-8">
+                        <a 
+                            href="mailto:contact@feeledai.com?subject=Pilot Program Inquiry" 
+                            className="bg-slate-900 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 transition-all border-b-[12px] border-slate-950 active:border-b-0"
+                        >
+                            Apply for Pilot Program
+                        </a>
+                        <button onClick={() => onNavigate('research-pilot')} className="bg-indigo-50 text-indigo-700 border-4 border-indigo-200 px-16 py-8 rounded-full font-black text-2xl hover:bg-indigo-100 transition-all flex items-center justify-center gap-3">
+                            <span>🎙️</span> Try Voice Pilot
+                        </button>
+                    </div>
                 </div>
                 <p className="text-slate-400 italic font-bold max-w-2xl mx-auto pt-10">
                     "This pilot is not about proving technology. It is about listening — to classrooms, to teachers, and to learners."

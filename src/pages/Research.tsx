@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Page } from '../types';
 
@@ -112,15 +113,7 @@ const researchData: Achievement[] = [
 
 const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-6xl mx-auto space-y-20 animate-fade-in py-12">
-            
-            {/* Academic Disclaimer */}
-            <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl text-center">
-                <p className="text-sm font-bold text-amber-800 italic">
-                    This portfolio represents ongoing academic and exploratory work. It does not imply clinical validation or commercial deployment.
-                </p>
-            </div>
-
+        <div className="w-full max-w-6xl mx-auto space-y-24 animate-fade-in py-12">
             <div className="text-center space-y-6">
                 <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl">
                     Verified Academic Record
@@ -174,27 +167,27 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                                 className="inline-flex items-center gap-4 text-indigo-600 font-black text-sm group"
                             >
                                 <span className="group-hover:underline decoration-2 underline-offset-8">Verify Official Record</span>
-                                <svg className="w-5 h-5 transform transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /></svg>
+                                <svg className="w-5 h-5 transform transition-transform group-hover:translate-x-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </a>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* FEATURED: Inclusive Learning Research Section */}
-            <div className="bg-gradient-to-br from-indigo-900 to-slate-900 border-4 border-white rounded-[4rem] p-12 md:p-20 shadow-2xl relative overflow-hidden text-center text-white">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/20 rounded-full blur-[100px] -mr-40 -mt-40"></div>
+            {/* Inclusive Learning Research Section */}
+            <div className="bg-gradient-to-br from-indigo-50 to-slate-50 border-4 border-white rounded-[4rem] p-12 md:p-20 shadow-2xl relative overflow-hidden text-center">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-[100px] -mr-40 -mt-40"></div>
                 <div className="relative z-10 space-y-8">
-                    <span className="text-6xl animate-pulse">♿</span>
-                    <h2 className="text-4xl md:text-6xl font-black tracking-tighter">Specialized Domain: <span className="text-indigo-400">Inclusive Learning</span></h2>
-                    <p className="text-xl text-slate-300 font-bold max-w-3xl mx-auto leading-relaxed">
-                        Explore our ongoing collaborative research initiative exploring how emotion-adaptive storytelling supports Blind & Deaf learners through specialized sensory channels.
+                    <span className="text-5xl">♿</span>
+                    <h2 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter">Inclusive Learning Research</h2>
+                    <p className="text-xl text-slate-500 font-bold max-w-3xl mx-auto leading-relaxed">
+                        Supporting Blind & Deaf Learners Through Emotion-Adaptive Storytelling. Explore our ongoing collaborative research initiative exploring how emotion-adaptive storytelling can support inclusive learning experiences.
                     </p>
                     <button 
                         onClick={() => onNavigate('inclusive')}
-                        className="bg-white text-slate-900 px-16 py-7 rounded-full font-black text-xl shadow-4xl hover:scale-105 transition-transform border-b-[10px] border-slate-200 active:border-b-0 active:translate-y-2"
+                        className="bg-indigo-600 text-white px-16 py-6 rounded-full font-black text-xl shadow-4xl hover:scale-105 transition-transform border-b-[10px] border-indigo-900 active:border-b-0 active:translate-y-2"
                     >
-                        Explore Research Methodology
+                        Explore Inclusive Research Details
                     </button>
                 </div>
             </div>

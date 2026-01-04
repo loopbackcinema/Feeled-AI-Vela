@@ -30,7 +30,7 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                             <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">📧</div>
                             <div>
                                 <p className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">Email</p>
-                                <a href="mailto:contact@feeledai.com" className="text-xl font-black text-slate-800 hover:text-blue-600 transition-colors">contact@feeledai.com</a>
+                                <a href="mailto:vela@feeledai.com" className="text-xl font-black text-slate-800 hover:text-blue-600 transition-colors">vela@feeledai.com</a>
                             </div>
                          </div>
                          <div className="flex items-start gap-6 group">
@@ -71,7 +71,7 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                         <div className="mt-auto bg-white/5 border border-white/10 p-10 rounded-[3rem] backdrop-blur-xl">
                             <p className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-2">EMAIL SUBJECT LINE:</p>
                             <p className="text-2xl font-mono text-white mb-8">“Partnership with FeelEd AI”</p>
-                            <a href="mailto:contact@feeledai.com?subject=Partnership with FeelEd AI" className="w-full py-5 rounded-2xl bg-white text-slate-900 text-xl font-black flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
+                            <a href="mailto:vela@feeledai.com?subject=Partnership with FeelEd AI" className="w-full py-5 rounded-2xl bg-white text-slate-900 text-xl font-black flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-xl">
                                 <span>✉️</span> Contact Partnerships
                             </a>
                         </div>
@@ -102,8 +102,8 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                                 </ul>
                             </div>
                             <div className="flex flex-col items-center justify-center gap-6 md:border-l border-emerald-100 md:pl-10 h-full">
-                                <a href="mailto:contact@feeledai.com" className="text-2xl md:text-4xl font-black text-emerald-700 hover:text-emerald-900 transition-all border-b-4 border-emerald-200 group-hover:border-emerald-500">
-                                    contact@feeledai.com
+                                <a href="mailto:vela@feeledai.com" className="text-2xl md:text-4xl font-black text-emerald-700 hover:text-emerald-900 transition-all border-b-4 border-emerald-200 group-hover:border-emerald-500">
+                                    vela@feeledai.com
                                 </a>
                                 <span className="px-8 py-3 bg-emerald-200 text-emerald-900 rounded-2xl text-lg font-black tracking-tighter">
                                     ⚡ Response time: 24–48 hours

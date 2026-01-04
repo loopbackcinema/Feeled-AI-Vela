@@ -13,26 +13,29 @@ interface ChatRequest {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    if (req.method !== 'POST') {
+        res.setHeader('Allow', ['POST']);
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
+
     const API_KEY = process.env.API_KEY;
-    if (!API_KEY) return res.status(500).json({ error: "API_KEY not set" });
+    if (!API_KEY) {
+        return res.status(500).json({ error: "API_KEY not set" });
+    }
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     try {
         const { message, history, story } = req.body as ChatRequest;
 
-        const systemInstruction = `You are the interactive Socratic Mentor for the story "${story.title}".
-        CONCEPTS TO REINFORCE: "${story.concept_explanation}".
-        EMOTIONAL TONE: "${story.emotion_tone}".
+        const systemInstruction = `You are the interactive narrator of the story titled "${story.title}". 
+        The story is based on the concept: "${story.concept_explanation}".
+        The emotional tone is: "${story.emotion_tone}".
         
-        YOUR PEDAGOGICAL MISSION:
-        1. DO NOT give direct answers immediately.
-        2. Socratic Probe: Ask guiding questions that nudge the student to connect story events to the academic concept.
-        3. Empathetic Framing: If the student sounds frustrated or confused, validate their feeling first ("It's okay to find this tricky!"), then guide them.
-        4. Hyper-Concise: Responses must be strictly under 45 words.
-        5. Multilingual Fluidity: If the student writes in Tamil, reply in Tamil.
-        6. Concept Anchor: Link story actions back to the concept being taught.
-        7. Professional Tone: Maintain the voice of a world-class educational mentor.`;
+        Your Goal:
+        1. Answer the student's questions about the story or concept clearly.
+        2. **Act as a Socratic Tutor:** Do not just give the answer; occasionally ask a simple, thought-provoking follow-up question to check their understanding or make them think deeper.
+        3. Maintain Persona.
+        4. Keep responses concise (under 60 words).`;
 
         const contents = history.map(msg => ({
             role: msg.role,
@@ -49,13 +52,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             contents: contents,
             config: {
                 systemInstruction: systemInstruction,
-                temperature: 0.7,
-                topP: 0.8,
             }
         });
 
         res.status(200).json({ text: response.text });
+
     } catch (error) {
-        res.status(500).json({ error: 'Chat synchronization failed' });
+        console.error(error);
+        res.status(500).json({ error: 'Failed to generate chat response' });
     }
 }

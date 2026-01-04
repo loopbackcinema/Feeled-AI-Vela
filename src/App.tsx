@@ -1,11 +1,10 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Story, StoryRequest, Page } from './types';
 import { generateStory, generateVoice, generateImage } from './services/geminiService';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
-import StudentDashboard from './pages/StudentDashboard';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -15,9 +14,11 @@ import PilotProgram from './pages/PilotProgram';
 import InclusiveResearch from './pages/InclusiveResearch';
 import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
+import ResearchPilot from './pages/ResearchPilot';
 
 const App: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+    // Default to 'generator'
+    const [currentPage, setCurrentPage] = useState<Page>('generator');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
@@ -46,7 +47,7 @@ const App: React.FC = () => {
 
             generateVoice(story, request)
                 .then(({ base64Audio }) => setBase64Audio(base64Audio))
-                .catch((e) => console.error("Audio Synthesis Error:", e))
+                .catch((e) => console.error("Audio synthesis failed:", e))
                 .finally(() => setIsAudioLoading(false));
 
             generateImage(story)
@@ -54,17 +55,16 @@ const App: React.FC = () => {
                     setBase64Image(base64Image);
                     setImageMimeType(mimeType);
                 })
-                .catch((e) => console.error("Visual Synthesis Error:", e))
+                .catch((e) => console.error("Visual synthesis failed:", e))
                 .finally(() => setIsImageLoading(false));
 
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Something went wrong with the AI Engine.');
+            setError(err instanceof Error ? err.message : 'An error occurred during pedagogical synthesis.');
             setIsLoading(false);
         }
     }, []);
     
     const navigateTo = (page: Page) => {
-        console.debug("Navigating to:", page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         setCurrentPage(page);
     };
@@ -74,17 +74,14 @@ const App: React.FC = () => {
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
-        navigateTo('dashboard');
+        setCurrentPage('generator');
     };
 
     const renderPage = () => {
         switch (currentPage) {
-            case 'dashboard': 
-                return <StudentDashboard onNavigate={navigateTo} />;
-            case 'student-generator':
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="student" />;
             case 'generator':
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} variant="professional" />;
+                // FIXED: Passed onNavigate={navigateTo} here so the banner works
+                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} onNavigate={navigateTo} />;
             case 'story':
                 return generatedStory ? (
                     <StoryDisplay
@@ -96,7 +93,7 @@ const App: React.FC = () => {
                         isImageLoading={isImageLoading}
                         onTryAnother={handleTryAnother}
                     />
-                ) : <StudentDashboard onNavigate={navigateTo} />;
+                ) : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} onNavigate={navigateTo} />;
             case 'about': return <AboutUs onNavigate={navigateTo} />;
             case 'founder': return <Founder onNavigate={navigateTo} />;
             case 'research': return <Research onNavigate={navigateTo} />;
@@ -106,7 +103,8 @@ const App: React.FC = () => {
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
             case 'teachers': return <Teachers onNavigate={navigateTo} />;
             case 'parents': return <Parents onNavigate={navigateTo} />;
-            default: return <StudentDashboard onNavigate={navigateTo} />;
+            case 'research-pilot': return <ResearchPilot />;
+            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} onNavigate={navigateTo} />;
         }
     };
 

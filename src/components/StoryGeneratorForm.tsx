@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StoryRequest } from '../types';
+import { StoryRequest, Page } from '../types';
 import { STD_OPTIONS, LANGUAGE_OPTIONS, NARRATOR_VOICE_OPTIONS, EMOTION_TONE_OPTIONS } from '../constants';
 import LoadingIndicator from './LoadingIndicator';
 
@@ -7,176 +7,131 @@ interface StoryGeneratorFormProps {
     onSubmit: (request: StoryRequest) => void;
     isLoading: boolean;
     error: string | null;
-    variant?: 'professional' | 'student';
+    onNavigate?: (page: Page) => void;
 }
 
-const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error, variant = 'professional' }) => {
+const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error, onNavigate }) => {
     const [topic, setTopic] = useState('');
     const [std, setStd] = useState(STD_OPTIONS[4]);
     const [language, setLanguage] = useState<keyof typeof NARRATOR_VOICE_OPTIONS>(LANGUAGE_OPTIONS[0] as keyof typeof NARRATOR_VOICE_OPTIONS);
     const [narratorVoice, setNarratorVoice] = useState(NARRATOR_VOICE_OPTIONS.English[0]);
     const [emotionTone, setEmotionTone] = useState(EMOTION_TONE_OPTIONS[0]);
-    const [isListening, setIsListening] = useState(false);
     const [submittedRequest, setSubmittedRequest] = useState<StoryRequest | null>(null);
-
-    const isStudent = variant === 'student';
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!topic.trim()) return;
-        const request: StoryRequest = { topic, std, language, narratorVoice, emotionTone };
+        const request = { topic, std, language, narratorVoice, emotionTone };
         setSubmittedRequest(request);
         onSubmit(request);
     };
 
-    const startListening = () => {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("உங்களுடைய பிரவுசரில் மைக் வேலை செய்யவில்லை. Chrome-ஐ பயன்படுத்தவும்.");
-            return;
-        }
-
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        
-        // Dynamic Language Logic
-        recognition.lang = language === 'Tamil' ? 'ta-IN' : 'en-US';
-
-        recognition.onstart = () => {
-            setIsListening(true);
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-        };
-
-        recognition.onerror = (event: any) => {
-            console.error("Mic Error:", event.error);
-            setIsListening(false);
-        };
-
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setTopic(transcript);
-            setIsListening(false);
-        };
-
-        try {
-            recognition.start();
-        } catch (e) {
-            console.error("Mic Start Failed:", e);
-            setIsListening(false);
-        }
-    };
-
-    if (isLoading && submittedRequest) return <div className="flex justify-center py-20"><LoadingIndicator request={submittedRequest} /></div>;
+    if (isLoading && submittedRequest) return <LoadingIndicator request={submittedRequest} />;
 
     return (
-        <div className={`w-full max-w-5xl mx-auto space-y-12 animate-fade-in ${isStudent ? 'student-font pb-24' : ''}`}>
-            
-            {/* POWERFUL MIC OVERLAY */}
-            {isListening && (
-                <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-2xl z-[1000] flex flex-col items-center justify-center animate-fade-in text-white text-center p-8">
-                    <div className="relative mb-16">
-                        <div className="absolute inset-0 bg-pink-500 rounded-full animate-pulse-ring opacity-40"></div>
-                        <div className="absolute inset-0 bg-indigo-500 rounded-full animate-pulse-ring [animation-delay:0.4s] opacity-30"></div>
-                        <div className="relative w-48 h-48 bg-gradient-to-br from-pink-500 to-indigo-600 rounded-full flex items-center justify-center text-7xl shadow-3xl border-8 border-white/20">
-                            🎤
-                        </div>
-                    </div>
-                    <h3 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter">
-                        {language === 'Tamil' ? 'நான் கேட்கிறேன்...' : 'Listening to you...'}
-                    </h3>
-                    <p className="text-slate-400 text-2xl font-bold max-w-lg leading-relaxed">
-                        {language === 'Tamil' ? 'உங்கள் தலைப்பைச் சொல்லுங்கள்!' : 'Speak your topic clearly!'}
-                    </p>
-                    <button 
-                        onClick={() => setIsListening(false)} 
-                        className="mt-20 px-12 py-5 bg-white/10 hover:bg-white/20 border-2 border-white/20 rounded-full font-black uppercase tracking-widest text-sm transition-all"
-                    >
-                        {language === 'Tamil' ? 'ரத்து செய்' : 'Cancel'}
-                    </button>
-                </div>
-            )}
-
-            {/* Header */}
-            <div className="text-center space-y-6">
-                <span className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-sm ${isStudent ? 'bg-pink-100 text-pink-600' : 'bg-indigo-50 text-indigo-700'}`}>
-                    {isStudent ? '✨ Adventure Machine' : 'Affective Pedagogical AI'}
+        <div className="w-full max-w-5xl mx-auto space-y-12 animate-fade-in py-12">
+            <div className="text-center space-y-4">
+                <span className="px-4 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-[0.3em] border border-blue-100">
+                    Proprietary Affective Engine
                 </span>
-                <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-none text-slate-900">
-                    {isStudent ? 'What is the' : 'Pedagogical'} <span className={isStudent ? 'text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-indigo-500' : 'shimmer-indigo'}>{isStudent ? 'Topic?' : 'Synthesis'}</span>
+                <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight">
+                    Professional <span className="shimmer-text">Learning Engine</span>
                 </h1>
-                <p className="text-2xl text-slate-500 font-bold max-w-2xl mx-auto leading-relaxed">
-                    {isStudent ? 'Speak or type the magic word to start your story adventure!' : 'Synthesize complex academic concepts into emotional story narratives.'}
+                <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+                    Convert complex educational concepts into verified narrative learning experiences for students.
                 </p>
             </div>
 
-            <div className={`relative border rounded-[4rem] shadow-4xl overflow-hidden ${isStudent ? 'bg-white border-pink-100 ring-[16px] ring-pink-50' : 'bg-white border-slate-200'}`}>
-                <div className="p-10 md:p-16 space-y-12">
+            {/* New Feature Banner */}
+            {onNavigate && (
+                <button 
+                    onClick={() => onNavigate('research-pilot')}
+                    className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-6 md:p-8 text-white shadow-2xl relative overflow-hidden group transform hover:scale-[1.01] transition-all text-left flex flex-col md:flex-row items-center justify-between gap-6"
+                >
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none group-hover:bg-white/20 transition-colors"></div>
+                    <div className="relative z-10 space-y-2">
+                        <div className="flex items-center gap-3">
+                            <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest border border-white/20">New Research Pilot</span>
+                            <span className="animate-pulse text-xl">🎙️</span>
+                        </div>
+                        <h3 className="text-2xl md:text-3xl font-black tracking-tight">Try Voice-First Learning Mode</h3>
+                        <p className="text-indigo-100 font-medium max-w-xl">Experience our new Tamil/English bilingual voice tutor designed for Class 6-8 students.</p>
+                    </div>
+                    <div className="relative z-10 bg-white text-indigo-600 px-8 py-3 rounded-full font-black text-sm uppercase tracking-widest shadow-lg group-hover:bg-indigo-50 transition-colors shrink-0">
+                        Launch Pilot &rarr;
+                    </div>
+                </button>
+            )}
+
+            <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 overflow-hidden">
+                <div className="p-8 md:p-12 space-y-10">
                     {error && (
-                        <div className="bg-red-50 border-4 border-red-100 text-red-700 p-8 rounded-3xl text-lg font-black flex items-center gap-4 animate-bounce">
-                            <span className="text-3xl">⚠️</span> {error}
+                        <div className="bg-red-50 border border-red-100 text-red-700 p-4 rounded-xl text-sm font-bold flex items-center gap-3">
+                            <span className="text-xl">⚠️</span> {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-12">
-                        {/* THE PROMINENT INPUT & MIC BUTTON */}
-                        <div className="space-y-4">
-                            <label className={`text-xs font-black uppercase tracking-widest ml-10 ${isStudent ? 'text-pink-500' : 'text-slate-400'}`}>
-                                {isStudent ? 'Topic Name' : 'Subject Concept'}
-                            </label>
+                    <form onSubmit={handleSubmit} className="space-y-10">
+                        <div className="space-y-3">
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Academic Topic</label>
                             <div className="relative">
                                 <input
                                     type="text"
                                     value={topic}
                                     onChange={(e) => setTopic(e.target.value)}
-                                    placeholder={isStudent ? "Rain, Lions, Space..." : "Enter pedagogical concept..."}
-                                    className={`w-full pl-12 pr-32 py-12 text-3xl md:text-5xl font-black rounded-[3.5rem] border-4 focus:bg-white transition-all outline-none shadow-inner ${isStudent ? 'bg-slate-50 border-slate-100 focus:border-pink-500' : 'bg-slate-50 border-slate-100 focus:border-indigo-600'}`}
+                                    placeholder="e.g., Quantum Mechanics, The Water Cycle, photosynthesis..."
+                                    className="w-full px-8 py-6 text-xl md:text-2xl font-bold rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-blue-600 focus:bg-white transition-all outline-none text-slate-800"
                                     required
                                 />
-                                {/* MIGHTY MIC BUTTON */}
-                                <button 
-                                    type="button" 
-                                    onClick={startListening}
-                                    className={`absolute right-5 top-1/2 -translate-y-1/2 w-24 h-24 rounded-full flex items-center justify-center text-4xl shadow-3xl transition-all hover:scale-110 active:scale-90 z-20 ${isStudent ? 'bg-pink-500 text-white' : 'bg-slate-900 text-white'}`}
-                                >
-                                    🎤
-                                </button>
+                                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Controls */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {[
-                                { label: 'Grade', val: std, set: setStd, opts: STD_OPTIONS },
-                                { label: 'Language', val: language, set: (v: string) => { setLanguage(v as any); setNarratorVoice(NARRATOR_VOICE_OPTIONS[v as keyof typeof NARRATOR_VOICE_OPTIONS][0]); }, opts: LANGUAGE_OPTIONS },
-                                { label: 'Voice', val: narratorVoice, set: setNarratorVoice, opts: NARRATOR_VOICE_OPTIONS[language] },
-                                { label: isStudent ? 'Mood' : 'Tone', val: emotionTone, set: setEmotionTone, opts: EMOTION_TONE_OPTIONS }
-                            ].map((f, i) => (
-                                <div key={i} className="space-y-3">
-                                    <label className={`text-[10px] font-black uppercase tracking-widest ml-6 ${isStudent ? 'text-indigo-400' : 'text-slate-400'}`}>{f.label}</label>
+                                { label: 'Target Level', val: std, set: setStd, opts: STD_OPTIONS },
+                                { label: 'Instruction Language', val: language, set: (v: string) => { setLanguage(v as any); setNarratorVoice(NARRATOR_VOICE_OPTIONS[v as keyof typeof NARRATOR_VOICE_OPTIONS][0]); }, opts: LANGUAGE_OPTIONS },
+                                { label: 'Voice Persona', val: narratorVoice, set: setNarratorVoice, opts: NARRATOR_VOICE_OPTIONS[language] },
+                                { label: 'Emotional Tone', val: emotionTone, set: setEmotionTone, opts: EMOTION_TONE_OPTIONS }
+                            ].map((field, i) => (
+                                <div key={i} className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
                                     <select 
-                                        value={f.val} 
-                                        onChange={(e) => f.set(e.target.value)}
-                                        className={`w-full px-8 py-6 rounded-3xl border-2 font-black outline-none transition-all appearance-none cursor-pointer text-lg ${isStudent ? 'bg-white border-indigo-100 text-indigo-800' : 'bg-slate-50 border-slate-200 text-slate-700'}`}
+                                        value={field.val} 
+                                        onChange={(e) => field.set(e.target.value)}
+                                        className="w-full px-5 py-4 rounded-xl bg-slate-50 border border-slate-200 font-bold text-slate-700 outline-none focus:border-blue-600 transition-all appearance-none cursor-pointer"
                                     >
-                                        {f.opts.map(o => <option key={o} value={o}>{o}</option>)}
+                                        {field.opts.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                     </select>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Submit */}
                         <button 
                             type="submit" 
-                            className={`w-full py-12 rounded-[3.5rem] text-white text-3xl md:text-4xl font-black tracking-widest transition-all shadow-4xl active:scale-95 uppercase border-b-[16px] ${isStudent ? 'bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 border-indigo-900' : 'bg-slate-900 border-black'}`}
+                            className="w-full py-6 rounded-2xl bg-slate-900 text-white text-lg font-black tracking-tight hover:bg-slate-800 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
                         >
-                            🚀 {isStudent ? 'Create Magic Story!' : 'Synthesize Learning'}
+                            <span>🚀</span>
+                            Initialize Learning Engine
                         </button>
                     </form>
                 </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {[
+                    { t: 'Verified Research', d: 'Rooted in cognitive load theory and affective science.', i: '🔬' },
+                    { t: 'Safe by Design', d: 'No identifiable user data storage or tracking.', i: '🛡️' },
+                    { t: 'Universal Access', d: 'Optimized for low-bandwidth educational settings.', i: '🌍' }
+                ].map((item, i) => (
+                    <div key={i} className="bg-white p-8 rounded-3xl border border-slate-200 text-center space-y-4 hover:shadow-lg transition-shadow">
+                        <div className="text-4xl">{item.i}</div>
+                        <h3 className="font-bold text-slate-900 uppercase tracking-tighter text-sm">{item.t}</h3>
+                        <p className="text-slate-500 text-sm leading-relaxed">{item.d}</p>
+                    </div>
+                ))}
             </div>
         </div>
     );
