@@ -31,7 +31,7 @@ export interface ChatMessage {
     text: string;
 }
 
-export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'my-stories' | 'admin-dashboard';
+export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard';
 
 export interface UserSettings {
     isHighContrast: boolean;

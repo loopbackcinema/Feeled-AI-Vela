@@ -67,7 +67,12 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
         <header className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                 <button onClick={() => handleLinkClick('generator')} className="flex items-center gap-3 transition-opacity hover:opacity-80">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">F</div>
+                    <img 
+                        src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" 
+                        alt="FeelEd AI Logo" 
+                        className="w-12 h-12 object-contain"
+                        referrerPolicy="no-referrer"
+                    />
                     <div className="text-left">
                         <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none">FeelEd AI</h1>
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em] mt-1">Academic Portal</p>

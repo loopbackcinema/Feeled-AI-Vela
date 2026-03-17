@@ -13,7 +13,12 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                     {/* Branding */}
                     <div className="space-y-6">
                         <button onClick={() => onNavigate('generator')} className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
-                            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg">F</div>
+                            <img 
+                                src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" 
+                                alt="FeelEd AI Logo" 
+                                className="w-10 h-10 object-contain"
+                                referrerPolicy="no-referrer"
+                            />
                             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">FeelEd AI</h2>
                         </button>
                         <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-sm">

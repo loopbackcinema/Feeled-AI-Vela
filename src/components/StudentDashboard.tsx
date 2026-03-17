@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
-import { User, Book, School, GraduationCap, Heart, Save, Loader2, Award, Clock } from 'lucide-react';
+import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Clock } from 'lucide-react';
 
 const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNavigate }) => {
     const { user, userProfile } = useAuth();
@@ -56,7 +56,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                 displayName: formData.displayName,
                 standard: formData.standard,
                 school: formData.school,
-                interests: formData.interests.split(',').map(i => i.trim()).filter(i => i !== '')
+                interests: formData.interests.split(',').map((i: string) => i.trim()).filter((i: string) => i !== '')
             });
             setIsEditing(false);
         } catch (error) {
