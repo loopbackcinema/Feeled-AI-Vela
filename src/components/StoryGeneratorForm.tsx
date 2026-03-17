@@ -170,6 +170,25 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                 )}
                             </button>
                         )}
+
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <details className="group">
+                                <summary className="flex items-center justify-center gap-2 cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors text-[10px] font-black uppercase tracking-widest list-none">
+                                    <span>❓</span>
+                                    Trouble Logging In?
+                                    <svg className="w-3 h-3 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                                </summary>
+                                <div className="mt-4 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-xs text-slate-500 dark:text-slate-400 leading-relaxed space-y-3">
+                                    <p>If the login button doesn't respond or shows an error, please check the following:</p>
+                                    <ul className="list-disc pl-5 space-y-2">
+                                        <li><strong>Pop-ups:</strong> Ensure your browser allows pop-ups for this site.</li>
+                                        <li><strong>Third-Party Cookies:</strong> Firebase requires third-party cookies. If you have "Block Third-Party Cookies" enabled, please disable it or try <strong>Incognito Mode</strong>.</li>
+                                        <li><strong>Authorized Domains:</strong> If you see an "unauthorized domain" error, the current URL must be added to the Firebase Console's Authorized Domains list.</li>
+                                        <li><strong>Brave/Safari:</strong> Disable "Shields" (Brave) or "Prevent Cross-Site Tracking" (Safari) if login fails.</li>
+                                    </ul>
+                                </div>
+                            </details>
+                        </div>
                     </form>
                 </div>
             </div>

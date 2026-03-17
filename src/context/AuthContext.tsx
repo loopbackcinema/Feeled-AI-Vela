@@ -19,36 +19,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      
-      if (firebaseUser) {
-        // Check/Create user profile in Firestore
-        const userRef = doc(db, 'users', firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
+      try {
+        setUser(firebaseUser);
         
-        if (userSnap.exists()) {
-          setUserProfile(userSnap.data());
-          // Update last login
-          await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+        if (firebaseUser) {
+          // Check/Create user profile in Firestore
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          try {
+            const userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists()) {
+              setUserProfile(userSnap.data());
+              // Update last login
+              await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+            } else {
+              // Create new student profile
+              const newProfile = {
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName,
+                photoURL: firebaseUser.photoURL,
+                role: 'student', // Default role
+                createdAt: serverTimestamp(),
+                lastLogin: serverTimestamp()
+              };
+              await setDoc(userRef, newProfile);
+              setUserProfile(newProfile);
+            }
+          } catch (firestoreError) {
+            console.error("Firestore profile error:", firestoreError);
+            // Even if firestore fails, we have the firebaseUser
+            setUserProfile({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              displayName: firebaseUser.displayName,
+              photoURL: firebaseUser.photoURL,
+              role: 'student' // Fallback
+            });
+          }
         } else {
-          // Create new student profile
-          const newProfile = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email,
-            displayName: firebaseUser.displayName,
-            photoURL: firebaseUser.photoURL,
-            role: 'student', // Default role
-            createdAt: serverTimestamp(),
-            lastLogin: serverTimestamp()
-          };
-          await setDoc(userRef, newProfile);
-          setUserProfile(newProfile);
+          setUserProfile(null);
         }
-      } else {
-        setUserProfile(null);
+      } catch (err) {
+        console.error("Auth state change error:", err);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => unsubscribe();
