@@ -55,7 +55,7 @@ const App: React.FC = () => {
             try {
                 await addDoc(collection(db, 'stories'), {
                     userId: user.uid,
-                    userEmail: user.email,
+                    userEmail: user.email || (user as any).email || 'No Email',
                     title: story.title,
                     content: `${story.introduction}\n\n${story.concept_explanation}\n\n${story.resolution}`,
                     language: request.language,
