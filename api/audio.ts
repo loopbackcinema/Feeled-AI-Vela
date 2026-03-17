@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality, ThinkingLevel } from "@google/genai";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
@@ -16,9 +16,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             : (narratorVoice === 'Male' ? 'Puck' : 'Kore');
 
         const ttsResponse = await ai.models.generateContent({
-            model: "gemini-2.5-flash-preview-tts",
+            model: "gemini-3-flash-preview",
             contents: [{ parts: [{ text: `Say cheerfully in a ${emotionTone} tone: ${fullStoryText}` }] }],
             config: {
+                thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
                 responseModalities: [Modality.AUDIO],
                 speechConfig: {
                     voiceConfig: { prebuiltVoiceConfig: { voiceName } },
