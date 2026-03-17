@@ -4,12 +4,14 @@ import { sendChatMessage } from '../services/geminiService';
 
 interface StoryChatProps {
     story: Story;
+    language: string;
 }
 
-const StoryChat: React.FC<StoryChatProps> = ({ story }) => {
+const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isListening, setIsListening] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -20,11 +22,10 @@ const StoryChat: React.FC<StoryChatProps> = ({ story }) => {
         scrollToBottom();
     }, [messages]);
 
-    const handleSend = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || isLoading) return;
+    const handleSend = async (text: string) => {
+        if (!text.trim() || isLoading) return;
 
-        const userMessage: ChatMessage = { role: 'user', text: input };
+        const userMessage: ChatMessage = { role: 'user', text };
         setMessages(prev => [...prev, userMessage]);
         setInput('');
         setIsLoading(true);
@@ -34,40 +35,83 @@ const StoryChat: React.FC<StoryChatProps> = ({ story }) => {
             const aiMessage: ChatMessage = { role: 'model', text: result.text };
             setMessages(prev => [...prev, aiMessage]);
         } catch (error) {
-            console.error(error);
-            // Optionally handle error in UI
+            console.error('Chat error:', error);
+            const errMsg: ChatMessage = { role: 'model', text: "I'm sorry, I'm finding it hard to reflect right now. Could you ask again?" };
+            setMessages(prev => [...prev, errMsg]);
         } finally {
             setIsLoading(false);
         }
     };
 
+    const startListening = () => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('Speech recognition is not supported in this browser.');
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        // Use the language passed from the story request
+        recognition.lang = language === 'Tamil' ? 'ta-IN' : 'en-US'; 
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error);
+            setIsListening(false);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setInput(transcript);
+        };
+
+        recognition.start();
+    };
+
+    const suggestions = [
+        "Explain the core concept again simply.",
+        "How does this lesson apply to real life?",
+        "Tell me more about the main character's feeling.",
+        "Give me another example of this concept.",
+        "What was the moral of this story?",
+        "Ask me a tricky question!"
+    ];
+
     return (
-        <div className="mt-8 bg-white rounded-2xl shadow-lg border border-indigo-100 overflow-hidden">
-            <div className="bg-indigo-600 p-4 flex items-center justify-between">
-                <h3 className="text-white font-bold text-lg flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
-                    </svg>
-                    Ask the Narrator
-                </h3>
-                <span className="text-indigo-100 text-sm bg-indigo-700 px-2 py-1 rounded">Beta</span>
+        <div className="bg-white dark:bg-slate-900 rounded-[4rem] shadow-2xl border-4 border-white dark:border-slate-800 ring-8 ring-indigo-50/50 dark:ring-indigo-900/20 overflow-hidden flex flex-col h-[700px] transform transition-all duration-500 hover:scale-[1.01]">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-700 to-blue-700 p-10 flex items-center justify-between shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1)_0%,transparent_50%)]"></div>
+                <div className="flex items-center gap-6 relative z-10">
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center text-4xl shadow-inner border border-white/20">👨‍🏫</div>
+                    <div>
+                        <h3 className="text-white font-black text-3xl tracking-tighter leading-none">Interactive Narrator</h3>
+                        <p className="text-indigo-100 text-[10px] font-black uppercase tracking-[0.4em] mt-2">Socratic Pedagogical Support</p>
+                    </div>
+                </div>
+                <span className="text-white text-[10px] font-black bg-indigo-900/50 px-4 py-2 rounded-full uppercase tracking-widest border border-white/10 relative z-10">BETA V3.0</span>
             </div>
             
-            <div className="h-64 overflow-y-auto p-4 bg-slate-50 space-y-4">
+            {/* Chat Area */}
+            <div className="flex-grow overflow-y-auto p-10 bg-slate-50/50 dark:bg-slate-950/50 space-y-8">
                 {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 opacity-50">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-                        </svg>
-                        <p className="text-sm italic">Have doubts? Ask me anything about the story!</p>
+                    <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-600 space-y-8 px-12 text-center">
+                        <div className="w-24 h-24 bg-white dark:bg-slate-800 rounded-[2rem] shadow-xl flex items-center justify-center text-5xl">💭</div>
+                        <div className="space-y-4">
+                             <p className="text-3xl font-black text-slate-800 dark:text-slate-200 tracking-tight">Have doubts about the journey?</p>
+                             <p className="text-xl font-bold text-slate-400 dark:text-slate-500 leading-relaxed">I'm here to help you dive deeper into the story and the concept. Choose a reflection or type your own.</p>
+                        </div>
                     </div>
                 )}
                 {messages.map((msg, idx) => (
-                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm leading-relaxed ${
+                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+                        <div className={`max-w-[85%] rounded-[2.5rem] px-8 py-6 text-lg shadow-xl leading-relaxed font-bold transition-all ${
                             msg.role === 'user' 
-                                ? 'bg-indigo-600 text-white rounded-br-none' 
-                                : 'bg-white text-slate-700 border border-slate-200 rounded-bl-none'
+                                ? 'bg-indigo-600 dark:bg-indigo-500 text-white rounded-tr-none' 
+                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-4 border-slate-50 dark:border-slate-700 rounded-tl-none'
                         }`}>
                             {msg.text}
                         </div>
@@ -75,34 +119,57 @@ const StoryChat: React.FC<StoryChatProps> = ({ story }) => {
                 ))}
                 {isLoading && (
                      <div className="flex justify-start">
-                        <div className="bg-white text-slate-500 border border-slate-200 rounded-2xl rounded-bl-none px-4 py-2 text-sm shadow-sm flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
-                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-75"></span>
-                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce delay-150"></span>
+                        <div className="bg-white dark:bg-slate-800 border-4 border-slate-50 dark:border-slate-700 rounded-[2rem] rounded-tl-none px-8 py-5 flex items-center gap-3 shadow-xl">
+                            <span className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce"></span>
+                            <span className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                            <span className="w-3 h-3 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
                         </div>
                     </div>
                 )}
                 <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex gap-2">
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask a question..."
-                    className="flex-grow px-4 py-2 bg-slate-100 border-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 rounded-xl outline-none transition-all text-sm"
-                />
-                <button 
-                    type="submit" 
-                    disabled={!input.trim() || isLoading}
-                    className="bg-indigo-600 text-white p-2 rounded-xl hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                        <path d="M3.105 2.289a.75.75 0 0 0-.826.95l1.414 4.925A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95 28.896 28.896 0 0 0 15.293-7.154.75.75 0 0 0 0-1.115A28.897 28.897 0 0 0 3.105 2.289Z" />
-                    </svg>
-                </button>
-            </form>
+            {/* Suggesions */}
+            <div className="bg-white dark:bg-slate-900 px-10 py-6 border-t-4 border-slate-50 dark:border-slate-800 overflow-x-auto">
+                <div className="flex gap-4 pb-2 no-scrollbar">
+                    {suggestions.map((s, i) => (
+                        <button key={i} onClick={() => handleSend(s)} disabled={isLoading} className="shrink-0 px-6 py-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded-2xl text-xs font-black border-2 border-indigo-100 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors disabled:opacity-50 whitespace-nowrap shadow-sm">
+                            ✨ {s}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Input */}
+            <div className="p-8 bg-white dark:bg-slate-900 border-t-4 border-slate-50 dark:border-slate-800 relative z-10">
+                <form onSubmit={(e) => { e.preventDefault(); handleSend(input); }} className="flex gap-6 p-2 bg-slate-100 dark:bg-slate-800 rounded-[3rem] border-4 border-transparent focus-within:border-indigo-200 dark:focus-within:border-indigo-500 transition-all shadow-inner items-center">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder="Type a magical question..."
+                        className="flex-grow px-8 py-5 bg-transparent rounded-full outline-none font-black text-slate-700 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600 text-xl"
+                        disabled={isLoading}
+                    />
+                    <button
+                        type="button"
+                        onClick={startListening}
+                        className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600'} shadow-lg`}
+                        title="Voice Input"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
+                    </button>
+                    <button 
+                        type="submit" 
+                        disabled={!input.trim() || isLoading}
+                        className="bg-indigo-600 dark:bg-indigo-500 text-white w-16 h-16 rounded-[1.5rem] flex items-center justify-center hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all disabled:opacity-50 shadow-2xl active:scale-90"
+                    >
+                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/></svg>
+                    </button>
+                </form>
+            </div>
         </div>
     );
 };

@@ -54,10 +54,11 @@ export const generateImage = async (story: Story): Promise<{ base64Image: string
     The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}". 
     Scene description: "${story.introduction}". 
     
-    IMPORTANT RESTRICTIONS: 
-    1. Do NOT include any text, words, letters, subtitles, or labels in the image. 
+    CRITICAL RESTRICTIONS: 
+    1. ABSOLUTELY NO TEXT, WORDS, LETTERS, SUBTITLES, OR LABELS in the image. 
     2. The image must be purely visual/artistic.
-    3. No gibberish text.`;
+    3. No gibberish text or symbols that look like letters.
+    4. Focus on the characters and environment.`;
 
     const response = await fetch('/api/image', {
         method: 'POST',

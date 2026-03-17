@@ -14,15 +14,14 @@ import PilotProgram from './pages/PilotProgram';
 import InclusiveResearch from './pages/InclusiveResearch';
 import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
-import ResearchPilot from './pages/ResearchPilot';
 
 const App: React.FC = () => {
-    // Default to 'generator'
     const [currentPage, setCurrentPage] = useState<Page>('generator');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
     const [imageMimeType, setImageMimeType] = useState<string | null>(null);
+    const [lastLanguage, setLastLanguage] = useState<string>('English');
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
     const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
@@ -35,6 +34,7 @@ const App: React.FC = () => {
         setBase64Audio(null);
         setBase64Image(null);
         setImageMimeType(null);
+        setLastLanguage(request.language);
 
         try {
             const { story } = await generateStory(request);
@@ -80,12 +80,12 @@ const App: React.FC = () => {
     const renderPage = () => {
         switch (currentPage) {
             case 'generator':
-                // FIXED: Passed onNavigate={navigateTo} here so the banner works
-                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} onNavigate={navigateTo} />;
+                return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
             case 'story':
                 return generatedStory ? (
                     <StoryDisplay
                         story={generatedStory}
+                        language={lastLanguage}
                         base64Audio={base64Audio}
                         isAudioLoading={isAudioLoading}
                         base64Image={base64Image}
@@ -93,7 +93,7 @@ const App: React.FC = () => {
                         isImageLoading={isImageLoading}
                         onTryAnother={handleTryAnother}
                     />
-                ) : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} onNavigate={navigateTo} />;
+                ) : <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
             case 'about': return <AboutUs onNavigate={navigateTo} />;
             case 'founder': return <Founder onNavigate={navigateTo} />;
             case 'research': return <Research onNavigate={navigateTo} />;
@@ -103,13 +103,12 @@ const App: React.FC = () => {
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
             case 'teachers': return <Teachers onNavigate={navigateTo} />;
             case 'parents': return <Parents onNavigate={navigateTo} />;
-            case 'research-pilot': return <ResearchPilot />;
-            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} onNavigate={navigateTo} />;
+            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+        <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-slate-950 transition-colors duration-300">
             <Header onNavigate={navigateTo} />
             <main className="flex-grow container mx-auto px-4 py-8 md:py-16 max-w-7xl">
                 {renderPage()}
