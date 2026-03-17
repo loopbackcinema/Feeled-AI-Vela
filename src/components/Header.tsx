@@ -43,14 +43,20 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
         setIsMenuOpen(false);
     };
 
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
     const handleAuth = async () => {
         if (user) {
             await logOut();
         } else {
             try {
+                setIsLoggingIn(true);
                 await signInWithGoogle();
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Login failed:", error);
+                alert(error.message || "Login failed. Please check if popups are blocked.");
+            } finally {
+                setIsLoggingIn(false);
             }
         }
     };
@@ -94,9 +100,15 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
 
                     <button 
                         onClick={handleAuth}
-                        className="hidden md:flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg"
+                        disabled={isLoggingIn}
+                        className={`hidden md:flex items-center gap-2 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${isLoggingIn ? 'bg-indigo-400 cursor-not-allowed' : 'bg-slate-900 dark:bg-slate-800 hover:bg-indigo-600'}`}
                     >
-                        {user ? (
+                        {isLoggingIn ? (
+                            <>
+                                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <span>Wait...</span>
+                            </>
+                        ) : user ? (
                             <>
                                 {user.photoURL && <img src={user.photoURL} alt="" className="w-5 h-5 rounded-full" />}
                                 <span>Sign Out</span>
@@ -143,9 +155,10 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                         ))}
                         <button 
                             onClick={handleAuth}
-                            className="w-full mt-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-lg"
+                            disabled={isLoggingIn}
+                            className={`w-full mt-2 text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-lg transition-all ${isLoggingIn ? 'bg-indigo-400 cursor-not-allowed' : 'bg-slate-900 dark:bg-slate-800'}`}
                         >
-                            {user ? 'Sign Out' : 'Student Login'}
+                            {isLoggingIn ? 'Authenticating...' : user ? 'Sign Out' : 'Student Login'}
                         </button>
                         <button 
                             onClick={() => handleLinkClick('contact')}

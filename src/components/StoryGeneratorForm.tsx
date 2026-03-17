@@ -22,6 +22,8 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [emotionTone, setEmotionTone] = useState(EMOTION_TONE_OPTIONS[0]);
     const [submittedRequest, setSubmittedRequest] = useState<StoryRequest | null>(null);
 
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
@@ -140,11 +142,32 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                         ) : (
                             <button 
                                 type="button"
-                                onClick={() => signInWithGoogle()}
-                                className="w-full py-6 rounded-2xl bg-indigo-600 text-white text-lg font-black tracking-tight hover:bg-indigo-700 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
+                                disabled={isLoggingIn}
+                                onClick={async () => {
+                                    try {
+                                        setIsLoggingIn(true);
+                                        console.log("Attempting Google Login...");
+                                        await signInWithGoogle();
+                                    } catch (err: any) {
+                                        console.error("Login failed:", err);
+                                        alert(err.message || "Login failed. Please check if popups are blocked.");
+                                    } finally {
+                                        setIsLoggingIn(false);
+                                    }
+                                }}
+                                className={`w-full py-6 rounded-2xl text-white text-lg font-black tracking-tight transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95 ${isLoggingIn ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                             >
-                                <span>🔑</span>
-                                Login with Google to Start
+                                {isLoggingIn ? (
+                                    <>
+                                        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <span>Authenticating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>🔑</span>
+                                        Login with Google to Start
+                                    </>
+                                )}
                             </button>
                         )}
                     </form>
