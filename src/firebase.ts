@@ -53,7 +53,7 @@ export const signInWithGoogle = async () => {
         friendlyMessage += "Google login is not enabled in the Firebase project. Please enable 'Google' as a Sign-in provider in the Firebase Console.";
         break;
       case 'auth/unauthorized-domain':
-        friendlyMessage += `This domain (${window.location.hostname}) is not authorized for Firebase Auth. \n\nTo fix this:\n1. Go to Firebase Console > Auth > Settings > Authorized Domains\n2. Add '${window.location.hostname}' to the list.`;
+        friendlyMessage += `This domain (${window.location.hostname}) is not authorized for Firebase Auth. \n\nTo fix this:\n1. Go to Firebase Console > Auth > Settings > Authorized Domains\n2. Add '${window.location.hostname}' to the list.\n3. Also add 'ais-pre-p53itmldkdjmi6kpqkjfru-222825292700.asia-southeast1.run.app' for the shared version.`;
         break;
       default:
         friendlyMessage += error.message || "An unexpected error occurred.";
@@ -67,10 +67,16 @@ export const logOut = () => signOut(auth);
 // Connection Test
 async function testConnection() {
   try {
+    // Attempt to fetch a dummy doc to verify connection
     await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration. The client is offline.");
+    console.log("Firebase connection verified.");
+  } catch (error: any) {
+    if (error.message && error.message.includes('the client is offline')) {
+      console.error("CRITICAL: Firebase Client is Offline.");
+      console.error("This usually means the Firestore Database has not been created in the Firebase Console yet.");
+      console.error("Action Required: Go to Firebase Console > Firestore Database > Create Database.");
+    } else {
+      console.warn("Firebase connection test notice:", error.message);
     }
   }
 }
