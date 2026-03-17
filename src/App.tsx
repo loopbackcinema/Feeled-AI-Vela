@@ -14,6 +14,8 @@ import PilotProgram from './pages/PilotProgram';
 import InclusiveResearch from './pages/InclusiveResearch';
 import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
+import MyStories from './components/MyStories';
+import StudentDashboard from './components/StudentDashboard';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -136,7 +138,8 @@ const App: React.FC = () => {
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
             case 'teachers': return <Teachers onNavigate={navigateTo} />;
             case 'parents': return <Parents onNavigate={navigateTo} />;
-            case 'my-stories': return <div className="p-8 text-center"><h2 className="text-2xl font-bold mb-4">My Stories</h2><p>Coming soon: Your personal library of generated stories.</p></div>;
+            case 'my-stories': return <MyStories onNavigate={navigateTo} />;
+            case 'student-dashboard': return <StudentDashboard onNavigate={navigateTo} />;
             case 'admin-dashboard': return <div className="p-8 text-center"><h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2><p>Coming soon: Student analytics and story review.</p></div>;
             default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }

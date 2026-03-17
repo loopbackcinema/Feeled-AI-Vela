@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     }, [isDarkMode]);
 
     const navItems = [
-        { id: 'generator', label: 'Dashboard' },
+        { id: 'generator', label: 'Story Generator' },
         { id: 'teachers', label: 'For Teachers' },
         { id: 'parents', label: 'For Parents' },
         { id: 'research', label: 'Scientific Portfolio' },
@@ -31,7 +31,9 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     ];
 
     if (user) {
+        navItems.splice(0, 1, { id: 'student-dashboard', label: 'Dashboard' });
         navItems.splice(1, 0, { id: 'my-stories', label: 'My Stories' });
+        navItems.push({ id: 'generator', label: 'Create Story' });
     }
 
     if (isAdmin) {

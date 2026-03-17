@@ -60,7 +60,10 @@ service cloud.firestore {
              data.uid == request.auth.uid &&
              isValidEmail(data.email) &&
              data.role in ['student', 'admin'] &&
-             data.email.size() < 100;
+             data.email.size() < 100 &&
+             (!('standard' in data) || data.standard is string) &&
+             (!('school' in data) || data.school is string) &&
+             (!('interests' in data) || data.interests is list);
     }
 
     function isValidStory(data) {
