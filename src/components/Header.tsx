@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { Page } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { signInWithGoogle, logOut } from '../firebase';
 
 interface HeaderProps {
     onNavigate: (page: Page) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
+    const { user, isAdmin } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -27,9 +30,29 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
         { id: 'about', label: 'Philosophy' }
     ];
 
+    if (user) {
+        navItems.splice(1, 0, { id: 'my-stories', label: 'My Stories' });
+    }
+
+    if (isAdmin) {
+        navItems.push({ id: 'admin-dashboard', label: 'Admin Panel' });
+    }
+
     const handleLinkClick = (id: string) => {
         onNavigate(id as Page);
         setIsMenuOpen(false);
+    };
+
+    const handleAuth = async () => {
+        if (user) {
+            await logOut();
+        } else {
+            try {
+                await signInWithGoogle();
+            } catch (error) {
+                console.error("Login failed:", error);
+            }
+        }
     };
 
     return (
@@ -70,10 +93,24 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                     </button>
 
                     <button 
-                        onClick={() => handleLinkClick('contact')}
-                        className="hidden md:block bg-slate-900 text-white px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg"
+                        onClick={handleAuth}
+                        className="hidden md:flex items-center gap-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg"
                     >
-                        Contact Office
+                        {user ? (
+                            <>
+                                {user.photoURL && <img src={user.photoURL} alt="" className="w-5 h-5 rounded-full" />}
+                                <span>Sign Out</span>
+                            </>
+                        ) : (
+                            <span>Student Login</span>
+                        )}
+                    </button>
+
+                    <button 
+                        onClick={() => handleLinkClick('contact')}
+                        className="hidden md:block border-2 border-slate-900 dark:border-slate-700 text-slate-900 dark:text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white dark:hover:bg-slate-700 transition-all"
+                    >
+                        Contact
                     </button>
 
                     {/* Mobile Menu Button */}
@@ -105,8 +142,14 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
                             </button>
                         ))}
                         <button 
+                            onClick={handleAuth}
+                            className="w-full mt-2 bg-slate-900 dark:bg-slate-800 text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-lg"
+                        >
+                            {user ? 'Sign Out' : 'Student Login'}
+                        </button>
+                        <button 
                             onClick={() => handleLinkClick('contact')}
-                            className="w-full mt-4 bg-indigo-600 text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-lg hover:bg-indigo-700 transition-colors"
+                            className="w-full mt-2 border-2 border-slate-900 dark:border-slate-700 text-slate-900 dark:text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-center"
                         >
                             Contact Office
                         </button>

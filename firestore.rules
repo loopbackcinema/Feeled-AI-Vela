@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (Auth UID)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - role: string (required, 'student' or 'admin')
+    //   - createdAt: timestamp (required)
+    //   - lastLogin: timestamp (required)
+    //
+    // Collection: stories
+    // Document ID: {storyId} (Auto-generated)
+    // Fields:
+    //   - userId: string (required, matches creator's UID)
+    //   - title: string (required)
+    //   - content: string (required)
+    //   - language: string (required)
+    //   - topic: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "vela8055@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role', 'createdAt', 'lastLogin']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             data.role in ['student', 'admin'] &&
+             data.email.size() < 100;
+    }
+
+    function isValidStory(data) {
+      return data.keys().hasAll(['userId', 'title', 'content', 'language', 'topic', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.title is string && data.title.size() < 200 &&
+             data.content is string && data.content.size() < 10000 &&
+             data.topic is string && data.topic.size() < 500;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Users can read their own profile. Admins can read all profiles.
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile if it's a 'student' role.
+      // Admins can create any profile.
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == 'student') || isAdmin());
+      
+      // Users can update their own profile but cannot change their role.
+      // Admins can update anything.
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && request.resource.data.role == resource.data.role) || isAdmin());
+      
+      allow delete: if isAdmin();
+    }
+
+    match /stories/{storyId} {
+      // Users can read their own stories. Admins can read all.
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Any authenticated user can create a story for themselves.
+      allow create: if isAuthenticated() && isValidStory(request.resource.data);
+      
+      // Stories are immutable for students, but admins might manage them.
+      allow update, delete: if isAdmin();
+    }
+  }
+}

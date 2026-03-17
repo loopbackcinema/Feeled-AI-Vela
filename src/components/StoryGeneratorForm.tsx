@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { StoryRequest } from '../types';
 import { STD_OPTIONS, LANGUAGE_OPTIONS, NARRATOR_VOICE_OPTIONS, EMOTION_TONE_OPTIONS } from '../constants';
 import LoadingIndicator from './LoadingIndicator';
+import { useAuth } from '../context/AuthContext';
+import { signInWithGoogle } from '../firebase';
 
 interface StoryGeneratorFormProps {
     onSubmit: (request: StoryRequest) => void;
@@ -11,6 +13,7 @@ interface StoryGeneratorFormProps {
 }
 
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
+    const { user } = useAuth();
     const [topic, setTopic] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [std, setStd] = useState(STD_OPTIONS[4]);
@@ -21,6 +24,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!user) return;
         if (!topic.trim()) return;
         const request = { topic, std, language, narratorVoice, emotionTone };
         setSubmittedRequest(request);
@@ -125,13 +129,24 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                             ))}
                         </div>
 
-                        <button 
-                            type="submit" 
-                            className="w-full py-6 rounded-2xl bg-slate-900 dark:bg-blue-600 text-white text-lg font-black tracking-tight hover:bg-slate-800 dark:hover:bg-blue-700 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
-                        >
-                            <span>🚀</span>
-                            Initialize Learning Engine
-                        </button>
+                        {user ? (
+                            <button 
+                                type="submit" 
+                                className="w-full py-6 rounded-2xl bg-slate-900 dark:bg-blue-600 text-white text-lg font-black tracking-tight hover:bg-slate-800 dark:hover:bg-blue-700 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
+                            >
+                                <span>🚀</span>
+                                Initialize Learning Engine
+                            </button>
+                        ) : (
+                            <button 
+                                type="button"
+                                onClick={() => signInWithGoogle()}
+                                className="w-full py-6 rounded-2xl bg-indigo-600 text-white text-lg font-black tracking-tight hover:bg-indigo-700 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
+                            >
+                                <span>🔑</span>
+                                Login with Google to Start
+                            </button>
+                        )}
                     </form>
                 </div>
             </div>

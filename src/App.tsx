@@ -14,8 +14,12 @@ import PilotProgram from './pages/PilotProgram';
 import InclusiveResearch from './pages/InclusiveResearch';
 import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
+import { useAuth } from './context/AuthContext';
+import { db } from './firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const App: React.FC = () => {
+    const { user, loading } = useAuth();
     const [currentPage, setCurrentPage] = useState<Page>('generator');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
@@ -28,6 +32,11 @@ const App: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     const handleGenerateStory = useCallback(async (request: StoryRequest) => {
+        if (!user) {
+            setError('Please log in to generate stories.');
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         setGeneratedStory(null);
@@ -41,6 +50,20 @@ const App: React.FC = () => {
             setGeneratedStory(story);
             setCurrentPage('story');
             setIsLoading(false);
+
+            // Save story to Firestore
+            try {
+                await addDoc(collection(db, 'stories'), {
+                    userId: user.uid,
+                    title: story.title,
+                    content: `${story.introduction}\n\n${story.concept_explanation}\n\n${story.resolution}`,
+                    language: request.language,
+                    topic: request.topic,
+                    createdAt: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Failed to save story to Firestore:", e);
+            }
 
             setIsAudioLoading(true);
             setIsImageLoading(true);
@@ -62,7 +85,7 @@ const App: React.FC = () => {
             setError(err instanceof Error ? err.message : 'An error occurred during pedagogical synthesis.');
             setIsLoading(false);
         }
-    }, []);
+    }, [user]);
     
     const navigateTo = (page: Page) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -78,6 +101,15 @@ const App: React.FC = () => {
     };
 
     const renderPage = () => {
+        if (loading) {
+            return (
+                <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-slate-600 dark:text-slate-400 font-medium animate-pulse">Initializing pedagogical environment...</p>
+                </div>
+            );
+        }
+
         switch (currentPage) {
             case 'generator':
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
@@ -103,6 +135,8 @@ const App: React.FC = () => {
             case 'inclusive': return <InclusiveResearch onNavigate={navigateTo} />;
             case 'teachers': return <Teachers onNavigate={navigateTo} />;
             case 'parents': return <Parents onNavigate={navigateTo} />;
+            case 'my-stories': return <div className="p-8 text-center"><h2 className="text-2xl font-bold mb-4">My Stories</h2><p>Coming soon: Your personal library of generated stories.</p></div>;
+            case 'admin-dashboard': return <div className="p-8 text-center"><h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2><p>Coming soon: Student analytics and story review.</p></div>;
             default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };

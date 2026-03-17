@@ -2,6 +2,8 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Story, QuizQuestion } from '../types';
 import Spinner from './Spinner';
 import StoryChat from './StoryChat';
+import { useAuth } from '../context/AuthContext';
+import html2canvas from 'html2canvas';
 
 interface StoryDisplayProps {
     story: Story;
@@ -47,13 +49,17 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
 
     const handleCheckAnswer = (qIndex: number) => {
         const isCorrect = answers[qIndex] === quiz[qIndex].answer;
-        if (isCorrect) setScore(prev => prev + 1);
+        let newScore = score;
+        if (isCorrect) {
+            newScore = score + 1;
+            setScore(newScore);
+        }
         setShowResult(prev => ({ ...prev, [qIndex]: true }));
         
         const nextResults = { ...showResult, [qIndex]: true };
         if (Object.keys(nextResults).length === quiz.length && !isCompleted) {
             setIsCompleted(true);
-            onQuizComplete(isCorrect ? score + 1 : score);
+            onQuizComplete(newScore);
         }
     };
 
@@ -78,7 +84,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
                                     else if (isSelected) btnStyle += "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-800 dark:text-red-300";
                                     else btnStyle += "border-slate-100 dark:border-slate-800 text-slate-300 dark:text-slate-600 opacity-50";
                                 } else {
-                                    if (isSelected) btnStyle += "bg-blue-50 dark:bg-blue-900/20 border-blue-600 dark:border-blue-500 text-blue-800 dark:text-blue-200 scale-[1.02] shadow-lg";
+                                    if (isSelected) btnStyle += "bg-blue-50 dark:bg-blue-900/20 border-blue-600 dark:focus:border-blue-500 text-blue-800 dark:text-blue-200 scale-[1.02] shadow-lg";
                                     else btnStyle += "bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-blue-200 dark:hover:border-blue-500 text-slate-600 dark:text-slate-400";
                                 }
 
@@ -121,10 +127,15 @@ async function decodePcmAudioData(data: Uint8Array, ctx: AudioContext): Promise<
 }
 
 const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audio, isAudioLoading, base64Image, imageMimeType, isImageLoading, onTryAnother }) => {
+    const { user, userProfile } = useAuth();
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
+    const certificateRef = useRef<HTMLDivElement>(null);
+    
     const [isPlaying, setIsPlaying] = useState(false);
     const [isDecoding, setIsDecoding] = useState(false);
+    const [quizScore, setQuizScore] = useState<number | null>(null);
+    const [isSharing, setIsSharing] = useState(false);
     
     const chatSectionRef = useRef<HTMLDivElement>(null);
 
@@ -153,6 +164,61 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
             finally { setIsDecoding(false); }
         }
     }, [isPlaying, isDecoding, base64Audio]);
+
+    const shareText = `I just completed a learning journey on FeelEd AI! 🎓 I learned about "${story.title}" and scored ${quizScore}/${story.quiz.length} on the quiz. Check it out!`;
+    const shareUrl = window.location.origin;
+
+    const handleNativeShare = async () => {
+        if (!certificateRef.current) return;
+        setIsSharing(true);
+        try {
+            const canvas = await html2canvas(certificateRef.current, {
+                scale: 2,
+                backgroundColor: null,
+                logging: false,
+                useCORS: true
+            });
+            
+            const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (!blob) throw new Error('Failed to generate image');
+
+            const file = new File([blob], 'certificate.png', { type: 'image/png' });
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'FeelEd AI Certificate',
+                    text: shareText,
+                });
+            } else {
+                // Fallback: Download image
+                const link = document.createElement('a');
+                link.download = 'feeled-ai-certificate.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                alert('Native sharing not supported. Certificate downloaded instead!');
+            }
+        } catch (error) {
+            console.error('Sharing failed:', error);
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
+    const shareOnWhatsApp = () => {
+        const url = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
+        window.open(url, '_blank');
+    };
+
+    const shareOnFacebook = () => {
+        const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+        window.open(url, '_blank');
+    };
+
+    const shareOnX = () => {
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+        window.open(url, '_blank');
+    };
 
     return (
         <div className="w-full max-w-4xl mx-auto animate-fade-in pb-32 px-4 print:max-w-full">
@@ -215,9 +281,93 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
             {/* Quiz */}
             <div className="no-print">
                 <QuizSection quiz={story.quiz} onQuizComplete={(score) => {
-                    console.log("Quiz complete with score:", score);
+                    setQuizScore(score);
                 }} />
             </div>
+
+            {/* Certificate Section */}
+            {quizScore !== null && (
+                <div className="mt-24 no-print animate-bounce-in">
+                    <div className="text-center mb-12">
+                        <h3 className="text-4xl font-black text-slate-900 dark:text-white mb-4">Congratulations! 🎊</h3>
+                        <p className="text-slate-600 dark:text-slate-400">You've successfully completed the evaluation.</p>
+                    </div>
+
+                    {/* Certificate Preview */}
+                    <div className="flex justify-center mb-12">
+                        <div 
+                            ref={certificateRef}
+                            className="w-full max-w-2xl aspect-[1.414/1] bg-white border-[16px] border-indigo-600 p-12 flex flex-col items-center justify-between text-center shadow-2xl relative overflow-hidden"
+                        >
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 left-0 w-32 h-32 border-t-8 border-l-8 border-indigo-200"></div>
+                            <div className="absolute bottom-0 right-0 w-32 h-32 border-b-8 border-r-8 border-indigo-200"></div>
+                            
+                            <div className="space-y-4">
+                                <div className="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center text-white text-3xl font-black mx-auto mb-4">F</div>
+                                <h4 className="text-indigo-600 font-black uppercase tracking-[0.3em] text-sm">Certificate of Achievement</h4>
+                            </div>
+
+                            <div className="space-y-6">
+                                <p className="text-slate-500 italic">This is to certify that</p>
+                                <h5 className="text-4xl font-black text-slate-900 border-b-4 border-slate-100 pb-2 px-8">
+                                    {userProfile?.displayName || user?.displayName || 'Academic Explorer'}
+                                </h5>
+                                <p className="text-slate-600 max-w-md">
+                                    has successfully completed the pedagogical journey on
+                                    <span className="block font-bold text-indigo-600 mt-2 text-xl">"{story.title}"</span>
+                                </p>
+                            </div>
+
+                            <div className="w-full flex justify-between items-end mt-8">
+                                <div className="text-left">
+                                    <p className="text-[10px] uppercase font-black text-slate-400">Score Achieved</p>
+                                    <p className="text-2xl font-black text-indigo-600">{quizScore} / {story.quiz.length}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] uppercase font-black text-slate-400">Verified By</p>
+                                    <p className="font-black text-slate-900">FeelEd AI Affective Engine</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Share Buttons */}
+                    <div className="flex flex-col items-center gap-8">
+                        <button 
+                            onClick={handleNativeShare}
+                            disabled={isSharing}
+                            className="w-full max-w-md py-6 bg-indigo-600 text-white rounded-2xl font-black text-xl shadow-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-4"
+                        >
+                            {isSharing ? <Spinner /> : <span>📤 Share Certificate</span>}
+                        </button>
+
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={shareOnWhatsApp}
+                                className="w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-transform"
+                                title="Share on WhatsApp"
+                            >
+                                <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                            </button>
+                            <button 
+                                onClick={shareOnFacebook}
+                                className="w-14 h-14 bg-[#1877F2] text-white rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-transform"
+                                title="Share on Facebook"
+                            >
+                                <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                            </button>
+                            <button 
+                                onClick={shareOnX}
+                                className="w-14 h-14 bg-black text-white rounded-full flex items-center justify-center text-2xl shadow-lg hover:scale-110 transition-transform"
+                                title="Share on X"
+                            >
+                                <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Chat */}
             <div ref={chatSectionRef} className="mt-24 no-print">
