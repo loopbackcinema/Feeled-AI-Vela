@@ -20,6 +20,7 @@ service cloud.firestore {
     // Document ID: {storyId} (Auto-generated)
     // Fields:
     //   - userId: string (required, matches creator's UID)
+    //   - userEmail: string (required, email of creator)
     //   - title: string (required)
     //   - content: string (required)
     //   - language: string (required)
@@ -63,8 +64,9 @@ service cloud.firestore {
     }
 
     function isValidStory(data) {
-      return data.keys().hasAll(['userId', 'title', 'content', 'language', 'topic', 'createdAt']) &&
+      return data.keys().hasAll(['userId', 'userEmail', 'title', 'content', 'language', 'topic', 'createdAt']) &&
              data.userId == request.auth.uid &&
+             data.userEmail == request.auth.token.email &&
              data.title is string && data.title.size() < 200 &&
              data.content is string && data.content.size() < 10000 &&
              data.topic is string && data.topic.size() < 500;
