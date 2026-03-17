@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Modality, ThinkingLevel } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
@@ -15,11 +15,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ? (narratorVoice === 'Male' ? 'Fenrir' : 'Zephyr') 
             : (narratorVoice === 'Male' ? 'Puck' : 'Kore');
 
+        console.log(`Generating audio with voice: ${voiceName}, language: ${language}`);
+
         const ttsResponse = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text: `Say cheerfully in a ${emotionTone} tone: ${fullStoryText}` }] }],
             config: {
-                thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
                 responseModalities: [Modality.AUDIO],
                 speechConfig: {
                     voiceConfig: { prebuiltVoiceConfig: { voiceName } },
@@ -28,8 +29,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         const base64Audio = ttsResponse.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        
+        if (!base64Audio) {
+            console.error("No audio data returned from Gemini");
+            return res.status(500).json({ error: 'No audio data generated' });
+        }
+
         res.status(200).json({ base64Audio });
     } catch (error) {
-        res.status(500).json({ error: 'Audio failed' });
+        console.error("Audio generation error:", error);
+        res.status(500).json({ error: 'Audio generation failed' });
     }
 }
