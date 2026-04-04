@@ -2,13 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
-import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Clock } from 'lucide-react';
+import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Clock, Target, TrendingUp, Activity, Flame, BookOpen } from 'lucide-react';
+
+interface ActivityLog {
+    id: string;
+    type: string;
+    topic: string;
+    subject: string;
+    createdAt: any;
+}
+
+interface PracticeScore {
+    id: string;
+    topic: string;
+    subject: string;
+    score: number;
+    total: number;
+    createdAt: any;
+}
 
 const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNavigate }) => {
     const { user, userProfile } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [stats, setStats] = useState({ totalStories: 0, recentStories: [] as any[] });
+    
+    const [activities, setActivities] = useState<ActivityLog[]>([]);
+    const [scores, setScores] = useState<PracticeScore[]>([]);
+    const [isLoadingData, setIsLoadingData] = useState(true);
     
     // Profile form state
     const [formData, setFormData] = useState({
@@ -19,30 +40,56 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     });
 
     useEffect(() => {
-        const fetchStats = async () => {
+        if (userProfile) {
+            setFormData({
+                displayName: userProfile.displayName || '',
+                standard: userProfile.standard || '',
+                school: userProfile.school || '',
+                interests: userProfile.interests?.join(', ') || ''
+            });
+        }
+    }, [userProfile]);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
             if (!user) return;
             try {
+                // Fetch Stories
                 const q = query(collection(db, 'stories'), where('userId', '==', user.uid));
                 const snapshot = await getDocs(q);
                 
-                const recentQ = query(
-                    collection(db, 'stories'), 
-                    where('userId', '==', user.uid),
-                    orderBy('createdAt', 'desc'),
-                    limit(3)
-                );
-                const recentSnapshot = await getDocs(recentQ);
-                const recent = recentSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+                // Fetch Recent Stories (using simple query and sorting in memory to avoid index requirement)
+                const recentStories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                recentStories.sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+                
                 setStats({
                     totalStories: snapshot.size,
-                    recentStories: recent
+                    recentStories: recentStories.slice(0, 3)
                 });
+
+                // Fetch recent activities
+                const activityQ = query(collection(db, 'study_activity'), where('userId', '==', user.uid));
+                const activitySnap = await getDocs(activityQ);
+                const fetchedActivities: ActivityLog[] = [];
+                activitySnap.forEach(doc => fetchedActivities.push({ id: doc.id, ...doc.data() } as ActivityLog));
+                fetchedActivities.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+                setActivities(fetchedActivities.slice(0, 5));
+
+                // Fetch recent scores
+                const scoreQ = query(collection(db, 'practice_scores'), where('userId', '==', user.uid));
+                const scoreSnap = await getDocs(scoreQ);
+                const fetchedScores: PracticeScore[] = [];
+                scoreSnap.forEach(doc => fetchedScores.push({ id: doc.id, ...doc.data() } as PracticeScore));
+                fetchedScores.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+                setScores(fetchedScores.slice(0, 5));
+
             } catch (error) {
-                console.error("Error fetching stats:", error);
+                console.error("Error fetching dashboard data:", error);
+            } finally {
+                setIsLoadingData(false);
             }
         };
-        fetchStats();
+        fetchDashboardData();
     }, [user]);
 
     const handleSaveProfile = async (e: React.FormEvent) => {
@@ -69,6 +116,59 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div className="flex items-center gap-4">
+                    <div className="bg-indigo-100 dark:bg-indigo-900/50 p-4 rounded-2xl text-indigo-600 dark:text-indigo-400">
+                        <GraduationCap className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white">Student Dashboard</h1>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1">Track your progress and manage your profile</p>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => onNavigate('home')}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-full font-bold transition-colors shadow-lg"
+                >
+                    Start Studying
+                </button>
+            </div>
+
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-xl text-blue-600 dark:text-blue-400">
+                        <Book className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Topics Studied</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">{activities.length > 0 ? activities.length + '+' : '0'}</p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-emerald-100 dark:bg-emerald-900/50 p-4 rounded-xl text-emerald-600 dark:text-emerald-400">
+                        <Target className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Practice Tests</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">{scores.length}</p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-purple-100 dark:bg-purple-900/50 p-4 rounded-xl text-purple-600 dark:text-purple-400">
+                        <TrendingUp className="w-8 h-8" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Avg. Score</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">
+                            {scores.length > 0 
+                                ? Math.round((scores.reduce((acc, curr) => acc + (curr.score / curr.total), 0) / scores.length) * 100) + '%' 
+                                : 'N/A'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 {/* Left Column: Profile Card */}
@@ -182,92 +282,66 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                 {/* Right Column: Stats & Activity */}
                 <div className="lg:col-span-2 space-y-8">
                     
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <div className="flex items-center gap-4">
-                                <div className="bg-indigo-100 dark:bg-indigo-900/30 p-3 rounded-xl">
-                                    <Book className="w-6 h-6 text-indigo-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Stories Created</p>
-                                    <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{stats.totalStories}</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                            <div className="flex items-center gap-4">
-                                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-xl">
-                                    <Award className="w-6 h-6 text-emerald-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Current Level</p>
-                                    <h3 className="text-3xl font-bold text-slate-900 dark:text-white">
-                                        {stats.totalStories > 10 ? 'Explorer' : stats.totalStories > 0 ? 'Novice' : 'Beginner'}
-                                    </h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <Clock className="w-5 h-5 text-indigo-500" />
-                                Recent Pedagogical Journeys
-                            </h3>
-                            <button 
-                                onClick={() => onNavigate('my-stories')}
-                                className="text-indigo-600 text-sm font-semibold hover:underline"
-                            >
-                                View All
-                            </button>
-                        </div>
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {stats.recentStories.length === 0 ? (
-                                <div className="p-12 text-center">
-                                    <p className="text-slate-500 dark:text-slate-400">No stories yet. Start your first journey!</p>
-                                    <button 
-                                        onClick={() => onNavigate('generator')}
-                                        className="mt-4 text-indigo-600 font-semibold"
-                                    >
-                                        Create Story →
-                                    </button>
-                                </div>
-                            ) : (
-                                stats.recentStories.map((story) => (
-                                    <div key={story.id} className="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h4 className="font-bold text-slate-900 dark:text-white">{story.title}</h4>
-                                            <span className="text-xs text-slate-400">
-                                                {story.createdAt?.toDate().toLocaleDateString()}
-                                            </span>
+                    {/* Recent Practice Scores */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+                            <Award className="w-6 h-6 text-emerald-600" />
+                            Recent Practice Scores
+                        </h2>
+                        {isLoadingData ? (
+                            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>
+                        ) : scores.length > 0 ? (
+                            <div className="space-y-4">
+                                {scores.map((score) => (
+                                    <div key={score.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <div>
+                                            <p className="font-bold text-slate-900 dark:text-white">{score.topic}</p>
+                                            <p className="text-xs text-slate-500">{score.subject}</p>
                                         </div>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1 mb-3">Topic: {story.topic}</p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="px-2 py-0.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 text-[10px] font-bold rounded uppercase tracking-wider">
-                                                {story.language}
+                                        <div className="text-right">
+                                            <span className="inline-block px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-black rounded-full">
+                                                {score.score} / {score.total}
                                             </span>
                                         </div>
                                     </div>
-                                ))
-                            )}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-slate-500">
+                                <p>No practice tests taken yet.</p>
+                                <button onClick={() => onNavigate('home')} className="text-indigo-600 font-bold mt-2 hover:underline">Start a practice test</button>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Quick Action */}
-                    <div className="bg-indigo-600 rounded-2xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-lg shadow-indigo-200 dark:shadow-none">
-                        <div>
-                            <h3 className="text-2xl font-bold mb-2">Ready for a new lesson?</h3>
-                            <p className="text-indigo-100">Turn any complex topic into an emotional story in seconds.</p>
-                        </div>
-                        <button 
-                            onClick={() => onNavigate('generator')}
-                            className="bg-white text-indigo-600 px-8 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors whitespace-nowrap"
-                        >
-                            Start Generating
-                        </button>
+                    {/* Study History */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-6">
+                            <Activity className="w-6 h-6 text-blue-600" />
+                            Recently Studied Topics
+                        </h2>
+                        {isLoadingData ? (
+                            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>
+                        ) : activities.length > 0 ? (
+                            <div className="space-y-4">
+                                {activities.map((activity) => (
+                                    <div key={activity.id} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <div className={`p-2 rounded-lg ${activity.type === 'exam' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
+                                            {activity.type === 'exam' ? <Flame className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-900 dark:text-white">{activity.topic}</p>
+                                            <p className="text-xs text-slate-500">{activity.subject} • {activity.type === 'exam' ? 'Exam Prep' : 'Concept Learning'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 text-slate-500">
+                                <p>No topics studied yet.</p>
+                                <button onClick={() => onNavigate('home')} className="text-indigo-600 font-bold mt-2 hover:underline">Ask a question</button>
+                            </div>
+                        )}
                     </div>
 
                 </div>

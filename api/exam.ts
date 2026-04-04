@@ -1,0 +1,46 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { GoogleGenAI, Type } from "@google/genai";
+
+const schema = {
+    type: Type.OBJECT,
+    properties: {
+        importantQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
+        revisionNotes: { type: Type.ARRAY, items: { type: Type.STRING } },
+        predictedQuestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+    },
+    required: ["importantQuestions", "revisionNotes", "predictedQuestions"]
+};
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+    const API_KEY = process.env.API_KEY;
+    if (!API_KEY) return res.status(500).json({ error: "API_KEY not set" });
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+    try {
+        const { topic, context } = req.body;
+        const prompt = `You are an expert academic tutor preparing a student for an exam tomorrow.
+        Topic: ${topic}
+        Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
+
+        CRITICAL RULES:
+        1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
+        2. Keep output concise and scannable.
+        3. importantQuestions: 5-10 highly probable exam questions.
+        4. revisionNotes: Quick bullet points for last-minute revision.
+        5. predictedQuestions: 3 tricky or high-value predicted questions.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3.1-pro-preview',
+            contents: prompt,
+            config: { responseMimeType: "application/json", responseSchema: schema },
+        });
+
+        if (!response.text) throw new Error("Empty response");
+        const data = JSON.parse(response.text.trim());
+        res.status(200).json(data);
+    } catch (error) {
+        console.error('Exam API Error:', error);
+        res.status(500).json({ error: 'Failed to generate exam prep' });
+    }
+}
