@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { BookOpen, Calendar, ChevronRight, Clock } from 'lucide-react';
 
@@ -21,33 +21,55 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
     const { user } = useAuth();
     const [stories, setStories] = useState<SavedStory[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchStories = async () => {
-            if (!user) return;
-            
-            try {
-                const q = query(
-                    collection(db, 'stories'),
-                    where('userId', '==', user.uid),
-                    orderBy('createdAt', 'desc')
-                );
-                
-                const querySnapshot = await getDocs(q);
-                const fetchedStories: SavedStory[] = [];
-                querySnapshot.forEach((doc) => {
-                    fetchedStories.push({ id: doc.id, ...doc.data() } as SavedStory);
-                });
-                
-                setStories(fetchedStories);
-            } catch (error) {
-                console.error("Error fetching stories:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (!user) return;
 
-        fetchStories();
+        setLoading(true);
+        // Simple query first to avoid index issues initially
+        const q = query(
+            collection(db, 'stories'),
+            where('userId', '==', user.uid),
+            orderBy('createdAt', 'desc')
+        );
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const fetchedStories: SavedStory[] = [];
+            querySnapshot.forEach((doc) => {
+                fetchedStories.push({ id: doc.id, ...doc.data() } as SavedStory);
+            });
+            setStories(fetchedStories);
+            setLoading(false);
+            setError(null);
+        }, (err: any) => {
+            console.error("Error fetching stories:", err);
+            setError(err.message);
+            setLoading(false);
+            
+            // If it's an index error, try a simpler query without orderBy
+            if (err.code === 'failed-precondition') {
+                const simpleQ = query(
+                    collection(db, 'stories'),
+                    where('userId', '==', user.uid)
+                );
+                onSnapshot(simpleQ, (snap) => {
+                    const simpleStories: SavedStory[] = [];
+                    snap.forEach((doc) => {
+                        simpleStories.push({ id: doc.id, ...doc.data() } as SavedStory);
+                    });
+                    // Sort manually in memory as a fallback
+                    simpleStories.sort((a, b) => {
+                        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                        return timeB - timeA;
+                    });
+                    setStories(simpleStories);
+                });
+            }
+        });
+
+        return () => unsubscribe();
     }, [user]);
 
     if (loading) {
@@ -69,6 +91,13 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
                     {stories.length} Stories
                 </span>
             </div>
+
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
+                    <p className="font-bold mb-1">Notice:</p>
+                    <p>{error.includes('index') ? 'The library is being optimized. Your stories will appear shortly. Please try refreshing in a minute.' : error}</p>
+                </div>
+            )}
 
             {stories.length === 0 ? (
                 <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -98,7 +127,7 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
                                         <span className="text-slate-300">•</span>
                                         <span className="flex items-center gap-1">
                                             <Calendar className="w-3 h-3" />
-                                            {story.createdAt?.toDate().toLocaleDateString()}
+                                            {story.createdAt?.toDate ? story.createdAt.toDate().toLocaleDateString() : 'Recently'}
                                         </span>
                                     </div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-indigo-600 transition-colors">
@@ -110,7 +139,7 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
                                     <div className="flex items-center gap-4 text-xs text-slate-500">
                                         <span className="flex items-center gap-1">
                                             <Clock className="w-3 h-3" />
-                                            {story.createdAt?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            {story.createdAt?.toDate ? story.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                         </span>
                                     </div>
                                 </div>

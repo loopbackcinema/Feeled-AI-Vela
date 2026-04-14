@@ -69,9 +69,9 @@ service cloud.firestore {
     function isValidStory(data) {
       return data.keys().hasAll(['userId', 'userEmail', 'title', 'content', 'language', 'topic', 'createdAt']) &&
              data.userId == request.auth.uid &&
-             data.userEmail == request.auth.token.email &&
-             data.title is string && data.title.size() < 200 &&
-             data.content is string && data.content.size() < 10000 &&
+             (data.userEmail == request.auth.token.email || data.userEmail == 'No Email') &&
+             data.title is string && data.title.size() < 500 &&
+             data.content is string && data.content.size() < 50000 &&
              data.topic is string && data.topic.size() < 500;
     }
 
@@ -104,6 +104,18 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isValidStory(request.resource.data);
       
       // Stories are immutable for students, but admins might manage them.
+      allow update, delete: if isAdmin();
+    }
+
+    match /study_activity/{activityId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    match /practice_scores/{scoreId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
   }
