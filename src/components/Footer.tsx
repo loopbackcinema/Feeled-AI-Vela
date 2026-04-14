@@ -12,7 +12,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     {/* Branding */}
                     <div className="space-y-6">
-                        <button onClick={() => onNavigate('home')} className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
+                        <button onClick={() => onNavigate('generator')} className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
                             <img 
                                 src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" 
                                 alt="FeelEd AI Logo" 
@@ -83,7 +83,7 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                         <ul className="space-y-3">
                             <li><button onClick={() => onNavigate('teachers')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">👩‍🏫 For Teachers</button></li>
                             <li><button onClick={() => onNavigate('parents')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">👨‍👩‍👧 For Parents</button></li>
-                            <li><button onClick={() => onNavigate('home')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">🎓 For Students</button></li>
+                            <li><button onClick={() => onNavigate('generator')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">🎓 For Students</button></li>
                         </ul>
                     </div>
 

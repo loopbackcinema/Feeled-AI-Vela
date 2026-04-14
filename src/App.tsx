@@ -1,10 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import HomeScreen from './components/HomeScreen';
-import AnswerScreen from './components/AnswerScreen';
-import PracticeScreen from './components/PracticeScreen';
-import ExamModeScreen from './components/ExamModeScreen';
-import { generateStory, generateVoice, generateImage, generateConcept, generatePractice, generateExamPrep } from './services/geminiService';
-import { Story, StoryRequest, Page, ConceptResponse, PracticeQuestion, ExamPrep, StudentContext } from './types';
+import { Story, StoryRequest, Page } from './types';
+import { generateStory, generateVoice, generateImage } from './services/geminiService';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
@@ -26,14 +22,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const App: React.FC = () => {
     const { user, loading } = useAuth();
-    // New State for Upgraded System
-    const [currentQuestion, setCurrentQuestion] = useState('');
-    const [studentContext, setStudentContext] = useState<StudentContext>({ board: 'Tamil Nadu State Board (Samacheer)', standard: '10th', subject: 'Science', language: 'English' });
-    const [conceptData, setConceptData] = useState<ConceptResponse | null>(null);
-    const [practiceData, setPracticeData] = useState<PracticeQuestion[] | null>(null);
-    const [examData, setExamData] = useState<ExamPrep | null>(null);
-
-    const [currentPage, setCurrentPage] = useState<Page>('home');
+    const [currentPage, setCurrentPage] = useState<Page>('generator');
     const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
     const [base64Audio, setBase64Audio] = useState<string | null>(null);
     const [base64Image, setBase64Image] = useState<string | null>(null);
@@ -114,72 +103,6 @@ const App: React.FC = () => {
         setCurrentPage('generator');
     };
 
-    const logStudyActivity = async (type: string, topic: string, subject: string) => {
-        if (!user) return;
-        try {
-            await addDoc(collection(db, 'study_activity'), {
-                userId: user.uid,
-                type,
-                topic,
-                subject,
-                createdAt: serverTimestamp()
-            });
-        } catch (e) {
-            console.error("Failed to log study activity:", e);
-        }
-    };
-
-    const handleAskQuestion = async (question: string, context: StudentContext) => {
-        setIsLoading(true);
-        setError(null);
-        setCurrentQuestion(question);
-        setStudentContext(context);
-        try {
-            const data = await generateConcept(question, context);
-            setConceptData(data);
-            setCurrentPage('answer');
-            await logStudyActivity('concept', question, context.subject);
-        } catch (err: any) {
-            setError(err.message || 'Failed to get answer');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleStartPractice = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const data = await generatePractice(currentQuestion, studentContext);
-            setPracticeData(data);
-            setCurrentPage('practice');
-        } catch (err: any) {
-            setError(err.message || 'Failed to generate practice questions');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleExamMode = async (topic: string, context: StudentContext) => {
-        setIsLoading(true);
-        setError(null);
-        setStudentContext(context);
-        try {
-            const data = await generateExamPrep(topic, context);
-            setExamData(data);
-            setCurrentPage('exam');
-            await logStudyActivity('exam', topic, context.subject);
-        } catch (err: any) {
-            setError(err.message || 'Failed to generate exam prep');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleLearnWithStory = () => {
-        setCurrentPage('generator');
-    };
-
     const renderPage = () => {
         if (loading) {
             return (
@@ -191,14 +114,6 @@ const App: React.FC = () => {
         }
 
         switch (currentPage) {
-            case 'home': 
-                return <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} />;
-            case 'answer':
-                return conceptData ? <AnswerScreen concept={conceptData} question={currentQuestion} context={studentContext} onBack={() => setCurrentPage('home')} onPractice={handleStartPractice} onStory={handleLearnWithStory} /> : <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} />;
-            case 'practice':
-                return practiceData ? <PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => setCurrentPage('answer')} /> : <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} />;
-            case 'exam':
-                return examData ? <ExamModeScreen examPrep={examData} topic={studentContext.subject} context={studentContext} onBack={() => setCurrentPage('home')} /> : <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} />;
             case 'generator':
                 return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
             case 'story':
@@ -226,7 +141,7 @@ const App: React.FC = () => {
             case 'my-stories': return <MyStories onNavigate={navigateTo} />;
             case 'student-dashboard': return <StudentDashboard onNavigate={navigateTo} />;
             case 'admin-dashboard': return <div className="p-8 text-center"><h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2><p>Coming soon: Student analytics and story review.</p></div>;
-            default: return <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} />;
+            default: return <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />;
         }
     };
 

@@ -1,147 +1,19 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import { Story, StoryRequest, ChatMessage, ConceptResponse, PracticeQuestion, ExamPrep, StudentContext } from '../types';
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-export const generateConcept = async (question: string, context: StudentContext): Promise<ConceptResponse> => {
-    const prompt = `You are an expert academic tutor strictly following the syllabus for ${context.board}, Class ${context.standard}, Subject: ${context.subject}.
-    The student asked: "${question}".
-    
-    CRITICAL INSTRUCTIONS:
-    1. Language: Respond ENTIRELY in ${context.language}. If Tamil, use clear, educational Tamil for the textbook answer, and easy-to-understand spoken Tamil (Tanglish/Spoken style) for the simple explanation if it helps understanding.
-    2. Accuracy: Do not invent information. Align strictly with standard textbook concepts for this grade.
-    3. Format: NO MARKDOWN. Do not use **, *, or #. Return plain text strings.
-    
-    Provide:
-    1. textbookAnswer: A concise, exam-ready answer (2-5 marks style).
-    2. examFormat: 3-5 key bullet points for writing in an exam.
-    3. simpleExplanation: A very easy-to-understand explanation using everyday analogies.`;
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    textbookAnswer: { type: Type.STRING },
-                    examFormat: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    simpleExplanation: { type: Type.STRING }
-                },
-                required: ["textbookAnswer", "examFormat", "simpleExplanation"]
-            }
-        }
-    });
-    return JSON.parse(response.text || "{}");
-};
-
-export const generatePractice = async (topic: string, context: StudentContext): Promise<PracticeQuestion[]> => {
-    const prompt = `Generate a practice test for ${context.board}, Class ${context.standard}, Subject: ${context.subject} on the topic: "${topic}".
-    Language: ${context.language}.
-    
-    Create exactly 4 questions:
-    - 2 Multiple Choice Questions (MCQ) with 4 options each.
-    - 1 Short Answer Question.
-    - 1 Long Answer Question.
-    
-    Format: NO MARKDOWN. Return a JSON array of objects.`;
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        type: { type: Type.STRING, description: "Must be 'mcq', 'short', or 'long'" },
-                        question: { type: Type.STRING },
-                        options: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Only for mcq" },
-                        correctAnswer: { type: Type.STRING }
-                    },
-                    required: ["type", "question", "correctAnswer"]
-                }
-            }
-        }
-    });
-    return JSON.parse(response.text || "[]");
-};
-
-export const generateExamPrep = async (topic: string, context: StudentContext): Promise<ExamPrep> => {
-    const prompt = `Generate quick exam preparation material for ${context.board}, Class ${context.standard}, Subject: ${context.subject} on the topic: "${topic}".
-    Language: ${context.language}.
-    
-    Provide:
-    1. importantQuestions: 3-5 must-know questions from previous exams or core syllabus.
-    2. revisionNotes: 3-5 quick bullet points summarizing the topic.
-    3. predictedQuestions: 2 high-value questions likely to appear in exams.
-    
-    Format: NO MARKDOWN. Return a JSON object.`;
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    importantQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    revisionNotes: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    predictedQuestions: { type: Type.ARRAY, items: { type: Type.STRING } }
-                },
-                required: ["importantQuestions", "revisionNotes", "predictedQuestions"]
-            }
-        }
-    });
-    return JSON.parse(response.text || "{}");
-};
+import { Story, StoryRequest, ChatMessage } from '../types';
 
 export const generateStory = async (request: StoryRequest): Promise<{ story: Story }> => {
-    const prompt = `Create an educational story for a student.
-    Topic: ${request.topic}
-    Language: ${request.language}
-    Emotion Tone: ${request.emotionTone}
-    
-    The story must have:
-    1. A catchy title
-    2. An engaging introduction
-    3. An emotional trigger
-    4. A clear explanation of the concept hidden within the story
-    5. A resolution
-    6. A moral message
-    7. A conclusion
-    
-    Return the response strictly as a JSON object.`;
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING },
-                    introduction: { type: Type.STRING },
-                    emotional_trigger: { type: Type.STRING },
-                    concept_explanation: { type: Type.STRING },
-                    resolution: { type: Type.STRING },
-                    moral_message: { type: Type.STRING },
-                    conclusion: { type: Type.STRING },
-                    emotion_tone: { type: Type.STRING }
-                },
-                required: ["title", "introduction", "emotional_trigger", "concept_explanation", "resolution", "moral_message", "conclusion", "emotion_tone"]
-            }
-        }
+    const response = await fetch('/api/story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
     });
 
-    const storyData = JSON.parse(response.text || "{}");
-    return { story: storyData as Story };
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred while generating story text.' }));
+        throw new Error(errorData.error || `Story request failed with status ${response.status}`);
+    }
+
+    return response.json();
 };
 
 export const generateVoice = async (story: Story, request: StoryRequest): Promise<{ base64Audio: string }> => {
@@ -155,24 +27,30 @@ export const generateVoice = async (story: Story, request: StoryRequest): Promis
         story.conclusion
     ].join('. ');
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text: fullStoryText }] }],
-        config: {
-            responseModalities: ['AUDIO'],
-            speechConfig: {
-                voiceConfig: {
-                    prebuiltVoiceConfig: { voiceName: request.narratorVoice === 'male' ? 'Fenrir' : 'Kore' },
-                },
-            },
-        },
+    const audioRequest = {
+        fullStoryText,
+        language: request.language,
+        narratorVoice: request.narratorVoice,
+        emotionTone: request.emotionTone,
+    };
+
+    const response = await fetch('/api/audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(audioRequest),
     });
-    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
-    return { base64Audio };
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred while generating audio.' }));
+        throw new Error(errorData.error || `Audio request failed with status ${response.status}`);
+    }
+
+    return response.json();
 };
 
 export const generateImage = async (story: Story): Promise<{ base64Image: string; mimeType: string }> => {
-    const imagePrompt = `Create a realistic, photorealistic digital art image that captures the essence of the following story scene. 
+    // Modified prompt to explicitly forbid text to avoid Tamil unicode rendering issues
+    const prompt = `Create a realistic, photorealistic digital art image that captures the essence of the following story scene. 
     The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}". 
     Scene description: "${story.introduction}". 
     
@@ -182,48 +60,30 @@ export const generateImage = async (story: Story): Promise<{ base64Image: string
     3. No gibberish text or symbols that look like letters.
     4. Focus on the characters and environment.`;
 
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ text: imagePrompt }] },
-        config: {
-            imageConfig: {
-                aspectRatio: "16:9",
-            }
-        }
+    const response = await fetch('/api/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
     });
-    
-    let base64Image = "";
-    let mimeType = "";
-    
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-            base64Image = part.inlineData.data || "";
-            mimeType = part.inlineData.mimeType || "";
-            break;
-        }
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred while generating image.' }));
+        throw new Error(errorData.error || `Image request failed with status ${response.status}`);
     }
-    return { base64Image, mimeType };
+
+    return response.json();
 };
 
 export const sendChatMessage = async (message: string, history: ChatMessage[], story: Story): Promise<{ text: string }> => {
-    const systemInstruction = `You are a helpful AI tutor. You just told the student a story about ${story.title}. 
-    Answer their questions based on the story and the underlying educational concept.
-    Story context: ${story.concept_explanation}`;
-
-    const chat = ai.chats.create({
-        model: "gemini-3.1-pro-preview",
-        config: {
-            systemInstruction: systemInstruction,
-        },
+    const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, history, story }),
     });
 
-    // Send history
-    for (const msg of history) {
-        if (msg.role === 'user') {
-            await chat.sendMessage({ message: msg.text });
-        }
+    if (!response.ok) {
+        throw new Error('Failed to send message');
     }
 
-    const response = await chat.sendMessage({ message: message });
-    return { text: response.text || "" };
+    return response.json();
 };

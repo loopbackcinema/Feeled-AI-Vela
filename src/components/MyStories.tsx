@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { BookOpen, Calendar, ChevronRight, Clock } from 'lucide-react';
 
@@ -23,51 +23,32 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user) return;
-
-        setLoading(true);
-        // Simple query first to avoid index issues initially
-        const q = query(
-            collection(db, 'stories'),
-            where('userId', '==', user.uid),
-            orderBy('createdAt', 'desc')
-        );
-
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            const fetchedStories: SavedStory[] = [];
-            querySnapshot.forEach((doc) => {
-                fetchedStories.push({ id: doc.id, ...doc.data() } as SavedStory);
-            });
-            setStories(fetchedStories);
-            setLoading(false);
-            setError(null);
-        }, (err: any) => {
-            console.error("Error fetching stories:", err);
-            setError(err.message);
-            setLoading(false);
+        const fetchStories = async () => {
+            if (!user) return;
             
-            // If it's an index error, try a simpler query without orderBy
-            if (err.code === 'failed-precondition') {
-                const simpleQ = query(
+            try {
+                const q = query(
                     collection(db, 'stories'),
-                    where('userId', '==', user.uid)
+                    where('userId', '==', user.uid),
+                    orderBy('createdAt', 'desc')
                 );
-                onSnapshot(simpleQ, (snap) => {
-                    const simpleStories: SavedStory[] = [];
-                    snap.forEach((doc) => {
-                        simpleStories.push({ id: doc.id, ...doc.data() } as SavedStory);
-                    });
-                    // Sort manually in memory as a fallback
-                    simpleStories.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
-                    setStories(simpleStories);
+                
+                const querySnapshot = await getDocs(q);
+                const fetchedStories: SavedStory[] = [];
+                querySnapshot.forEach((doc) => {
+                    fetchedStories.push({ id: doc.id, ...doc.data() } as SavedStory);
                 });
+                
+                setStories(fetchedStories);
+            } catch (error) {
+                console.error("Error fetching stories:", error);
+            } finally {
+                setLoading(false);
             }
-        });
+        };
 
-        return () => unsubscribe();
+        fetchStories();
     }, [user]);
-
-    const [error, setError] = useState<string | null>(null);
 
     if (loading) {
         return (
@@ -88,13 +69,6 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
                     {stories.length} Stories
                 </span>
             </div>
-
-            {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
-                    <p className="font-bold mb-1">Notice:</p>
-                    <p>{error.includes('index') ? 'The library is being optimized. Your stories will appear shortly. Please try refreshing in a minute.' : error}</p>
-                </div>
-            )}
 
             {stories.length === 0 ? (
                 <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">

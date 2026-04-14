@@ -31,33 +31,7 @@ export interface ChatMessage {
     text: string;
 }
 
-export type Page = 'home' | 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard' | 'answer' | 'practice' | 'exam';
-
-export interface StudentContext {
-    board: string;
-    standard: string;
-    subject: string;
-    language: string;
-}
-
-export interface ConceptResponse {
-    textbookAnswer: string;
-    examFormat: string[];
-    simpleExplanation: string;
-}
-
-export interface PracticeQuestion {
-    type: 'mcq' | 'short' | 'long';
-    question: string;
-    options?: string[];
-    correctAnswer: string;
-}
-
-export interface ExamPrep {
-    importantQuestions: string[];
-    revisionNotes: string[];
-    predictedQuestions: string[];
-}
+export type Page = 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard';
 
 export interface UserSettings {
     isHighContrast: boolean;

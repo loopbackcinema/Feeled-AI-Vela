@@ -22,7 +22,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     }, [isDarkMode]);
 
     const navItems = [
-        { id: 'home', label: 'Home' },
+        { id: 'generator', label: 'Story Generator' },
         { id: 'teachers', label: 'For Teachers' },
         { id: 'parents', label: 'For Parents' },
         { id: 'research', label: 'Scientific Portfolio' },
@@ -33,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     if (user) {
         navItems.splice(0, 1, { id: 'student-dashboard', label: 'Dashboard' });
         navItems.splice(1, 0, { id: 'my-stories', label: 'My Stories' });
-        navItems.push({ id: 'home', label: 'Study AI' });
+        navItems.push({ id: 'generator', label: 'Create Story' });
     }
 
     if (isAdmin) {
@@ -66,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({ onNavigate }) => {
     return (
         <header className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                <button onClick={() => handleLinkClick('home')} className="flex items-center gap-3 transition-opacity hover:opacity-80">
+                <button onClick={() => handleLinkClick('generator')} className="flex items-center gap-3 transition-opacity hover:opacity-80">
                     <img 
                         src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" 
                         alt="FeelEd AI Logo" 
