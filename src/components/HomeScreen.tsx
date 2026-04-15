@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Mic, BookOpen, Flame, Headphones, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Mic, BookOpen, Flame, Headphones, ChevronRight, Loader2, Target } from 'lucide-react';
 import { StudentContext } from '../types';
 
 interface HomeScreenProps {
@@ -16,7 +16,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
         board: 'Tamil Nadu State Board (Samacheer)',
         standard: '10th',
         subject: 'Science',
-        language: 'English'
+        language: 'English',
+        learningMode: 'Senior',
+        goal: 'Exam'
     });
 
     // Dynamic Subjects Logic
@@ -67,13 +69,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
     };
 
     return (
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
             <div className="text-center mb-12">
-                <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
-                    Your AI Study Companion
+                <h1 className="text-5xl md:text-7xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
+                    FeelEd <span className="text-indigo-600">AI</span>
                 </h1>
-                <p className="text-lg text-slate-600 dark:text-slate-400">
-                    Ask questions, prepare for exams, or learn through stories.
+                <p className="text-xl text-slate-600 dark:text-slate-400 font-medium max-w-2xl mx-auto">
+                    The world's most advanced pedagogical engine for students.
                 </p>
             </div>
 
@@ -82,6 +84,39 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
                     <span className="text-xl">⚠️</span> {error}
                 </div>
             )}
+
+            {/* Mode Selectors */}
+            <div className="flex flex-col items-center gap-6 mb-12">
+                <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit shadow-inner">
+                    <button 
+                        onClick={() => setContext({...context, learningMode: 'Junior'})}
+                        className={`px-8 py-3 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${context.learningMode === 'Junior' ? 'bg-white dark:bg-slate-700 text-green-600 shadow-md' : 'text-slate-500'}`}
+                    >
+                        <span className="text-lg">🌱</span> Junior (1-7)
+                    </button>
+                    <button 
+                        onClick={() => setContext({...context, learningMode: 'Senior'})}
+                        className={`px-8 py-3 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${context.learningMode === 'Senior' ? 'bg-white dark:bg-slate-700 text-amber-600 shadow-md' : 'text-slate-500'}`}
+                    >
+                        <span className="text-lg">🚀</span> Senior (8-12)
+                    </button>
+                </div>
+
+                <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit shadow-inner">
+                    <button 
+                        onClick={() => setContext({...context, goal: 'Deep Learning'})}
+                        className={`px-8 py-3 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${context.goal === 'Deep Learning' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-md' : 'text-slate-500'}`}
+                    >
+                        <BookOpen className="w-4 h-4" /> Deep Learning
+                    </button>
+                    <button 
+                        onClick={() => setContext({...context, goal: 'Exam'})}
+                        className={`px-8 py-3 rounded-xl text-sm font-black transition-all flex items-center gap-2 ${context.goal === 'Exam' ? 'bg-white dark:bg-slate-700 text-rose-600 shadow-md' : 'text-slate-500'}`}
+                    >
+                        <Target className="w-4 h-4" /> Exam Prep
+                    </button>
+                </div>
+            </div>
 
             {/* Context Selectors */}
             <div className="flex flex-wrap justify-center gap-4 mb-8">

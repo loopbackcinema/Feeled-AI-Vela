@@ -28,7 +28,14 @@ const App: React.FC = () => {
     const { user, loading } = useAuth();
     // New State for Upgraded System
     const [currentQuestion, setCurrentQuestion] = useState('');
-    const [studentContext, setStudentContext] = useState<StudentContext>({ board: 'Tamil Nadu State Board (Samacheer)', standard: '10th', subject: 'Science', language: 'English' });
+    const [studentContext, setStudentContext] = useState<StudentContext>({ 
+        board: 'Tamil Nadu State Board (Samacheer)', 
+        standard: '10th', 
+        subject: 'Science', 
+        language: 'English',
+        learningMode: 'Senior',
+        goal: 'Exam'
+    });
     const [conceptData, setConceptData] = useState<ConceptResponse | null>(null);
     const [practiceData, setPracticeData] = useState<PracticeQuestion[] | null>(null);
     const [examData, setExamData] = useState<ExamPrep | null>(null);

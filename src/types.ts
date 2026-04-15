@@ -38,12 +38,19 @@ export interface StudentContext {
     standard: string;
     subject: string;
     language: string;
+    learningMode: 'Junior' | 'Senior';
+    goal: 'Exam' | 'Deep Learning';
 }
 
 export interface ConceptResponse {
     textbookAnswer: string;
     examFormat: string[];
     simpleExplanation: string;
+    keyKeywords: string[];
+    markBasedAnswers?: {
+        twoMark: string;
+        fiveMark: string;
+    };
 }
 
 export interface PracticeQuestion {

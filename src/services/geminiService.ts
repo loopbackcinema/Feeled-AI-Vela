@@ -29,18 +29,24 @@ const getAI = () => {
 
 export const generateConcept = async (question: string, context: StudentContext): Promise<ConceptResponse> => {
     const ai = getAI();
-    const prompt = `You are an expert academic tutor strictly following the syllabus for ${context.board}, Class ${context.standard}, Subject: ${context.subject}.
+    const prompt = `You are an expert academic tutor for ${context.board}, Class ${context.standard}, Subject: ${context.subject}.
+    The student is in ${context.learningMode} mode and their goal is ${context.goal}.
+    
     The student asked: "${question}".
     
     CRITICAL INSTRUCTIONS:
-    1. Language: Respond ENTIRELY in ${context.language}. If Tamil, use clear, educational Tamil for the textbook answer, and easy-to-understand spoken Tamil (Tanglish/Spoken style) for the simple explanation if it helps understanding.
-    2. Accuracy: Do not invent information. Align strictly with standard textbook concepts for this grade.
-    3. Format: NO MARKDOWN. Do not use **, *, or #. Return plain text strings.
+    1. Language: Respond ENTIRELY in ${context.language}.
+    2. Formatting: USE MARKDOWN. Use **bold** for key terms, *italics* for emphasis, and bullet points for lists.
+    3. Accuracy: Align strictly with ${context.board} textbook standards.
+    4. Senior Mode Logic: If Senior mode, use professional academic language and focus on technical accuracy.
+    5. Junior Mode Logic: If Junior mode, use simpler language and more analogies.
     
     Provide:
-    1. textbookAnswer: A concise, exam-ready answer (2-5 marks style).
+    1. textbookAnswer: A comprehensive answer using Markdown.
     2. examFormat: 3-5 key bullet points for writing in an exam.
-    3. simpleExplanation: A very easy-to-understand explanation using everyday analogies.`;
+    3. simpleExplanation: An easy-to-understand explanation.
+    4. keyKeywords: A list of 5-8 essential technical terms related to this topic.
+    5. markBasedAnswers: Provide a specific "2 Mark" (concise) and "5 Mark" (detailed with headings) version of the answer.`;
 
     const response = await ai.models.generateContent({
         model: 'gemini-3.1-pro-preview',
@@ -52,9 +58,18 @@ export const generateConcept = async (question: string, context: StudentContext)
                 properties: {
                     textbookAnswer: { type: Type.STRING },
                     examFormat: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    simpleExplanation: { type: Type.STRING }
+                    simpleExplanation: { type: Type.STRING },
+                    keyKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    markBasedAnswers: {
+                        type: Type.OBJECT,
+                        properties: {
+                            twoMark: { type: Type.STRING },
+                            fiveMark: { type: Type.STRING }
+                        },
+                        required: ["twoMark", "fiveMark"]
+                    }
                 },
-                required: ["textbookAnswer", "examFormat", "simpleExplanation"]
+                required: ["textbookAnswer", "examFormat", "simpleExplanation", "keyKeywords", "markBasedAnswers"]
             }
         }
     });
@@ -100,13 +115,16 @@ export const generateExamPrep = async (topic: string, context: StudentContext): 
     const ai = getAI();
     const prompt = `Generate quick exam preparation material for ${context.board}, Class ${context.standard}, Subject: ${context.subject} on the topic: "${topic}".
     Language: ${context.language}.
+    Learning Mode: ${context.learningMode}.
+    
+    CRITICAL: USE MARKDOWN for all text fields.
     
     Provide:
     1. importantQuestions: 3-5 must-know questions from previous exams or core syllabus.
     2. revisionNotes: 3-5 quick bullet points summarizing the topic.
     3. predictedQuestions: 2 high-value questions likely to appear in exams.
     
-    Format: NO MARKDOWN. Return a JSON object.`;
+    Format: Return a JSON object.`;
 
     const response = await ai.models.generateContent({
         model: 'gemini-3.1-pro-preview',
