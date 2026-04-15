@@ -136,18 +136,55 @@ const App: React.FC = () => {
         }
     };
 
+    const formatError = (err: any): string => {
+        if (typeof err === 'string') return err;
+        if (err.message) {
+            try {
+                // Check if message is a JSON string from the API
+                const parsed = JSON.parse(err.message);
+                if (parsed.error && parsed.error.message) {
+                    return parsed.error.message;
+                }
+            } catch (e) {
+                // Not JSON, return original message
+            }
+            return err.message;
+        }
+        return 'An unexpected error occurred.';
+    };
+
     const handleAskQuestion = async (question: string, context: StudentContext) => {
         setIsLoading(true);
         setError(null);
         setCurrentQuestion(question);
         setStudentContext(context);
+        setBase64Image(null);
+        setImageMimeType(null);
+        
         try {
             const data = await generateConcept(question, context);
             setConceptData(data);
             setCurrentPage('answer');
             await logStudyActivity('concept', question, context.subject);
+
+            // Auto-generate image for Junior students to make it visual
+            if (context.learningMode === 'Junior') {
+                setIsImageLoading(true);
+                generateImage({ 
+                    title: question, 
+                    introduction: data.simpleExplanation, 
+                    concept_explanation: '', 
+                    resolution: '' 
+                } as any)
+                    .then(({ base64Image, mimeType }) => {
+                        setBase64Image(base64Image);
+                        setImageMimeType(mimeType);
+                    })
+                    .catch(e => console.error("Visual synthesis failed:", e))
+                    .finally(() => setIsImageLoading(false));
+            }
         } catch (err: any) {
-            setError(err.message || 'Failed to get answer');
+            setError(formatError(err));
         } finally {
             setIsLoading(false);
         }
@@ -161,7 +198,7 @@ const App: React.FC = () => {
             setPracticeData(data);
             setCurrentPage('practice');
         } catch (err: any) {
-            setError(err.message || 'Failed to generate practice questions');
+            setError(formatError(err));
         } finally {
             setIsLoading(false);
         }
@@ -177,7 +214,7 @@ const App: React.FC = () => {
             setCurrentPage('exam');
             await logStudyActivity('exam', topic, context.subject);
         } catch (err: any) {
-            setError(err.message || 'Failed to generate exam prep');
+            setError(formatError(err));
         } finally {
             setIsLoading(false);
         }
@@ -201,7 +238,19 @@ const App: React.FC = () => {
             case 'home': 
                 return <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} error={error} />;
             case 'answer':
-                return conceptData ? <AnswerScreen concept={conceptData} question={currentQuestion} context={studentContext} onBack={() => setCurrentPage('home')} onPractice={handleStartPractice} onStory={handleLearnWithStory} /> : <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} error={error} />;
+                return conceptData ? (
+                    <AnswerScreen 
+                        concept={conceptData} 
+                        question={currentQuestion} 
+                        context={studentContext} 
+                        onBack={() => setCurrentPage('home')} 
+                        onPractice={handleStartPractice} 
+                        onStory={handleLearnWithStory}
+                        base64Image={base64Image}
+                        imageMimeType={imageMimeType}
+                        isImageLoading={isImageLoading}
+                    />
+                ) : <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} error={error} />;
             case 'practice':
                 return practiceData ? <PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => setCurrentPage('answer')} /> : <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} error={error} />;
             case 'exam':

@@ -21,11 +21,26 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
         goal: 'Exam'
     });
 
-    // Dynamic Subjects Logic
-    const isHigherSecondary = context.standard === '11th' || context.standard === '12th';
-    const subjects = isHigherSecondary 
-        ? ['Tamil', 'English', 'Maths', 'Physics', 'Chemistry', 'Biology']
-        : ['Tamil', 'English', 'Maths', 'Science', 'Social Science'];
+    // Dynamic Standards and Subjects Logic
+    const isJunior = context.learningMode === 'Junior';
+    const standards = isJunior 
+        ? ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th']
+        : ['8th', '9th', '10th', '11th', '12th'];
+
+    const subjects = isJunior
+        ? ['EVS', 'Maths', 'English', 'Tamil', 'GK']
+        : (context.standard === '11th' || context.standard === '12th'
+            ? ['Tamil', 'English', 'Maths', 'Physics', 'Chemistry', 'Biology']
+            : ['Tamil', 'English', 'Maths', 'Science', 'Social Science']);
+
+    // Reset standard and subject if mode changes
+    useEffect(() => {
+        setContext(prev => ({ 
+            ...prev, 
+            standard: isJunior ? '1st' : '10th',
+            subject: isJunior ? 'EVS' : (prev.standard === '11th' || prev.standard === '12th' ? 'Physics' : 'Science')
+        }));
+    }, [context.learningMode]);
 
     // Reset subject if standard changes and current subject is not in the new list
     useEffect(() => {
@@ -134,11 +149,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
                     onChange={(e) => setContext({...context, standard: e.target.value})}
                     className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-indigo-500"
                 >
-                    <option value="8th">8th Std</option>
-                    <option value="9th">9th Std</option>
-                    <option value="10th">10th Std</option>
-                    <option value="11th">11th Std</option>
-                    <option value="12th">12th Std</option>
+                    {standards.map(std => (
+                        <option key={std} value={std}>{std} Std</option>
+                    ))}
                 </select>
                 <select 
                     value={context.subject}
@@ -228,16 +241,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
                 </button>
             </div>
 
-            {/* Chapter List Placeholder */}
+            {/* Syllabus Roadmap / Trending Topics */}
             <div className="mt-16 max-w-3xl mx-auto">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-indigo-600" />
-                    Chapters ({context.subject})
+                    {context.learningMode === 'Junior' ? "Fun Topics to Explore" : "Syllabus Roadmap"} ({context.subject})
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[1, 2, 3, 4].map((num) => (
-                        <div key={num} className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between cursor-pointer hover:border-indigo-500 transition-colors">
-                            <span className="font-medium text-slate-700 dark:text-slate-300">Chapter {num}</span>
+                    {(context.learningMode === 'Junior' 
+                        ? ['The Magic of Water', 'Our Animal Friends', 'The Solar System', 'Healthy Habits']
+                        : ['Core Concepts', 'Important Formulas', 'Previous Year Questions', 'Revision Strategy']
+                    ).map((topic) => (
+                        <div 
+                            key={topic} 
+                            onClick={() => { setQuestion(topic); onAskQuestion(topic, context); }}
+                            className="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-between cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-all"
+                        >
+                            <span className="font-medium text-slate-700 dark:text-slate-300">{topic}</span>
                             <ChevronRight className="w-4 h-4 text-slate-400" />
                         </div>
                     ))}

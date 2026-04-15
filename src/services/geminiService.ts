@@ -20,16 +20,17 @@ const getAI = () => {
     if (!aiInstance) {
         const apiKey = getApiKey();
         if (!apiKey) {
-            console.warn("Gemini API Key is missing. AI features will not work.");
+            throw new Error("API_KEY_MISSING: Please set your GEMINI_API_KEY in the Settings menu (top right).");
         }
-        aiInstance = new GoogleGenAI({ apiKey: apiKey || 'dummy-key-to-prevent-crash' });
+        aiInstance = new GoogleGenAI({ apiKey });
     }
     return aiInstance;
 };
 
 export const generateConcept = async (question: string, context: StudentContext): Promise<ConceptResponse> => {
     const ai = getAI();
-    const prompt = `You are an expert academic tutor for ${context.board}, Class ${context.standard}, Subject: ${context.subject}.
+
+    const prompt = `You are an expert academic tutor for ${context.board}, ${context.standard}, Subject: ${context.subject}.
     The student is in ${context.learningMode} mode and their goal is ${context.goal}.
     
     The student asked: "${question}".
@@ -38,13 +39,19 @@ export const generateConcept = async (question: string, context: StudentContext)
     1. Language: Respond ENTIRELY in ${context.language}.
     2. Formatting: USE MARKDOWN. Use **bold** for key terms, *italics* for emphasis, and bullet points for lists.
     3. Accuracy: Align strictly with ${context.board} textbook standards.
-    4. Senior Mode Logic: If Senior mode, use professional academic language and focus on technical accuracy.
-    5. Junior Mode Logic: If Junior mode, use simpler language and more analogies.
+    
+    PEDAGOGICAL STRATEGY:
+    - IF JUNIOR MODE (Class 1-7): Use extremely simple, child-friendly language. Use lots of emojis (🌈, 🍎, ✨). Use storytelling and "magical" analogies. Imagine you are talking to a 7-year-old.
+    - IF SENIOR MODE (Class 8-12): Use professional academic language, focus on technical accuracy and conceptual depth.
+    
+    GOAL-BASED STRATEGY:
+    - IF DEEP LEARNING: Focus on "First Principles". Explain the "WHY" and "HOW" behind the concept. Include a "Deep Dive" section that explores the history or advanced applications of the topic. Make it feel like a masterclass.
+    - IF EXAM PREP: Focus on "Step-by-Step" teaching. Break down complex topics into logical steps. Provide "Examiner's Tips" on how to avoid common mistakes. Focus on what is likely to be asked in the exam.
     
     Provide:
     1. textbookAnswer: A comprehensive answer using Markdown.
     2. examFormat: 3-5 key bullet points for writing in an exam.
-    3. simpleExplanation: An easy-to-understand explanation.
+    3. simpleExplanation: An easy-to-understand explanation (for Junior, make this the primary focus).
     4. keyKeywords: A list of 5-8 essential technical terms related to this topic.
     5. markBasedAnswers: Provide a specific "2 Mark" (concise) and "5 Mark" (detailed with headings) version of the answer.`;
 
@@ -113,18 +120,19 @@ export const generatePractice = async (topic: string, context: StudentContext): 
 
 export const generateExamPrep = async (topic: string, context: StudentContext): Promise<ExamPrep> => {
     const ai = getAI();
-    const prompt = `Generate quick exam preparation material for ${context.board}, Class ${context.standard}, Subject: ${context.subject} on the topic: "${topic}".
+    const prompt = `You are a world-class EdTech architect and examiner for ${context.board}, ${context.standard}.
+    Generate a high-utility "Exam Survival Kit" for the topic: "${topic}".
     Language: ${context.language}.
     Learning Mode: ${context.learningMode}.
     
-    CRITICAL: USE MARKDOWN for all text fields.
+    CRITICAL: DO NOT BE GENERIC. Show "Genius" level insights.
     
-    Provide:
-    1. importantQuestions: 3-5 must-know questions from previous exams or core syllabus.
-    2. revisionNotes: 3-5 quick bullet points summarizing the topic.
-    3. predictedQuestions: 2 high-value questions likely to appear in exams.
+    INSTRUCTIONS:
+    1. importantQuestions: Identify 3-5 "Must-Know" questions that are frequently repeated in the last 10 years of exams.
+    2. revisionNotes: Provide a "Step-by-Step" teaching guide. Break down the topic into logical, easy-to-digest steps as if you are ChatGPT teaching a student one-on-one.
+    3. predictedQuestions: Predict 2 high-value questions (5 or 10 marks) that are likely to appear this year based on syllabus weightage.
     
-    Format: Return a JSON object.`;
+    USE MARKDOWN for all text fields.`;
 
     const response = await ai.models.generateContent({
         model: 'gemini-3.1-pro-preview',

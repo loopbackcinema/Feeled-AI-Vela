@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ConceptResponse, StudentContext } from '../types';
-import { BookOpen, Edit3, Lightbulb, ArrowLeft, PenTool, Headphones, Hash, Target, FileText } from 'lucide-react';
+import { BookOpen, Edit3, Lightbulb, ArrowLeft, PenTool, Headphones, Hash, Target, FileText, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -11,9 +11,22 @@ interface AnswerScreenProps {
     onBack: () => void;
     onPractice: () => void;
     onStory: (topic: string) => void;
+    base64Image?: string | null;
+    imageMimeType?: string | null;
+    isImageLoading?: boolean;
 }
 
-const AnswerScreen: React.FC<AnswerScreenProps> = ({ concept, question, context, onBack, onPractice, onStory }) => {
+const AnswerScreen: React.FC<AnswerScreenProps> = ({ 
+    concept, 
+    question, 
+    context, 
+    onBack, 
+    onPractice, 
+    onStory,
+    base64Image,
+    imageMimeType,
+    isImageLoading
+}) => {
     const [activeTab, setActiveTab] = useState<'standard' | '2mark' | '5mark'>('standard');
 
     return (
@@ -47,6 +60,29 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({ concept, question, context,
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
+                    {/* Junior Mode Image Display */}
+                    {context.learningMode === 'Junior' && (
+                        <div className="rounded-3xl overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-slate-800">
+                            {isImageLoading ? (
+                                <div className="aspect-video flex flex-col items-center justify-center gap-4">
+                                    <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+                                    <p className="text-sm font-bold text-slate-500 animate-pulse">Creating a magical picture for you...</p>
+                                </div>
+                            ) : base64Image ? (
+                                <img 
+                                    src={`data:${imageMimeType};base64,${base64Image}`} 
+                                    alt={question}
+                                    className="w-full aspect-video object-cover"
+                                    referrerPolicy="no-referrer"
+                                />
+                            ) : (
+                                <div className="aspect-video flex items-center justify-center">
+                                    <p className="text-slate-400 font-medium italic">Imagine a beautiful world here...</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* View Selector Tabs */}
                     <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
                         <button 
