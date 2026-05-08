@@ -69,11 +69,11 @@ const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
                 <span>🧠</span> Knowledge Verification
             </h3>
             <div className="space-y-10">
-                {quiz.map((q, index) => (
+                {(quiz ?? []).map((q, index) => (
                     <div key={index} className="space-y-6">
                         <p className="text-xl font-black text-slate-800 dark:text-slate-200">{index + 1}. {q.question}</p>
                         <div className="grid md:grid-cols-2 gap-4">
-                            {q.options.map((option) => {
+                            {(q.options ?? []).map((option) => {
                                 const isSelected = answers[index] === option;
                                 const isCorrect = option === quiz[index].answer;
                                 const isRevealed = showResult[index];
@@ -165,7 +165,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
         }
     }, [isPlaying, isDecoding, base64Audio]);
 
-    const shareText = `I just completed a learning journey on FeelEd AI! 🎓 I learned about "${story.title}" and scored ${quizScore}/${story.quiz.length} on the quiz. Check it out!`;
+    const shareText = `I just completed a learning journey on FeelEd AI! 🎓 I learned about "${story.title}" and scored ${quizScore}/${story.quiz?.length ?? 0} on the quiz. Check it out!`;
     const shareUrl = window.location.origin;
 
     const handleNativeShare = async () => {
@@ -322,7 +322,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
                             <div className="w-full flex justify-between items-end mt-8">
                                 <div className="text-left">
                                     <p className="text-[10px] uppercase font-black text-slate-400">Score Achieved</p>
-                                    <p className="text-2xl font-black text-indigo-600">{quizScore} / {story.quiz.length}</p>
+                                    <p className="text-2xl font-black text-indigo-600">{quizScore} / {story.quiz?.length ?? 0}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[10px] uppercase font-black text-slate-400">Verified By</p>

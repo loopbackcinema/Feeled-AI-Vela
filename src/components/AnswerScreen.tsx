@@ -50,7 +50,7 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({
                 
                 {/* Keywords Chips */}
                 <div className="flex flex-wrap gap-2 max-w-md">
-                    {concept.keyKeywords.map((kw, i) => (
+                    {(concept.keyKeywords ?? []).map((kw, i) => (
                         <span key={i} className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700">
                             <Hash className="w-3 h-3" /> {kw}
                         </span>
@@ -159,7 +159,7 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({
                             Exam Presentation
                         </h2>
                         <ul className="space-y-3">
-                            {concept.examFormat.map((point, index) => (
+                            {(concept.examFormat ?? []).map((point, index) => (
                                 <li key={index} className="flex items-start gap-3">
                                     <div className="flex-shrink-0 w-5 h-5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full flex items-center justify-center text-[10px] font-black mt-1">
                                         {index + 1}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ExamPrep, StudentContext } from '../types';
-import { ArrowLeft, Flame, AlertCircle, FileText, Target } from 'lucide-react';
+import { ArrowLeft, Flame, AlertCircle, FileText, Target, Lightbulb } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -58,10 +58,10 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ examPrep, topic, contex
                         </h2>
                         
                         <div className="space-y-12">
-                            {examPrep.revisionNotes.map((note, index) => (
+                            {(examPrep.revisionNotes ?? []).map((note, index) => (
                                 <div key={index} className="relative pl-12 group">
                                     {/* Vertical Line */}
-                                    {index !== examPrep.revisionNotes.length - 1 && (
+                                    {index !== (examPrep.revisionNotes ?? []).length - 1 && (
                                         <div className="absolute left-[1.35rem] top-10 bottom-[-3rem] w-0.5 bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-200 transition-colors"></div>
                                     )}
                                     
@@ -88,7 +88,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ examPrep, topic, contex
                         </h2>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {examPrep.predictedQuestions.map((q, index) => (
+                            {(examPrep.predictedQuestions ?? []).map((q, index) => (
                                 <div key={index} className="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/10 hover:bg-white/20 transition-all group">
                                     <div className="text-orange-400 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
                                         <Flame className="w-4 h-4" /> Prediction {index + 1}
@@ -114,7 +114,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ examPrep, topic, contex
                         </h2>
                         
                         <div className="space-y-8">
-                            {examPrep.importantQuestions.map((q, index) => (
+                            {(examPrep.importantQuestions ?? []).map((q, index) => (
                                 <div key={index} className="flex gap-4 group">
                                     <span className="text-slate-300 font-black text-2xl group-hover:text-rose-500 transition-colors">{index + 1}</span>
                                     <div className="prose dark:prose-invert max-w-none prose-p:m-0 text-base text-slate-700 dark:text-slate-300 leading-relaxed font-bold">

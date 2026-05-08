@@ -6,9 +6,18 @@ const schema = {
     properties: {
         textbookAnswer: { type: Type.STRING },
         examFormat: { type: Type.ARRAY, items: { type: Type.STRING } },
-        simpleExplanation: { type: Type.STRING }
+        simpleExplanation: { type: Type.STRING },
+        keyKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+        markBasedAnswers: {
+            type: Type.OBJECT,
+            properties: {
+                twoMark: { type: Type.STRING },
+                fiveMark: { type: Type.STRING },
+            },
+            required: ["twoMark", "fiveMark"],
+        },
     },
-    required: ["textbookAnswer", "examFormat", "simpleExplanation"]
+    required: ["textbookAnswer", "examFormat", "simpleExplanation", "keyKeywords", "markBasedAnswers"]
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -26,9 +35,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
         2. Keep text clean and plain.
-        3. textbookAnswer: A short, exam-ready answer (2-5 mark style).
-        4. examFormat: 3-5 bullet points for writing in an exam.
-        5. simpleExplanation: Easy to understand explanation.`;
+        3. textbookAnswer: A detailed, exam-ready answer (5 mark style).
+        4. examFormat: 3-5 bullet points for presenting in an exam.
+        5. simpleExplanation: Easy 1-2 sentence explanation a younger student could understand.
+        6. keyKeywords: 4-6 important technical terms from this topic.
+        7. markBasedAnswers.twoMark: A concise 2-mark answer (2-3 sentences).
+        8. markBasedAnswers.fiveMark: A structured 5-mark answer with clear points.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
