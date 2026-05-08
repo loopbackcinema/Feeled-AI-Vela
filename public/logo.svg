@@ -1,0 +1,51 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bookGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#3B82F6" />
+            <stop offset="100%" stop-color="#2563EB" />
+        </linearGradient>
+        <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F87171" />
+            <stop offset="100%" stop-color="#EF4444" />
+        </linearGradient>
+    </defs>
+
+    <!-- Outer Circle Background -->
+    <circle cx="256" cy="256" r="240" fill="white" stroke="#E2E8F0" stroke-width="8"/>
+
+    <!-- Book (Bottom Layer) -->
+    <g transform="translate(0, 60)">
+        <!-- Book Shape -->
+        <path d="M256 360 C 180 380, 80 350, 60 320 L 60 240 C 80 270, 180 300, 256 280 C 332 300, 432 270, 452 240 L 452 320 C 432 350, 332 380, 256 360 Z" fill="url(#bookGrad)"/>
+        <!-- Book Spine/Fold -->
+        <path d="M256 280 V 360" stroke="#93C5FD" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+        <!-- Page Thickness Shadow -->
+        <path d="M60 320 C 80 350, 180 380, 256 360 C 332 380, 432 350, 452 320 V 335 C 432 365, 332 395, 256 375 C 180 395, 80 365, 60 335 Z" fill="#1E40AF" opacity="0.3"/>
+    </g>
+
+    <!-- Heart (Middle Layer) -->
+    <path d="M256 320 
+             C 256 320, 160 230, 160 180 
+             C 160 140, 210 120, 256 170 
+             C 302 120, 352 140, 352 180 
+             C 352 230, 256 320, 256 320 Z" 
+             fill="url(#heartGrad)" 
+             transform="translate(0, 20)" 
+             filter="drop-shadow(0px 10px 10px rgba(239, 68, 68, 0.2))"/>
+
+    <!-- Molecule Structure (Top Layer) -->
+    <g transform="translate(256, 110)">
+        <!-- Connections -->
+        <line x1="0" y1="0" x2="-50" y2="35" stroke="#F59E0B" stroke-width="6" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="50" y2="35" stroke="#F59E0B" stroke-width="6" stroke-linecap="round"/>
+        <line x1="0" y1="0" x2="0" y2="-45" stroke="#F59E0B" stroke-width="6" stroke-linecap="round"/>
+        
+        <!-- Nodes -->
+        <circle cx="0" cy="-45" r="10" fill="#F59E0B" />
+        <circle cx="-50" cy="35" r="8" fill="#F59E0B" />
+        <circle cx="50" cy="35" r="8" fill="#F59E0B" />
+        
+        <!-- Central Node -->
+        <circle cx="0" cy="0" r="18" fill="#FBBF24" stroke="#F59E0B" stroke-width="3"/>
+    </g>
+</svg>
