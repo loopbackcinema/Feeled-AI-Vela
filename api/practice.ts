@@ -1,14 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
+import { fetchRagContext, languageToMedium, normaliseGrade } from './_rag';
 
 const schema = {
     type: Type.ARRAY,
     items: {
         type: Type.OBJECT,
         properties: {
-            type: { type: Type.STRING, description: "Must be 'mcq', 'short', or 'long'" },
-            question: { type: Type.STRING },
-            options: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Only for mcq" },
+            type:          { type: Type.STRING, description: "Must be 'mcq', 'short', or 'long'" },
+            question:      { type: Type.STRING },
+            options:       { type: Type.ARRAY, items: { type: Type.STRING }, description: "Only for mcq" },
             correctAnswer: { type: Type.STRING }
         },
         required: ["type", "question", "correctAnswer"]
@@ -23,10 +24,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const { topic, context } = req.body;
-        const prompt = `You are an expert academic tutor creating a practice test.
+        const medium = languageToMedium(context.language);
+        const grade  = normaliseGrade(context.standard);
+
+        // Fetch relevant textbook passages from Pinecone (best-effort)
+        const ragContext = await fetchRagContext({
+            query:   topic,
+            subject: context.subject,
+            grade,
+            medium,
+            board:   context.board ?? 'TN Samacheer',
+        });
+
+        const ragSection = ragContext
+            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${context.subject}, ${medium} Medium):
+${ragContext}
+
+Generate all questions and answers DIRECTLY from the above textbook content. Correct answers must match the textbook exactly.`
+            : `No textbook excerpt available — generate from general academic knowledge.`;
+
+        const prompt = `You are an expert academic tutor creating a practice test for TN Samacheer students.
         Topic: ${topic}
         Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
         Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
+
+        ${ragSection}
 
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).

@@ -1,17 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
+import { fetchRagContext, languageToMedium, normaliseGrade } from './_rag';
 
 const schema = {
     type: Type.OBJECT,
     properties: {
-        textbookAnswer: { type: Type.STRING },
-        examFormat: { type: Type.ARRAY, items: { type: Type.STRING } },
-        simpleExplanation: { type: Type.STRING },
-        keyKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+        textbookAnswer:   { type: Type.STRING },
+        examFormat:       { type: Type.ARRAY, items: { type: Type.STRING } },
+        simpleExplanation:{ type: Type.STRING },
+        keyKeywords:      { type: Type.ARRAY, items: { type: Type.STRING } },
         markBasedAnswers: {
             type: Type.OBJECT,
             properties: {
-                twoMark: { type: Type.STRING },
+                twoMark:  { type: Type.STRING },
                 fiveMark: { type: Type.STRING },
             },
             required: ["twoMark", "fiveMark"],
@@ -28,10 +29,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const { question, context } = req.body;
-        const prompt = `You are an expert academic tutor. Answer the student's question.
+        const medium = languageToMedium(context.language);
+        const grade  = normaliseGrade(context.standard);
+
+        // Fetch relevant textbook passages from Pinecone (best-effort)
+        const ragContext = await fetchRagContext({
+            query:   question,
+            subject: context.subject,
+            grade,
+            medium,
+            board:   context.board ?? 'TN Samacheer',
+        });
+
+        const ragSection = ragContext
+            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${context.subject}, ${medium} Medium):
+${ragContext}
+
+Use the above textbook content as your PRIMARY source. Your textbookAnswer and markBasedAnswers must closely follow the textbook wording. For simpleExplanation, rephrase in simpler terms.`
+            : `No textbook excerpt available — answer from general academic knowledge.`;
+
+        const prompt = `You are an expert academic tutor for TN Samacheer Board students.
         Question: ${question}
         Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
         Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
+
+        ${ragSection}
 
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
