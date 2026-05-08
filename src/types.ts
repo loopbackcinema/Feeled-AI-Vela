@@ -31,7 +31,15 @@ export interface ChatMessage {
     text: string;
 }
 
-export type Page = 'home' | 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard' | 'answer' | 'practice' | 'exam';
+export type Page = 'home' | 'chat' | 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard' | 'answer' | 'practice' | 'exam';
+
+export interface StudyChatMessage {
+    id: string;
+    role: 'user' | 'model';
+    text: string;
+    ragUsed?: boolean;
+    timestamp: number;
+}
 
 export interface StudentContext {
     board: string;

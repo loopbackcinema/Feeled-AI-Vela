@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Story, ConceptResponse, PracticeQuestion, ExamPrep } from '../types';
+import { Story, ConceptResponse, PracticeQuestion, ExamPrep, StudyChatMessage } from '../types';
 
 interface SessionState {
     currentQuestion: string;
@@ -11,6 +11,7 @@ interface SessionState {
     base64Image: string | null;
     imageMimeType: string | null;
     lastLanguage: string;
+    chatMessages: StudyChatMessage[];
 }
 
 type SessionStore = SessionState & {
@@ -28,6 +29,7 @@ const initial: SessionState = {
     base64Image: null,
     imageMimeType: null,
     lastLanguage: 'English',
+    chatMessages: [],
 };
 
 export const useSessionStore = create<SessionStore>((set) => ({

@@ -5,6 +5,7 @@ import { signInWithGoogle, logOut } from '../firebase';
 
 const PATH_MAP: Record<string, string> = {
     home: '/',
+    chat: '/chat',
     'student-dashboard': '/dashboard',
     'my-stories': '/my-stories',
     'admin-dashboard': '/admin',
@@ -29,6 +30,7 @@ const Header: React.FC = () => {
 
     const navItems = [
         { id: 'home', label: 'Home' },
+        { id: 'chat', label: 'Study AI' },
         { id: 'teachers', label: 'For Teachers' },
         { id: 'parents', label: 'For Parents' },
         { id: 'research', label: 'Scientific Portfolio' },
@@ -38,8 +40,7 @@ const Header: React.FC = () => {
 
     if (user) {
         navItems.splice(0, 1, { id: 'student-dashboard', label: 'Dashboard' });
-        navItems.splice(1, 0, { id: 'my-stories', label: 'My Stories' });
-        navItems.push({ id: 'home', label: 'Study AI' });
+        navItems.splice(2, 0, { id: 'my-stories', label: 'My Stories' });
     }
 
     if (isAdmin) {
@@ -47,7 +48,7 @@ const Header: React.FC = () => {
     }
 
     // Desktop shows only the primary items to avoid crowding
-    const desktopNavIds = new Set(['home', 'student-dashboard', 'my-stories', 'teachers', 'parents', 'pilot']);
+    const desktopNavIds = new Set(['home', 'student-dashboard', 'chat', 'my-stories', 'teachers', 'parents', 'pilot']);
     const desktopNavItems = navItems.filter(item => desktopNavIds.has(item.id));
 
     const handleLinkClick = (id: string) => {

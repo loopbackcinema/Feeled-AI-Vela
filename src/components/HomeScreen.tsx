@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Mic, BookOpen, Flame, Headphones, ChevronRight, Loader2, Target } from 'lucide-react';
+import { Search, Mic, BookOpen, Flame, Headphones, ChevronRight, Loader2, Target, MessageSquare } from 'lucide-react';
 import { StudentContext } from '../types';
 import SkeletonLoader from './SkeletonLoader';
+import { useNavigate } from 'react-router-dom';
 
 async function blobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -21,6 +22,7 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLearnWithStory, isLoading, error }) => {
+    const navigate = useNavigate();
     const [question, setQuestion] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [isSttLoading, setIsSttLoading] = useState(false);
@@ -276,38 +278,54 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-2">
-                <button 
-                    type="button"
-                    onClick={handleExamClick}
-                    className="flex items-center justify-between p-6 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl hover:shadow-md transition-all group text-left"
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto mb-2">
+                <button
+                    onClick={() => navigate('/chat')}
+                    className="flex items-center justify-between p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl hover:shadow-md transition-all group text-left"
                 >
-                    <div className="flex items-center gap-4">
-                        <div className="bg-orange-100 dark:bg-orange-900/50 p-3 rounded-xl text-orange-600 dark:text-orange-400">
-                            <Flame className="w-8 h-8" />
+                    <div className="flex items-center gap-3">
+                        <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2.5 rounded-xl text-indigo-600 dark:text-indigo-400">
+                            <MessageSquare className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Exam Tomorrow?</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Type a topic above and click here!</p>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">Chat with AI</h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">Ask follow-up questions</p>
                         </div>
                     </div>
-                    <ChevronRight className="w-6 h-6 text-orange-400 group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform flex-shrink-0" />
                 </button>
 
-                <button 
-                    onClick={onLearnWithStory}
-                    className="flex items-center justify-between p-6 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800 rounded-2xl hover:shadow-md transition-all group text-left"
+                <button
+                    type="button"
+                    onClick={handleExamClick}
+                    className="flex items-center justify-between p-5 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800 rounded-2xl hover:shadow-md transition-all group text-left"
                 >
-                    <div className="flex items-center gap-4">
-                        <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-xl text-indigo-600 dark:text-indigo-400">
-                            <Headphones className="w-8 h-8" />
+                    <div className="flex items-center gap-3">
+                        <div className="bg-orange-100 dark:bg-orange-900/50 p-2.5 rounded-xl text-orange-600 dark:text-orange-400">
+                            <Flame className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-1">Learn with Story</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">Understand concepts through emotional stories</p>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">Exam Tomorrow?</h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">Type a topic above first</p>
                         </div>
                     </div>
-                    <ChevronRight className="w-6 h-6 text-indigo-400 group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight className="w-5 h-5 text-orange-400 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+                </button>
+
+                <button
+                    onClick={onLearnWithStory}
+                    className="flex items-center justify-between p-5 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-800 rounded-2xl hover:shadow-md transition-all group text-left"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="bg-purple-100 dark:bg-purple-900/50 p-2.5 rounded-xl text-purple-600 dark:text-purple-400">
+                            <Headphones className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-0.5">Learn with Story</h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400">Emotional concept stories</p>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-purple-400 group-hover:translate-x-1 transition-transform flex-shrink-0" />
                 </button>
             </div>
 

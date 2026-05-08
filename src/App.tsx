@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import HomeScreen from './components/HomeScreen';
 import AnswerScreen from './components/AnswerScreen';
+import ChatPage from './features/chat/ChatPage';
 import PracticeScreen from './components/PracticeScreen';
 import ExamModeScreen from './components/ExamModeScreen';
 import { generateStory, generateVoice, generateImage, generateConcept, generatePractice, generateExamPrep } from './services/geminiService';
@@ -29,7 +30,8 @@ import { useSessionStore } from './stores/sessionStore';
 
 const PAGE_TO_PATH: Record<Page, string> = {
     home: '/',
-    answer: '/chat',
+    chat: '/chat',
+    answer: '/answer',
     story: '/story',
     generator: '/generator',
     exam: '/exam',
@@ -171,7 +173,7 @@ const App: React.FC = () => {
         try {
             const data = await generateConcept(question, context);
             setSession({ conceptData: data });
-            navigate('/chat');
+            navigate('/answer');
             await logStudyActivity('concept', question, context.subject);
 
             if (context.learningMode === 'Junior') {
@@ -242,7 +244,8 @@ const App: React.FC = () => {
                     <Route path="/" element={
                         <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} error={error} />
                     } />
-                    <Route path="/chat" element={
+                    <Route path="/chat" element={<ChatPage />} />
+                    <Route path="/answer" element={
                         conceptData
                             ? <AnswerScreen concept={conceptData} question={currentQuestion} context={studentContext} onBack={() => navigate('/')} onPractice={handleStartPractice} onStory={handleLearnWithStory} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} />
                             : <Navigate to="/" />
@@ -262,7 +265,7 @@ const App: React.FC = () => {
                     } />
                     <Route path="/practice" element={
                         practiceData
-                            ? <PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/chat')} />
+                            ? <PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/answer')} />
                             : <Navigate to="/" />
                     } />
                     <Route path="/dashboard" element={<StudentDashboard onNavigate={navigateTo} />} />
