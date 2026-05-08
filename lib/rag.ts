@@ -1,5 +1,6 @@
-import { GoogleGenAI } from '@google/genai';
-import { Pinecone } from '@pinecone-database/pinecone';
+// RAG utility — uses fetch only, no SDK imports, to avoid Lambda bundler issues.
+// The @pinecone-database/pinecone SDK causes FUNCTION_INVOCATION_FAILED when
+// bundled alongside @google/genai in Vercel serverless routes. Raw fetch avoids this.
 
 export interface RagParams {
     query:   string;
@@ -9,29 +10,54 @@ export interface RagParams {
     board:   string;
 }
 
-// Returns concatenated textbook passages, or null if unavailable/no match.
+async function embedQuery(apiKey: string, text: string): Promise<number[]> {
+    const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${apiKey}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content: { parts: [{ text }] },
+                outputDimensionality: 768,
+            }),
+        }
+    );
+    if (!res.ok) return [];
+    const data = await res.json() as any;
+    return data.embedding?.values ?? [];
+}
+
+async function queryPinecone(
+    host: string,
+    apiKey: string,
+    vector: number[],
+    filter: Record<string, { $eq: string }>,
+): Promise<{ score: number; metadata: Record<string, unknown> }[]> {
+    const body: Record<string, unknown> = { vector, topK: 5, includeMetadata: true };
+    if (Object.keys(filter).length > 0) body.filter = filter;
+
+    const res = await fetch(`${host}/query`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Api-Key': apiKey,
+        },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) return [];
+    const data = await res.json() as any;
+    return data.matches ?? [];
+}
+
+// Returns concatenated textbook passages, or null if unavailable / no match.
 // Never throws — callers fall back to general knowledge on null.
 export async function fetchRagContext(params: RagParams): Promise<string | null> {
-    const { API_KEY, PINECONE_API_KEY, PINECONE_INDEX, PINECONE_HOST } = process.env;
-    if (!API_KEY || !PINECONE_API_KEY || !PINECONE_INDEX) return null;
+    const { API_KEY, PINECONE_API_KEY, PINECONE_HOST } = process.env;
+    if (!API_KEY || !PINECONE_API_KEY || !PINECONE_HOST) return null;
 
     try {
-        const ai = new GoogleGenAI({ apiKey: API_KEY });
-        const embRes = await ai.models.embedContent({
-            model: 'gemini-embedding-001',
-            contents: params.query,
-            config: { outputDimensionality: 768 },
-        });
-        const vector: number[] =
-            (embRes as any).embedding?.values ??
-            (embRes as any).embeddings?.[0]?.values ?? [];
-
+        const vector = await embedQuery(API_KEY, params.query);
         if (vector.length === 0) return null;
-
-        const pc    = new Pinecone({ apiKey: PINECONE_API_KEY });
-        const index = PINECONE_HOST
-            ? pc.index(PINECONE_INDEX, PINECONE_HOST)
-            : pc.index(PINECONE_INDEX);
 
         const filter: Record<string, { $eq: string }> = {};
         if (params.subject) filter.subject = { $eq: params.subject };
@@ -39,17 +65,12 @@ export async function fetchRagContext(params: RagParams): Promise<string | null>
         if (params.medium)  filter.medium  = { $eq: params.medium };
         if (params.board)   filter.board   = { $eq: params.board };
 
-        const result = await index.query({
-            vector,
-            topK: 5,
-            includeMetadata: true,
-            ...(Object.keys(filter).length > 0 ? { filter } : {}),
-        });
+        const matches = await queryPinecone(PINECONE_HOST, PINECONE_API_KEY, vector, filter);
 
-        const chunks = (result.matches ?? [])
+        const chunks = matches
             .filter(m => (m.score ?? 0) > 0.4)
-            .map(m => (m.metadata?.text as string | undefined) ?? '')
-            .filter(Boolean);
+            .map(m => m.metadata?.text as string | undefined)
+            .filter((t): t is string => Boolean(t));
 
         return chunks.length > 0 ? chunks.join('\n\n') : null;
     } catch (err) {
@@ -58,12 +79,10 @@ export async function fetchRagContext(params: RagParams): Promise<string | null>
     }
 }
 
-// Maps the language field from client context to the medium stored in Pinecone.
 export function languageToMedium(language: string): string {
     return language === 'Tamil' ? 'Tamil' : 'English';
 }
 
-// Normalises standard/grade values like "10", "10th", "Class 10" → "10".
 export function normaliseGrade(standard: string): string {
     const digits = (standard ?? '').replace(/\D/g, '');
     return digits || standard;
