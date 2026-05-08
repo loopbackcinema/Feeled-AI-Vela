@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Mic, BookOpen, Flame, Headphones, ChevronRight, Loader2, Target } from 'lucide-react';
 import { StudentContext } from '../types';
+import SkeletonLoader from './SkeletonLoader';
 
 async function blobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -126,6 +127,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
         }
     };
 
+    if (isLoading) {
+        return <SkeletonLoader question={question || undefined} />;
+    }
+
     return (
         <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
             <div className="text-center mb-12">
@@ -133,7 +138,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
                     FeelEd <span className="text-indigo-600">AI</span>
                 </h1>
                 <p className="text-xl text-slate-600 dark:text-slate-400 font-medium max-w-2xl mx-auto">
-                    The world's most advanced pedagogical engine for students.
+                    Ask anything. Learn in your language. Understand with stories.
                 </p>
             </div>
 
@@ -216,51 +221,62 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
             </div>
 
             {/* Search Bar */}
-            <form onSubmit={handleAsk} className="relative max-w-2xl mx-auto mb-12">
+            <form onSubmit={handleAsk} className="relative max-w-2xl mx-auto mb-4">
                 <div className="relative flex items-center">
                     <div className="absolute left-4 text-slate-400">
-                        <Search className="w-6 h-6" />
+                        <Search className="w-5 h-5" />
                     </div>
-                    <input 
+                    <input
                         type="text"
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
-                        placeholder="Enter a topic or ask a question... (e.g., Photosynthesis)"
-                        className="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full py-4 pl-14 pr-32 text-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900 transition-all shadow-sm"
+                        placeholder="Ask a question or enter a topic... (e.g., Photosynthesis)"
+                        className="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-full py-4 pl-12 pr-24 text-base focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:focus:ring-indigo-900 transition-all shadow-sm text-slate-900 dark:text-white"
                         disabled={isLoading}
                     />
-                    <div className="absolute right-2 flex items-center gap-2">
+                    <div className="absolute right-2">
                         <button
-                            type="button"
-                            onClick={handleVoiceInput}
-                            disabled={isSttLoading}
-                            title={isListening ? 'Tap to stop' : 'Voice input (Sarvam AI)'}
-                            className={`p-2 rounded-full transition-colors ${
-                                isListening
-                                    ? 'text-red-500 bg-red-50 dark:bg-red-900/20 animate-pulse'
-                                    : isSttLoading
-                                    ? 'text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
-                                    : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            {isSttLoading
-                                ? <Loader2 className="w-5 h-5 animate-spin" />
-                                : <Mic className="w-5 h-5" />
-                            }
-                        </button>
-                        <button 
                             type="submit"
                             disabled={isLoading || !question.trim()}
-                            className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-2 rounded-full font-bold transition-colors flex items-center gap-2"
+                            className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-900 text-white px-6 py-2 rounded-full font-bold transition-colors"
                         >
-                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Ask'}
+                            Ask
                         </button>
                     </div>
                 </div>
             </form>
 
+            {/* Prominent voice input */}
+            <div className="flex items-center justify-center gap-3 mb-10">
+                <div className="h-px w-16 bg-slate-200 dark:bg-slate-700" />
+                <button
+                    type="button"
+                    onClick={handleVoiceInput}
+                    disabled={isSttLoading}
+                    className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm ${
+                        isListening
+                            ? 'bg-red-500 text-white ring-4 ring-red-100 dark:ring-red-900/40 animate-pulse'
+                            : isSttLoading
+                            ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 cursor-not-allowed'
+                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-600 dark:hover:text-indigo-400'
+                    }`}
+                >
+                    {isSttLoading
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Mic className="w-4 h-4" />
+                    }
+                    {isListening
+                        ? 'Listening... tap to stop'
+                        : isSttLoading
+                        ? 'Processing...'
+                        : 'Speak in Tamil or English'
+                    }
+                </button>
+                <div className="h-px w-16 bg-slate-200 dark:bg-slate-700" />
+            </div>
+
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-2">
                 <button 
                     type="button"
                     onClick={handleExamClick}

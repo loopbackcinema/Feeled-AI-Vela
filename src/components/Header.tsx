@@ -46,6 +46,10 @@ const Header: React.FC = () => {
         navItems.push({ id: 'admin-dashboard', label: 'Admin Panel' });
     }
 
+    // Desktop shows only the primary items to avoid crowding
+    const desktopNavIds = new Set(['home', 'student-dashboard', 'my-stories', 'teachers', 'parents', 'pilot']);
+    const desktopNavItems = navItems.filter(item => desktopNavIds.has(item.id));
+
     const handleLinkClick = (id: string) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         navigate(toPath(id));
@@ -86,7 +90,7 @@ const Header: React.FC = () => {
 
                 {/* Desktop Navigation */}
                 <nav className="hidden lg:flex items-center space-x-1">
-                    {navItems.map((item) => (
+                    {desktopNavItems.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => handleLinkClick(item.id)}
@@ -140,47 +144,65 @@ const Header: React.FC = () => {
                     {/* Mobile Menu Button */}
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                        className="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                         aria-label="Toggle Menu"
+                        aria-expanded={isMenuOpen}
                     >
-                        {isMenuOpen ? (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
-                        ) : (
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-                        )}
+                        <svg className="w-6 h-6 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {isMenuOpen
+                                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16m-7 6h7" />
+                            }
+                        </svg>
                     </button>
                 </div>
             </div>
 
-            {/* Mobile Navigation Drawer */}
+            {/* Mobile backdrop */}
             {isMenuOpen && (
-                <div className="lg:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 animate-fade-in transition-colors duration-300">
-                    <nav className="flex flex-col p-4 space-y-1">
-                        {navItems.map((item) => (
-                            <button
-                                key={item.id}
-                                onClick={() => handleLinkClick(item.id)}
-                                className="w-full text-left px-6 py-4 rounded-xl text-xs font-black text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all uppercase tracking-widest"
-                            >
-                                {item.label}
-                            </button>
-                        ))}
+                <div
+                    className="fixed inset-0 bg-black/20 dark:bg-black/50 z-40 lg:hidden"
+                    onClick={() => setIsMenuOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
+
+            {/* Mobile Navigation Drawer — always in DOM for smooth transition */}
+            <div
+                className="lg:hidden bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 overflow-hidden relative z-50"
+                style={{
+                    maxHeight: isMenuOpen ? '32rem' : '0',
+                    opacity: isMenuOpen ? 1 : 0,
+                    transition: 'max-height 0.3s ease-in-out, opacity 0.2s ease-in-out',
+                }}
+            >
+                <nav className="flex flex-col p-4 space-y-1">
+                    {navItems.map((item) => (
+                        <button
+                            key={item.id}
+                            onClick={() => handleLinkClick(item.id)}
+                            className="w-full text-left px-5 py-3.5 rounded-xl text-xs font-black text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all uppercase tracking-widest"
+                        >
+                            {item.label}
+                        </button>
+                    ))}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
                         <button
                             onClick={handleAuth}
                             disabled={isLoggingIn}
-                            className={`w-full mt-2 text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-lg transition-all ${isLoggingIn ? 'bg-indigo-400 cursor-not-allowed' : 'bg-slate-900 dark:bg-slate-800'}`}
+                            className={`w-full text-white px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest text-center shadow-lg transition-all ${isLoggingIn ? 'bg-indigo-400 cursor-not-allowed' : 'bg-slate-900 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-700'}`}
                         >
                             {isLoggingIn ? 'Authenticating...' : user ? 'Sign Out' : 'Student Login'}
                         </button>
                         <button
                             onClick={() => handleLinkClick('contact')}
-                            className="w-full mt-2 border-2 border-slate-900 dark:border-slate-700 text-slate-900 dark:text-white px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-center"
+                            className="w-full border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-6 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest text-center hover:border-slate-400 transition-colors"
                         >
                             Contact Office
                         </button>
-                    </nav>
-                </div>
-            )}
+                    </div>
+                </nav>
+            </div>
         </header>
     );
 };

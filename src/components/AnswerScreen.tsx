@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { ConceptResponse, StudentContext } from '../types';
 import { BookOpen, Edit3, Lightbulb, ArrowLeft, PenTool, Headphones, Hash, Target, FileText, Loader2 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import TypewriterMarkdown from './TypewriterMarkdown';
 
 interface AnswerScreenProps {
     concept: ConceptResponse;
@@ -116,9 +115,7 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({
                                         </div>
                                         <h2 className="text-2xl font-black m-0 text-slate-900 dark:text-white">Detailed Explanation</h2>
                                     </div>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {concept.textbookAnswer}
-                                    </ReactMarkdown>
+                                    <TypewriterMarkdown text={concept.textbookAnswer} />
                                 </div>
                             )}
                             {activeTab === '2mark' && (
@@ -129,9 +126,7 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({
                                         </div>
                                         <h2 className="text-2xl font-black m-0 text-slate-900 dark:text-white">Concise (2 Mark) Answer</h2>
                                     </div>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {concept.markBasedAnswers?.twoMark || ''}
-                                    </ReactMarkdown>
+                                    <TypewriterMarkdown text={concept.markBasedAnswers?.twoMark || ''} />
                                 </div>
                             )}
                             {activeTab === '5mark' && (
@@ -142,9 +137,7 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({
                                         </div>
                                         <h2 className="text-2xl font-black m-0 text-slate-900 dark:text-white">Structured (5 Mark) Answer</h2>
                                     </div>
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {concept.markBasedAnswers?.fiveMark || ''}
-                                    </ReactMarkdown>
+                                    <TypewriterMarkdown text={concept.markBasedAnswers?.fiveMark || ''} />
                                 </div>
                             )}
                         </div>
