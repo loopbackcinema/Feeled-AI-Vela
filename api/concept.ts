@@ -20,6 +20,49 @@ const schema = {
     required: ["textbookAnswer", "examFormat", "simpleExplanation", "keyKeywords", "markBasedAnswers"]
 };
 
+async function fetchRagContext(
+    query: string, subject: string, grade: string, medium: string, board: string
+): Promise<string | null> {
+    const { API_KEY, PINECONE_API_KEY, PINECONE_HOST } = process.env;
+    if (!API_KEY || !PINECONE_API_KEY || !PINECONE_HOST) return null;
+    try {
+        const embRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: { parts: [{ text: query }] }, outputDimensionality: 768 }),
+            }
+        );
+        if (!embRes.ok) return null;
+        const embData = await embRes.json() as any;
+        const vector: number[] = embData.embedding?.values ?? [];
+        if (vector.length === 0) return null;
+
+        const filter: Record<string, { $eq: string }> = {};
+        if (subject) filter.subject = { $eq: subject };
+        if (grade)   filter.grade   = { $eq: grade };
+        if (medium)  filter.medium  = { $eq: medium };
+        if (board)   filter.board   = { $eq: board };
+
+        const pinRes = await fetch(`${PINECONE_HOST}/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Api-Key': PINECONE_API_KEY },
+            body: JSON.stringify({ vector, topK: 5, includeMetadata: true, filter }),
+        });
+        if (!pinRes.ok) return null;
+        const pinData = await pinRes.json() as any;
+
+        const chunks: string[] = (pinData.matches ?? [])
+            .filter((m: any) => (m.score ?? 0) > 0.4)
+            .map((m: any) => m.metadata?.text as string)
+            .filter(Boolean);
+        return chunks.length > 0 ? chunks.join('\n\n') : null;
+    } catch {
+        return null;
+    }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
     const API_KEY = process.env.API_KEY;
@@ -28,10 +71,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const { question, context } = req.body;
-        const prompt = `You are an expert academic tutor. Answer the student's question.
+        const medium = context.language === 'Tamil' ? 'Tamil' : 'English';
+        const grade  = (context.standard ?? '').replace(/\D/g, '') || context.standard;
+
+        const ragContext = await fetchRagContext(
+            question, context.subject, grade, medium, context.board ?? 'TN Samacheer'
+        );
+
+        const ragSection = ragContext
+            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${context.subject}, ${medium} Medium):\n${ragContext}\n\nUse the above textbook content as your PRIMARY source. Your textbookAnswer and markBasedAnswers must closely follow the textbook wording. For simpleExplanation, rephrase in simpler terms.`
+            : `No textbook excerpt available — answer from general academic knowledge.`;
+
+        const prompt = `You are an expert academic tutor for TN Samacheer Board students.
         Question: ${question}
         Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
         Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
+
+        ${ragSection}
 
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
