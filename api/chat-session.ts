@@ -61,34 +61,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     try {
-        const { message, history = [], context } = req.body;
-        const medium = context.language === 'Tamil' ? 'Tamil' : 'English';
-        const grade = (context.grade ?? context.standard ?? '').replace(/\D/g, '') || context.grade;
+        const { message, history = [], context, imageBase64, imageMimeType } = req.body;
+        const medium = context?.language === 'Tamil' ? 'Tamil' : 'English';
+        const grade  = ((context?.grade ?? context?.standard ?? '10').toString()).replace(/\D/g, '') || '10';
+        const subject = context?.subject || 'General';
+        const board   = context?.board || 'TN Samacheer';
 
         const { context: ragContext, chunksFound } = await fetchRagContext(
-            message, context.subject, grade, medium, context.board ?? 'TN Samacheer'
+            message, subject, grade, medium, board
         );
 
-        console.log(`[chat-session] grade="${grade}" subject="${context.subject}" medium="${medium}" RAG chunks=${chunksFound}`);
+        console.log(`[chat-session] grade="${grade}" subject="${subject}" medium="${medium}" RAG chunks=${chunksFound}`);
 
         const ragSection = ragContext
-            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${context.subject}):\n${ragContext}\n\nUse the above textbook content as your PRIMARY source when answering.`
+            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${subject}):\n${ragContext}\n\nUse the above textbook content as your PRIMARY source when answering.`
             : 'No textbook excerpt available — answer from general academic knowledge.';
 
         const systemInstruction = `You are FeelEd AI, a warm and expert academic tutor for Tamil Nadu Samacheer students.
-You are helping a Grade ${grade} student with ${context.subject}.
+You are helping a Grade ${grade} student with ${subject}.
 
 ${ragSection}
 
-Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
+Response Language: ${context?.language || 'English'} — ALL text in your response MUST be written in ${context?.language || 'English'}.
 Keep answers clear, concise, and exam-relevant. Avoid markdown headers (##, ###). Use short paragraphs and bullet points only when listing items.`;
 
+        // Build conversation history
+        const historyContents = (history as any[]).map((msg: any) => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.text }],
+        }));
+
+        // Build the latest user message, optionally with an inline image
+        const userParts: any[] = [];
+        if (imageBase64 && imageMimeType) {
+            userParts.push({ inlineData: { mimeType: imageMimeType, data: imageBase64 } });
+        }
+        userParts.push({ text: message });
+
         const contents = [
-            ...(history as any[]).map((msg: any) => ({
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.text }],
-            })),
-            { role: 'user', parts: [{ text: message }] },
+            ...historyContents,
+            { role: 'user', parts: userParts },
         ];
 
         const response = await ai.models.generateContent({

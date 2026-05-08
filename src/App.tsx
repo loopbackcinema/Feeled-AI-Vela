@@ -1,14 +1,11 @@
 import React, { useState, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import HomeScreen from './components/HomeScreen';
-import AnswerScreen from './components/AnswerScreen';
 import ChatPage from './features/chat/ChatPage';
+import AnswerScreen from './components/AnswerScreen';
 import PracticeScreen from './components/PracticeScreen';
 import ExamModeScreen from './components/ExamModeScreen';
 import { generateStory, generateVoice, generateImage, generateConcept, generatePractice, generateExamPrep } from './services/geminiService';
 import { StoryRequest, Page, StudentContext } from './types';
-import Header from './components/Header';
-import Footer from './components/Footer';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
 import AboutUs from './pages/AboutUs';
@@ -30,7 +27,7 @@ import { useSessionStore } from './stores/sessionStore';
 
 const PAGE_TO_PATH: Record<Page, string> = {
     home: '/',
-    chat: '/chat',
+    chat: '/',
     answer: '/answer',
     story: '/story',
     generator: '/generator',
@@ -50,11 +47,17 @@ const PAGE_TO_PATH: Record<Page, string> = {
     'admin-dashboard': '/admin',
 };
 
+/** Thin page shell used for non-chat inner pages */
+const PageShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors">
+        {children}
+    </div>
+);
+
 const App: React.FC = () => {
     const { user, loading } = useAuth();
     const navigate = useNavigate();
 
-    // Global stores
     const { board, standard, subject, language, learningMode, goal, setContext } = useStudentStore();
     const studentContext: StudentContext = { board, standard, subject, language, learningMode, goal };
     const setSession = useSessionStore(state => state.set);
@@ -70,62 +73,62 @@ const App: React.FC = () => {
         lastLanguage,
     } = useSessionStore();
 
-    // UI-only state stays local
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
-    const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
+    const [isLoading, setIsLoading]           = useState(false);
+    const [isAudioLoading, setIsAudioLoading] = useState(false);
+    const [isImageLoading, setIsImageLoading] = useState(false);
+    const [error, setError]                   = useState<string | null>(null);
 
     const navigateTo = useCallback((page: Page) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         navigate(PAGE_TO_PATH[page]);
     }, [navigate]);
 
-    const handleGenerateStory = useCallback(async (request: StoryRequest) => {
-        if (!user) {
-            setError('Please log in to generate stories.');
-            return;
+    const formatError = (err: any): string => {
+        if (typeof err === 'string') return err;
+        if (err?.message) {
+            try { const p = JSON.parse(err.message); if (p?.error?.message) return p.error.message; } catch { /* not JSON */ }
+            return err.message;
         }
+        return 'An unexpected error occurred.';
+    };
 
+    const logStudyActivity = async (type: string, topic: string, subj: string) => {
+        if (!user) return;
+        try {
+            await addDoc(collection(db, 'study_activity'), { userId: user.uid, type, topic, subject: subj, createdAt: serverTimestamp() });
+        } catch { /* ignore */ }
+    };
+
+    const handleGenerateStory = useCallback(async (request: StoryRequest) => {
+        if (!user) { setError('Please log in to generate stories.'); return; }
         setIsLoading(true);
         setError(null);
         setSession({ generatedStory: null, base64Audio: null, base64Image: null, imageMimeType: null, lastLanguage: request.language });
-
         try {
             const { story } = await generateStory(request);
             setSession({ generatedStory: story });
             navigate('/story');
             setIsLoading(false);
-
             try {
                 await addDoc(collection(db, 'stories'), {
-                    userId: user.uid,
-                    userEmail: user.email || (user as any).email || 'No Email',
+                    userId: user.uid, userEmail: user.email || 'No Email',
                     title: story.title,
                     content: `${story.introduction}\n\n${story.concept_explanation}\n\n${story.resolution}`,
-                    language: request.language,
-                    topic: request.topic,
-                    createdAt: serverTimestamp()
+                    language: request.language, topic: request.topic, createdAt: serverTimestamp(),
                 });
-            } catch (e) {
-                console.error("Failed to save story to Firestore:", e);
-            }
-
+            } catch { /* ignore */ }
             setIsAudioLoading(true);
             setIsImageLoading(true);
-
             generateVoice(story, request)
                 .then(({ base64Audio }) => setSession({ base64Audio }))
-                .catch((e) => console.error("Audio synthesis failed:", e))
+                .catch(() => {})
                 .finally(() => setIsAudioLoading(false));
-
             generateImage(story)
                 .then(({ base64Image, mimeType }) => setSession({ base64Image, imageMimeType: mimeType }))
-                .catch((e) => console.error("Visual synthesis failed:", e))
+                .catch(() => {})
                 .finally(() => setIsImageLoading(false));
-
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred during pedagogical synthesis.');
+            setError(formatError(err));
             setIsLoading(false);
         }
     }, [user, navigate, setSession]);
@@ -135,161 +138,115 @@ const App: React.FC = () => {
         navigate('/generator');
     };
 
-    const logStudyActivity = async (type: string, topic: string, subject: string) => {
-        if (!user) return;
-        try {
-            await addDoc(collection(db, 'study_activity'), {
-                userId: user.uid,
-                type,
-                topic,
-                subject,
-                createdAt: serverTimestamp()
-            });
-        } catch (e) {
-            console.error("Failed to log study activity:", e);
-        }
-    };
-
-    const formatError = (err: any): string => {
-        if (typeof err === 'string') return err;
-        if (err.message) {
-            try {
-                const parsed = JSON.parse(err.message);
-                if (parsed.error && parsed.error.message) return parsed.error.message;
-            } catch (e) {
-                // not JSON
-            }
-            return err.message;
-        }
-        return 'An unexpected error occurred.';
-    };
-
     const handleAskQuestion = async (question: string, context: StudentContext) => {
-        setIsLoading(true);
-        setError(null);
+        setIsLoading(true); setError(null);
         setSession({ currentQuestion: question, base64Image: null, imageMimeType: null });
         setContext(context);
-
         try {
             const data = await generateConcept(question, context);
             setSession({ conceptData: data });
             navigate('/answer');
             await logStudyActivity('concept', question, context.subject);
-
             if (context.learningMode === 'Junior') {
                 setIsImageLoading(true);
-                generateImage({
-                    title: question,
-                    introduction: data.simpleExplanation,
-                    concept_explanation: '',
-                    resolution: ''
-                } as any)
+                generateImage({ title: question, introduction: data.simpleExplanation, concept_explanation: '', resolution: '' } as any)
                     .then(({ base64Image, mimeType }) => setSession({ base64Image, imageMimeType: mimeType }))
-                    .catch(e => console.error("Visual synthesis failed:", e))
+                    .catch(() => {})
                     .finally(() => setIsImageLoading(false));
             }
-        } catch (err: any) {
-            setError(formatError(err));
-        } finally {
-            setIsLoading(false);
-        }
+        } catch (err: any) { setError(formatError(err)); }
+        finally { setIsLoading(false); }
     };
 
     const handleStartPractice = async () => {
-        setIsLoading(true);
-        setError(null);
+        setIsLoading(true); setError(null);
         try {
             const data = await generatePractice(currentQuestion, studentContext);
             setSession({ practiceData: data });
             navigate('/practice');
-        } catch (err: any) {
-            setError(formatError(err));
-        } finally {
-            setIsLoading(false);
-        }
+        } catch (err: any) { setError(formatError(err)); }
+        finally { setIsLoading(false); }
     };
 
     const handleExamMode = async (topic: string, context: StudentContext) => {
-        setIsLoading(true);
-        setError(null);
-        setContext(context);
+        setIsLoading(true); setError(null); setContext(context);
         try {
             const data = await generateExamPrep(topic, context);
             setSession({ examData: data });
             navigate('/exam');
             await logStudyActivity('exam', topic, context.subject);
-        } catch (err: any) {
-            setError(formatError(err));
-        } finally {
-            setIsLoading(false);
-        }
+        } catch (err: any) { setError(formatError(err)); }
+        finally { setIsLoading(false); }
     };
-
-    const handleLearnWithStory = () => navigate('/generator');
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] dark:bg-slate-950">
-                <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-600 dark:text-slate-400 font-medium animate-pulse">Initializing pedagogical environment...</p>
+            <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-slate-500 font-medium animate-pulse">Loading...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-slate-950 transition-colors duration-300">
-            <Header />
-            <main className="flex-grow container mx-auto px-4 py-8 md:py-16 max-w-7xl">
-                <Routes>
-                    <Route path="/" element={
-                        <HomeScreen onAskQuestion={handleAskQuestion} onExamMode={handleExamMode} onLearnWithStory={handleLearnWithStory} isLoading={isLoading} error={error} />
-                    } />
-                    <Route path="/chat" element={<ChatPage />} />
-                    <Route path="/answer" element={
-                        conceptData
-                            ? <AnswerScreen concept={conceptData} question={currentQuestion} context={studentContext} onBack={() => navigate('/')} onPractice={handleStartPractice} onStory={handleLearnWithStory} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} />
-                            : <Navigate to="/" />
-                    } />
-                    <Route path="/story" element={
-                        generatedStory
-                            ? <StoryDisplay story={generatedStory} language={lastLanguage} base64Audio={base64Audio} isAudioLoading={isAudioLoading} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} onTryAnother={handleTryAnother} />
-                            : <Navigate to="/generator" />
-                    } />
-                    <Route path="/generator" element={
+        <Routes>
+            {/* Homepage IS the chat */}
+            <Route path="/" element={<ChatPage />} />
+            <Route path="/chat" element={<Navigate to="/" replace />} />
+
+            {/* Learning flow */}
+            <Route path="/answer" element={
+                conceptData
+                    ? <PageShell><AnswerScreen concept={conceptData} question={currentQuestion} context={studentContext} onBack={() => navigate('/')} onPractice={handleStartPractice} onStory={() => navigate('/generator')} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} /></PageShell>
+                    : <Navigate to="/" />
+            } />
+            <Route path="/story" element={
+                generatedStory
+                    ? <PageShell><StoryDisplay story={generatedStory} language={lastLanguage} base64Audio={base64Audio} isAudioLoading={isAudioLoading} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} onTryAnother={handleTryAnother} /></PageShell>
+                    : <Navigate to="/generator" />
+            } />
+            <Route path="/generator" element={
+                <PageShell>
+                    <div className="container mx-auto px-4 py-8 md:py-16 max-w-7xl">
                         <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
-                    } />
-                    <Route path="/exam" element={
-                        examData
-                            ? <ExamModeScreen examPrep={examData} topic={studentContext.subject} context={studentContext} onBack={() => navigate('/')} />
-                            : <Navigate to="/" />
-                    } />
-                    <Route path="/practice" element={
-                        practiceData
-                            ? <PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/answer')} />
-                            : <Navigate to="/" />
-                    } />
-                    <Route path="/dashboard" element={<StudentDashboard onNavigate={navigateTo} />} />
-                    <Route path="/my-stories" element={<MyStories onNavigate={navigateTo} />} />
-                    <Route path="/about" element={<AboutUs onNavigate={navigateTo} />} />
-                    <Route path="/teachers" element={<Teachers onNavigate={navigateTo} />} />
-                    <Route path="/parents" element={<Parents onNavigate={navigateTo} />} />
-                    <Route path="/research" element={<Research onNavigate={navigateTo} />} />
-                    <Route path="/pilot" element={<PilotProgram onNavigate={navigateTo} />} />
-                    <Route path="/contact" element={<Contact onNavigate={navigateTo} />} />
-                    <Route path="/founder" element={<Founder onNavigate={navigateTo} />} />
-                    <Route path="/privacy" element={<PrivacyPolicy onNavigate={navigateTo} />} />
-                    <Route path="/inclusive" element={<InclusiveResearch onNavigate={navigateTo} />} />
-                    <Route path="/admin" element={
-                        <div className="p-8 text-center">
-                            <h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2>
-                            <p>Coming soon: Student analytics and story review.</p>
-                        </div>
-                    } />
-                    <Route path="*" element={<Navigate to="/" />} />
-                </Routes>
-            </main>
-            <Footer />
-        </div>
+                    </div>
+                </PageShell>
+            } />
+            <Route path="/exam" element={
+                examData
+                    ? <PageShell><ExamModeScreen examPrep={examData} topic={studentContext.subject} context={studentContext} onBack={() => navigate('/')} /></PageShell>
+                    : <Navigate to="/" />
+            } />
+            <Route path="/practice" element={
+                practiceData
+                    ? <PageShell><PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/answer')} /></PageShell>
+                    : <Navigate to="/" />
+            } />
+
+            {/* Secondary pages */}
+            <Route path="/dashboard"  element={<PageShell><div className="container mx-auto px-4 py-8 max-w-7xl"><StudentDashboard onNavigate={navigateTo} /></div></PageShell>} />
+            <Route path="/my-stories" element={<PageShell><div className="container mx-auto px-4 py-8 max-w-7xl"><MyStories onNavigate={navigateTo} /></div></PageShell>} />
+            <Route path="/about"      element={<PageShell><AboutUs onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/teachers"   element={<PageShell><Teachers onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/parents"    element={<PageShell><Parents onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/research"   element={<PageShell><Research onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/pilot"      element={<PageShell><PilotProgram onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/contact"    element={<PageShell><Contact onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/founder"    element={<PageShell><Founder onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/privacy"    element={<PageShell><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/inclusive"  element={<PageShell><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/admin"      element={
+                <PageShell>
+                    <div className="p-8 text-center">
+                        <h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2>
+                        <p>Coming soon: Student analytics and story review.</p>
+                    </div>
+                </PageShell>
+            } />
+            <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
     );
 };
 

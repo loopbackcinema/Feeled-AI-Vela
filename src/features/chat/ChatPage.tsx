@@ -1,140 +1,451 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {
-    Send, Mic, Loader2, Volume2, VolumeX,
-    RotateCcw, Save, BookOpen, MessageSquare, Settings,
-} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import {
+    Menu, X, Plus, Mic, Send, Loader2, BookOpen,
+    LogIn, LogOut, SquarePen, Image as ImageIcon, Settings2, ChevronRight,
+} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useStudentStore } from '../../stores/studentStore';
 import { useSessionStore } from '../../stores/sessionStore';
 import { useAuth } from '../../context/AuthContext';
-import { db } from '../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { signInWithGoogle, logOut, db } from '../../firebase';
+import { collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage } from '../../types';
 
-function buildWAVDataURL(base64PCM: string, sampleRate = 24000): string {
-    const pcm = Uint8Array.from(atob(base64PCM), c => c.charCodeAt(0));
-    const dataLen = pcm.byteLength;
-    const buf = new ArrayBuffer(44 + dataLen);
-    const v = new DataView(buf);
-    const s = (o: number, str: string) => [...str].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
-    s(0, 'RIFF'); v.setUint32(4, 36 + dataLen, true); s(8, 'WAVE');
-    s(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
-    v.setUint16(22, 1, true); v.setUint32(24, sampleRate, true);
-    v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
-    s(36, 'data'); v.setUint32(40, dataLen, true);
-    new Uint8Array(buf).set(pcm, 44);
-    let bin = '';
-    const bytes = new Uint8Array(buf);
-    for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
-    return `data:audio/wav;base64,${btoa(bin)}`;
-}
-
-const ALL_GRADES = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'];
+// ── Constants ──────────────────────────────────────────────────────────────────
+const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
 const ALL_BOARDS = ['Tamil Nadu State Board (Samacheer)', 'CBSE', 'ICSE'];
-const LANGUAGES = ['English', 'Tamil', 'Hindi', 'Telugu', 'Kannada', 'Malayalam'];
-
+const LANGUAGES  = ['English', 'Tamil', 'Hindi', 'Telugu', 'Kannada', 'Malayalam'];
 const STT_LANG: Record<string, string> = {
     English: 'en-IN', Tamil: 'ta-IN', Hindi: 'hi-IN',
     Telugu: 'te-IN', Kannada: 'kn-IN', Malayalam: 'ml-IN',
 };
 
+const CONTEXT_QUESTION =
+    'Which grade and subject are you studying? 🎓\n\nநீங்கள் எந்த வகுப்பு படிக்கிறீர்கள்? எந்த பாடம்?';
+
 function getSubjectsForGrade(grade: string): string[] {
-    const num = parseInt(grade);
-    if (num <= 7) return ['Maths', 'English', 'Tamil', 'EVS', 'General Knowledge'];
-    if (num <= 10) return ['Tamil', 'English', 'Maths', 'Science', 'Social Science'];
+    const n = parseInt(grade);
+    if (n <= 7)  return ['Maths', 'English', 'Tamil', 'EVS', 'General Knowledge'];
+    if (n <= 10) return ['Tamil', 'English', 'Maths', 'Science', 'Social Science'];
     return ['Tamil', 'English', 'Maths', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
 }
 
-const SUBJECT_SUGGESTIONS: Record<string, string[]> = {
-    Maths: ['How do I solve quadratic equations?', 'Explain algebra with an example', 'What are prime numbers?', 'Help me understand fractions', 'What is the Pythagorean theorem?'],
-    Science: ["Explain Newton's laws of motion", 'What is photosynthesis?', 'How does osmosis work?', 'What are the types of chemical reactions?', 'Explain the structure of an atom'],
-    'Social Science': ['Summarise the French Revolution', 'What is democracy?', 'Key features of the Indian Constitution', 'Explain the causes of World War II', 'What are the branches of government?'],
-    Physics: ['Explain electromagnetic induction', "What is Ohm's law?", 'Derive the equations of motion', 'What is the photoelectric effect?', 'Explain waves and sound'],
-    Chemistry: ['Explain periodic table trends', 'What is a chemical bond?', 'How does electrolysis work?', 'Explain organic chemistry basics', 'What is the mole concept?'],
-    Biology: ['Explain cell division: mitosis vs meiosis', 'How does the immune system work?', 'Explain genetics and heredity', 'What is the central dogma?', 'Describe the human digestive system'],
-    Tamil: ['தமிழ் இலக்கணம் விளக்கு', 'சங்க இலக்கியம் பற்றி கூறு', 'கவிதை எழுத உதவு', 'தமிழ் எழுத்துகள் என்ன?', 'திருக்குறள் பற்றி விளக்கு'],
-    English: ['Help me improve my essay writing', 'Explain active vs passive voice', 'What are literary devices?', 'Help with comprehension skills', 'Explain tenses in English'],
-    EVS: ['What are natural resources?', 'Explain the water cycle', 'What causes pollution?', 'How can we protect the environment?', 'What is the food chain?'],
-    'General Knowledge': ['What are the continents?', 'Name the planets in our solar system', 'Who was the first President of India?', "What is India's national animal?", 'What is the capital of France?'],
-    'Computer Science': ['What is an algorithm?', 'Explain object-oriented programming', 'What is the difference between RAM and ROM?', 'How does the internet work?', 'What are data structures?'],
-};
-
-function getSuggestions(subject: string): string[] {
-    return SUBJECT_SUGGESTIONS[subject] ?? [
-        'Help me revise for tomorrow\'s exam',
-        'Explain this concept in simple terms',
-        'Give me practice questions',
-        'Summarise the key points',
+function parseContextFromText(text: string): { standard: string; subject: string } | null {
+    const lc = text.toLowerCase();
+    const gradeMatch = text.match(/(\d+)(?:st|nd|rd|th)?/);
+    const grade = gradeMatch ? `${gradeMatch[1]}th` : null;
+    const subjectOrder = [
+        'computer science', 'social science', 'biology', 'chemistry',
+        'physics', 'science', 'maths', 'math', 'english', 'tamil', 'evs',
     ];
+    let foundSubject: string | null = null;
+    for (const s of subjectOrder) {
+        if (lc.includes(s)) {
+            foundSubject =
+                s === 'math'           ? 'Maths' :
+                s === 'social science' ? 'Social Science' :
+                s === 'computer science' ? 'Computer Science' :
+                s.charAt(0).toUpperCase() + s.slice(1);
+            break;
+        }
+    }
+    if (!grade && !foundSubject) return null;
+    return { standard: grade || '10th', subject: foundSubject || 'Science' };
 }
 
+async function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
+interface ChatHistoryItem {
+    id: string;
+    subject: string;
+    standard: string;
+    firstMessage: string;
+}
+
+// ── Sidebar ────────────────────────────────────────────────────────────────────
+interface SidebarProps {
+    open: boolean;
+    onClose: () => void;
+    user: any;
+    chatHistory: ChatHistoryItem[];
+    onNewChat: () => void;
+    onAuth: () => void;
+    onNavigate: (path: string) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ open, onClose, user, chatHistory, onNewChat, onAuth, onNavigate }) => (
+    <>
+        {open && (
+            <div
+                className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+                onClick={onClose}
+            />
+        )}
+        <div
+            className={`fixed top-0 left-0 h-full w-72 bg-[#111111] z-50 flex flex-col border-r border-[#222] transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        >
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 py-4 border-b border-[#222]">
+                <button onClick={onClose} className="p-1 rounded-md text-[#777] hover:text-white hover:bg-[#222] transition-colors">
+                    <X className="w-5 h-5" />
+                </button>
+                <img
+                    src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png"
+                    alt="FeelEd AI"
+                    className="w-8 h-8 object-contain"
+                    referrerPolicy="no-referrer"
+                />
+                <span className="font-black text-white text-base tracking-tight">FeelEd AI</span>
+            </div>
+
+            {/* User profile */}
+            <div className="px-4 py-3 border-b border-[#222]">
+                {user && (
+                    <div className="flex items-center gap-3 mb-3">
+                        {user.photoURL ? (
+                            <img src={user.photoURL} alt="" className="w-9 h-9 rounded-full ring-2 ring-indigo-600/40" />
+                        ) : (
+                            <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-black text-sm">
+                                {user.displayName?.[0]?.toUpperCase() ?? 'U'}
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <p className="text-white font-bold text-sm truncate">{user.displayName || 'Student'}</p>
+                            <p className="text-[#666] text-xs truncate">{user.email}</p>
+                        </div>
+                    </div>
+                )}
+                <button
+                    onClick={onAuth}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1E1E1E] hover:bg-[#2A2A2A] text-sm font-semibold text-[#CCCCCC] transition-colors"
+                >
+                    {user ? <LogOut className="w-4 h-4 flex-shrink-0" /> : <LogIn className="w-4 h-4 flex-shrink-0" />}
+                    {user ? 'Sign Out' : 'Student Login'}
+                </button>
+            </div>
+
+            {/* New Chat */}
+            <div className="px-4 py-3 border-b border-[#222]">
+                <button
+                    onClick={onNewChat}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white text-sm font-bold transition-colors"
+                >
+                    <SquarePen className="w-4 h-4 flex-shrink-0" />
+                    New Chat
+                </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-y-auto">
+                {/* Chat History */}
+                {chatHistory.length > 0 && (
+                    <div className="px-4 py-3 border-b border-[#222]">
+                        <p className="text-[#444] text-[10px] font-black uppercase tracking-widest mb-2 px-1">Recent</p>
+                        <div className="space-y-0.5">
+                            {chatHistory.map(item => (
+                                <button
+                                    key={item.id}
+                                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-[#1E1E1E] transition-colors group"
+                                >
+                                    <p className="text-[#CCCCCC] text-xs font-medium truncate group-hover:text-white">{item.firstMessage}</p>
+                                    <p className="text-[#555] text-[10px] mt-0.5">{item.subject} · {item.standard}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Navigation */}
+                <div className="px-4 py-3">
+                    <p className="text-[#444] text-[10px] font-black uppercase tracking-widest mb-2 px-1">Navigate</p>
+                    <div className="space-y-0.5">
+                        {[
+                            { label: 'About Us', path: '/about' },
+                            { label: 'For Teachers', path: '/teachers' },
+                            { label: 'For Parents', path: '/parents' },
+                            { label: 'Pilot Program', path: '/pilot' },
+                            { label: 'Contact', path: '/contact' },
+                        ].map(item => (
+                            <button
+                                key={item.path}
+                                onClick={() => onNavigate(item.path)}
+                                className="w-full text-left px-3 py-2.5 rounded-lg text-[#999] hover:text-white hover:bg-[#1E1E1E] text-sm transition-colors flex items-center justify-between group"
+                            >
+                                {item.label}
+                                <ChevronRight className="w-3.5 h-3.5 text-[#444] group-hover:text-[#888] transition-colors" />
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Social icons */}
+                    <div className="flex items-center gap-4 pt-4 mt-3 border-t border-[#222] px-1">
+                        <a href="https://www.instagram.com/feeledai/" target="_blank" rel="noopener noreferrer" title="Instagram" className="text-[#555] hover:text-[#E4405F] transition-colors">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </a>
+                        <a href="https://x.com/FeelEdAI" target="_blank" rel="noopener noreferrer" title="Twitter / X" className="text-[#555] hover:text-white transition-colors">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                        </a>
+                        <a href="https://www.linkedin.com/company/feeled-ai/" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="text-[#555] hover:text-[#0A66C2] transition-colors">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
+                        </a>
+                        <a href="https://www.youtube.com/@FeelEdAI" target="_blank" rel="noopener noreferrer" title="YouTube" className="text-[#555] hover:text-[#FF0000] transition-colors">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-3 border-t border-[#222]">
+                <p className="text-[#444] text-xs text-center">Powered by Sarvam</p>
+            </div>
+        </div>
+    </>
+);
+
+// ── Plus Popup ─────────────────────────────────────────────────────────────────
+interface PlusMenuProps {
+    board: string; setBoard: (v: string) => void;
+    grade: string; setGrade: (v: string) => void;
+    subject: string; setSubject: (v: string) => void;
+    language: string; setLanguage: (v: string) => void;
+    onApply: () => void;
+    onClose: () => void;
+    fileInputRef: React.RefObject<HTMLInputElement>;
+    onImageClick: () => void;
+}
+
+const PlusMenu: React.FC<PlusMenuProps> = ({
+    board, setBoard, grade, setGrade, subject, setSubject, language, setLanguage,
+    onApply, onClose, fileInputRef, onImageClick,
+}) => {
+    const subjectsForGrade = getSubjectsForGrade(grade);
+    const effectiveSubject = subjectsForGrade.includes(subject) ? subject : subjectsForGrade[0];
+
+    return (
+        <div className="absolute bottom-full left-0 mb-3 w-80 bg-[#161616] border border-[#2A2A2A] rounded-2xl shadow-2xl overflow-hidden z-50 animate-fade-in">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[#222]">
+                <span className="text-white font-bold text-sm">Context & Upload</span>
+                <button onClick={onClose} className="text-[#666] hover:text-white transition-colors">
+                    <X className="w-4 h-4" />
+                </button>
+            </div>
+
+            {/* Image Upload */}
+            <button
+                onClick={onImageClick}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#1E1E1E] transition-colors text-left border-b border-[#222]"
+            >
+                <div className="w-9 h-9 rounded-xl bg-[#2A2A2A] flex items-center justify-center text-indigo-400 flex-shrink-0">
+                    <ImageIcon className="w-5 h-5" />
+                </div>
+                <div>
+                    <p className="text-white text-sm font-semibold">Upload Textbook Photo</p>
+                    <p className="text-[#666] text-xs">Send an image to the AI</p>
+                </div>
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={() => {}} />
+
+            {/* Context Settings */}
+            <div className="px-4 py-3 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                    <Settings2 className="w-3.5 h-3.5 text-[#666]" />
+                    <span className="text-[#888] text-[11px] font-bold uppercase tracking-widest">Set Context</span>
+                </div>
+
+                {/* Board */}
+                <div>
+                    <label className="text-[#666] text-[10px] uppercase tracking-wider mb-1 block">Board</label>
+                    <select
+                        value={board}
+                        onChange={e => setBoard(e.target.value)}
+                        className="w-full bg-[#1E1E1E] border border-[#333] rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                    >
+                        {ALL_BOARDS.map(b => (
+                            <option key={b} value={b}>{b === 'Tamil Nadu State Board (Samacheer)' ? 'TN Samacheer' : b}</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Grade + Subject row */}
+                <div className="grid grid-cols-2 gap-2">
+                    <div>
+                        <label className="text-[#666] text-[10px] uppercase tracking-wider mb-1 block">Grade</label>
+                        <select
+                            value={grade}
+                            onChange={e => setGrade(e.target.value)}
+                            className="w-full bg-[#1E1E1E] border border-[#333] rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                        >
+                            {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-[#666] text-[10px] uppercase tracking-wider mb-1 block">Subject</label>
+                        <select
+                            value={effectiveSubject}
+                            onChange={e => setSubject(e.target.value)}
+                            className="w-full bg-[#1E1E1E] border border-[#333] rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                        >
+                            {subjectsForGrade.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Language */}
+                <div>
+                    <label className="text-[#666] text-[10px] uppercase tracking-wider mb-1 block">Language</label>
+                    <select
+                        value={language}
+                        onChange={e => setLanguage(e.target.value)}
+                        className="w-full bg-[#1E1E1E] border border-[#333] rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                    >
+                        {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
+                </div>
+
+                <button
+                    onClick={onApply}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 rounded-lg transition-colors"
+                >
+                    Apply Context
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// ── Main ChatPage ──────────────────────────────────────────────────────────────
 const ChatPage: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { board, standard, subject, language, setContext } = useStudentStore();
     const chatMessages = useSessionStore(s => s.chatMessages);
-    const chatReady = useSessionStore(s => s.chatReady);
     const setSession = useSessionStore(s => s.set);
 
-    // Setup panel local state (pre-filled from existing context)
-    const [setupBoard, setSetupBoard] = useState(board || ALL_BOARDS[0]);
-    const [setupGrade, setSetupGrade] = useState(standard || '10th');
-    const [setupSubject, setSetupSubject] = useState(subject || 'Science');
+    // UI state
+    const [input, setInput]               = useState('');
+    const [isLoading, setIsLoading]       = useState(false);
+    const [sidebarOpen, setSidebarOpen]   = useState(false);
+    const [plusOpen, setPlusOpen]         = useState(false);
+    const [isListening, setIsListening]   = useState(false);
+    const [isSttLoading, setIsSttLoading] = useState(false);
+    const [awaitingContext, setAwaitingContext] = useState(false);
+    const [pendingQuestion, setPendingQuestion] = useState('');
+    const [chatHistory, setChatHistory]   = useState<ChatHistoryItem[]>([]);
+    const [uploadedImage, setUploadedImage] = useState<{ base64: string; mime: string } | null>(null);
+
+    // Plus panel local context state (pre-filled from store)
+    const [setupBoard, setSetupBoard]       = useState(board || ALL_BOARDS[0]);
+    const [setupGrade, setSetupGrade]       = useState(standard || '10th');
+    const [setupSubject, setSetupSubject]   = useState(subject || 'Science');
     const [setupLanguage, setSetupLanguage] = useState(language || 'English');
 
-    // Derived: ensure subject is valid for chosen grade when grade changes
-    const subjectsForGrade = getSubjectsForGrade(setupGrade);
-    const effectiveSubject = subjectsForGrade.includes(setupSubject) ? setupSubject : subjectsForGrade[0];
+    const bottomRef    = useRef<HTMLDivElement>(null);
+    const inputRef     = useRef<HTMLInputElement>(null);
+    const mediaRef     = useRef<MediaRecorder | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const plusRef      = useRef<HTMLDivElement>(null);
 
-    const [input, setInput] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [isListening, setIsListening] = useState(false);
-    const [isSttLoading, setIsSttLoading] = useState(false);
-    const [playingMsgId, setPlayingMsgId] = useState<string | null>(null);
-    const [isSaving, setIsSaving] = useState(false);
-    const [savedOk, setSavedOk] = useState(false);
-
-    const bottomRef = useRef<HTMLDivElement>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-
-    const grade = standard.replace(/\D/g, '') || standard;
+    const grade  = (standard || '10').replace(/\D/g, '') || '10';
     const medium = language === 'Tamil' ? 'Tamil' : 'English';
+    const contextReady  = !!(standard && subject && board);
+    const hasMessages   = chatMessages.length > 0;
+    const lastAiIndex   = chatMessages.reduceRight((acc, m, i) => (acc === -1 && m.role === 'model' ? i : acc), -1);
 
+    // Force dark mode on
+    useEffect(() => { document.documentElement.classList.add('dark'); }, []);
+
+    // Scroll to bottom on new messages
+    useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages, isLoading]);
+
+    // Close plus menu on outside click
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [chatMessages, isLoading]);
+        if (!plusOpen) return;
+        const handle = (e: MouseEvent) => {
+            if (plusRef.current && !plusRef.current.contains(e.target as Node)) setPlusOpen(false);
+        };
+        document.addEventListener('mousedown', handle);
+        return () => document.removeEventListener('mousedown', handle);
+    }, [plusOpen]);
 
-    // Sync setup fields when returning to setup panel
+    // Load chat history from Firestore
     useEffect(() => {
-        if (!chatReady) {
-            setSetupBoard(board || ALL_BOARDS[0]);
-            setSetupGrade(standard || '10th');
-            setSetupSubject(subject || 'Science');
-            setSetupLanguage(language || 'English');
-        }
-    }, [chatReady]);
+        if (!user) return;
+        (async () => {
+            try {
+                const q = query(
+                    collection(db, 'study_chats'),
+                    where('userId', '==', user.uid),
+                    orderBy('createdAt', 'desc'),
+                    limit(5)
+                );
+                const snap = await getDocs(q);
+                setChatHistory(snap.docs.map(doc => {
+                    const d = doc.data();
+                    return {
+                        id: doc.id,
+                        subject:      d.subject   || 'Chat',
+                        standard:     d.standard  || '',
+                        firstMessage: d.messages?.[0]?.text?.slice(0, 55) || 'Conversation',
+                    };
+                }));
+            } catch { /* silently fail */ }
+        })();
+    }, [user]);
 
-    const handleStartLearning = () => {
-        const finalSubject = subjectsForGrade.includes(effectiveSubject) ? effectiveSubject : subjectsForGrade[0];
-        const learningMode = parseInt(setupGrade) <= 7 ? 'Junior' : 'Senior';
+    // Apply context from plus panel
+    const applyContext = useCallback(() => {
+        const subjects = getSubjectsForGrade(setupGrade);
+        const finalSubject = subjects.includes(setupSubject) ? setupSubject : subjects[0];
         setContext({
             board: setupBoard,
             standard: setupGrade,
             subject: finalSubject,
             language: setupLanguage,
-            learningMode,
+            learningMode: parseInt(setupGrade) <= 7 ? 'Junior' : 'Senior',
         });
-        setSession({ chatReady: true });
-    };
+        setPlusOpen(false);
+    }, [setupBoard, setupGrade, setupSubject, setupLanguage, setContext]);
 
+    // API call helper
+    const callAPI = useCallback(async (
+        text: string,
+        history: StudyChatMessage[],
+        ctx: { board: string; grade: string; subject: string; language: string; medium: string },
+        imgBase64?: string,
+        imgMime?: string,
+    ) => {
+        const res = await fetch('/api/chat-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: text,
+                history: history.slice(-12).map(m => ({ role: m.role, text: m.text })),
+                context: ctx,
+                imageBase64: imgBase64 || undefined,
+                imageMimeType: imgMime || undefined,
+            }),
+        });
+        if (!res.ok) throw new Error('API error');
+        return res.json() as Promise<{ reply: string; ragUsed: boolean }>;
+    }, []);
+
+    // Send a message
     const sendMessage = useCallback(async (text: string) => {
         const trimmed = text.trim();
         if (!trimmed || isLoading) return;
+        setInput('');
 
         const userMsg: StudyChatMessage = {
             id: `${Date.now()}-u`,
@@ -143,55 +454,95 @@ const ChatPage: React.FC = () => {
             timestamp: Date.now(),
         };
 
+        // No context yet — inject scripted AI question
+        if (!contextReady && !awaitingContext) {
+            const aiMsg: StudyChatMessage = {
+                id: `${Date.now()}-q`,
+                role: 'model',
+                text: CONTEXT_QUESTION,
+                timestamp: Date.now(),
+            };
+            setSession({ chatMessages: [userMsg, aiMsg] });
+            setPendingQuestion(trimmed);
+            setAwaitingContext(true);
+            setUploadedImage(null);
+            return;
+        }
+
+        // User answering grade/subject question
+        if (awaitingContext) {
+            const parsed = parseContextFromText(trimmed);
+            const actualGrade   = parsed?.standard || standard || '10th';
+            const actualSubject = parsed?.subject  || subject  || 'Science';
+            const actualLang    = language || 'English';
+            const actualBoard   = board   || ALL_BOARDS[0];
+
+            if (parsed) {
+                setContext({
+                    standard: actualGrade,
+                    subject: actualSubject,
+                    learningMode: parseInt(actualGrade) <= 7 ? 'Junior' : 'Senior',
+                });
+            }
+
+            const newMessages = [...chatMessages, userMsg];
+            setSession({ chatMessages: newMessages });
+            setAwaitingContext(false);
+            setIsLoading(true);
+
+            try {
+                const questionToAsk = pendingQuestion
+                    ? `The student is in grade ${actualGrade} studying ${actualSubject}. They originally asked: "${pendingQuestion}". Please answer that question now.`
+                    : trimmed;
+                const data = await callAPI(
+                    questionToAsk,
+                    newMessages,
+                    {
+                        board: actualBoard,
+                        grade: actualGrade.replace(/\D/g, '') || '10',
+                        subject: actualSubject,
+                        language: actualLang,
+                        medium: actualLang === 'Tamil' ? 'Tamil' : 'English',
+                    },
+                );
+                setSession({ chatMessages: [...newMessages, { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, timestamp: Date.now() }] });
+                setPendingQuestion('');
+            } catch {
+                setSession({ chatMessages: [...newMessages, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
+            } finally {
+                setIsLoading(false);
+                setUploadedImage(null);
+            }
+            return;
+        }
+
+        // Normal message with context
         const updated = [...chatMessages, userMsg];
         setSession({ chatMessages: updated });
-        setInput('');
         setIsLoading(true);
 
         try {
-            const res = await fetch('/api/chat-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: trimmed,
-                    history: updated.slice(-12).map(m => ({ role: m.role, text: m.text })),
-                    context: { board, grade, subject, language, medium },
-                }),
-            });
-            if (!res.ok) throw new Error('API error');
-            const data = await res.json();
-            const aiMsg: StudyChatMessage = {
-                id: `${Date.now()}-a`,
-                role: 'model',
-                text: data.reply,
-                ragUsed: data.ragUsed,
-                timestamp: Date.now(),
-            };
-            setSession({ chatMessages: [...updated, aiMsg] });
+            const data = await callAPI(
+                trimmed,
+                updated,
+                { board, grade, subject, language, medium },
+                uploadedImage?.base64,
+                uploadedImage?.mime,
+            );
+            setSession({ chatMessages: [...updated, { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, timestamp: Date.now() }] });
         } catch {
-            setSession({
-                chatMessages: [
-                    ...updated,
-                    { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() },
-                ],
-            });
+            setSession({ chatMessages: [...updated, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
         } finally {
             setIsLoading(false);
+            setUploadedImage(null);
         }
-    }, [chatMessages, isLoading, board, grade, subject, language, medium, setSession]);
+    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        sendMessage(input);
-    };
-
+    // STT
     const handleVoice = async () => {
-        if (isListening) {
-            mediaRecorderRef.current?.stop();
-            return;
-        }
+        if (isListening) { mediaRef.current?.stop(); return; }
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream   = await navigator.mediaDevices.getUserMedia({ audio: true });
             const recorder = new MediaRecorder(stream);
             const chunks: BlobPart[] = [];
             recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
@@ -200,466 +551,305 @@ const ChatPage: React.FC = () => {
                 setIsListening(false);
                 setIsSttLoading(true);
                 try {
-                    const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
-                    const audioBase64 = await new Promise<string>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(blob);
-                    });
-                    const r = await fetch('/api/sarvam-stt', {
+                    const blob  = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+                    const audio = await blobToBase64(blob);
+                    const r     = await fetch('/api/sarvam-stt', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            audioBase64,
-                            mimeType: blob.type,
-                            languageCode: STT_LANG[language] ?? 'en-IN',
-                        }),
+                        body: JSON.stringify({ audioBase64: audio, mimeType: blob.type, languageCode: STT_LANG[language] ?? 'en-IN' }),
                     });
                     const d = await r.json();
-                    if (d.transcript) {
-                        setInput(d.transcript);
-                        inputRef.current?.focus();
-                    }
-                } catch (err) {
-                    console.error('STT error:', err);
-                } finally {
-                    setIsSttLoading(false);
-                }
+                    if (d.transcript) { setInput(d.transcript); inputRef.current?.focus(); }
+                } catch { /* ignore */ } finally { setIsSttLoading(false); }
             };
-            mediaRecorderRef.current = recorder;
+            mediaRef.current = recorder;
             setIsListening(true);
             recorder.start();
             setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 8000);
         } catch {
-            alert('Could not access microphone. Please allow microphone permissions and try again.');
+            alert('Could not access microphone. Please allow microphone permissions.');
         }
     };
 
-    const handleTTS = async (msg: StudyChatMessage) => {
-        if (playingMsgId === msg.id) {
-            audioRef.current?.pause();
-            setPlayingMsgId(null);
-            return;
-        }
-        try {
-            setPlayingMsgId(msg.id);
-            const res = await fetch('/api/audio', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    fullStoryText: msg.text.slice(0, 600),
-                    language,
-                    narratorVoice: 'Female',
-                    emotionTone: 'warm',
-                }),
-            });
-            if (!res.ok) throw new Error('TTS failed');
-            const { base64Audio } = await res.json();
-            const audio = new Audio(buildWAVDataURL(base64Audio));
-            audioRef.current = audio;
-            audio.onended = () => setPlayingMsgId(null);
-            audio.onerror = () => setPlayingMsgId(null);
-            audio.play().catch(() => setPlayingMsgId(null));
-        } catch {
-            setPlayingMsgId(null);
-        }
+    // Image upload
+    const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const b64 = await blobToBase64(file);
+        setUploadedImage({ base64: b64, mime: file.type });
+        setPlusOpen(false);
+        e.target.value = '';
     };
 
+    // New chat
     const handleNewChat = () => {
-        audioRef.current?.pause();
-        setPlayingMsgId(null);
-        setSession({ chatReady: false, chatMessages: [] });
+        setSession({ chatMessages: [] });
+        setAwaitingContext(false);
+        setPendingQuestion('');
         setInput('');
-        setSavedOk(false);
+        setUploadedImage(null);
+        setSidebarOpen(false);
     };
 
-    const handleChange = () => {
-        audioRef.current?.pause();
-        setPlayingMsgId(null);
-        setSession({ chatReady: false });
-    };
-
-    const handleSave = async () => {
-        if (!user || chatMessages.length === 0 || isSaving) return;
-        setIsSaving(true);
-        try {
-            await addDoc(collection(db, 'study_chats'), {
-                userId: user.uid,
-                board, standard, subject, language,
-                messages: chatMessages.map(m => ({ role: m.role, text: m.text })),
-                createdAt: serverTimestamp(),
-            });
-            setSavedOk(true);
-            setTimeout(() => setSavedOk(false), 3000);
-        } catch (err) {
-            console.error('Save chat failed:', err);
-        } finally {
-            setIsSaving(false);
+    // Auth
+    const handleAuth = async () => {
+        if (user) {
+            await logOut();
+        } else {
+            try { await signInWithGoogle(); } catch (e: any) { alert(e.message || 'Login failed'); }
         }
     };
 
-    const lastAiIndex = chatMessages.reduceRight(
-        (acc, msg, i) => (acc === -1 && msg.role === 'model' ? i : acc), -1
-    );
-
-    // ─── SETUP PANEL ────────────────────────────────────────────────────────────
-    if (!chatReady) {
-        return (
-            <div
-                className="-mx-4 -my-8 md:-my-16 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-8 overflow-y-auto"
-                style={{ height: 'calc(100dvh - 64px)' }}
-            >
-                <div className="w-full max-w-md animate-fade-in">
-                    {/* Header */}
-                    <div className="flex flex-col items-center mb-8">
-                        <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/40 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
-                            <MessageSquare className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center">
-                            Study with FeelEd AI
-                        </h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 text-center">
-                            Set your context and start a personalised chat session
-                        </p>
-                    </div>
-
-                    {/* Setup Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg p-6 space-y-5">
-
-                        {/* Board */}
-                        <div>
-                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                                Syllabus / Board
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {ALL_BOARDS.map(b => (
-                                    <button
-                                        key={b}
-                                        type="button"
-                                        onClick={() => setSetupBoard(b)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                                            setupBoard === b
-                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
-                                        }`}
-                                    >
-                                        {b === 'Tamil Nadu State Board (Samacheer)' ? 'TN Samacheer' : b}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Grade */}
-                        <div>
-                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                                Grade
-                            </label>
-                            <div className="flex flex-wrap gap-1.5">
-                                {ALL_GRADES.map(g => (
-                                    <button
-                                        key={g}
-                                        type="button"
-                                        onClick={() => {
-                                            setSetupGrade(g);
-                                            const newSubjects = getSubjectsForGrade(g);
-                                            if (!newSubjects.includes(setupSubject)) {
-                                                setSetupSubject(newSubjects[0]);
-                                            }
-                                        }}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                                            setupGrade === g
-                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
-                                        }`}
-                                    >
-                                        {g}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Subject */}
-                        <div>
-                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                                Subject
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {subjectsForGrade.map(s => (
-                                    <button
-                                        key={s}
-                                        type="button"
-                                        onClick={() => setSetupSubject(s)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                                            effectiveSubject === s
-                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
-                                        }`}
-                                    >
-                                        {s}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Language */}
-                        <div>
-                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                                Language
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {LANGUAGES.map(l => (
-                                    <button
-                                        key={l}
-                                        type="button"
-                                        onClick={() => setSetupLanguage(l)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                                            setupLanguage === l
-                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
-                                        }`}
-                                    >
-                                        {l}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Start button */}
-                        <button
-                            onClick={handleStartLearning}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black uppercase tracking-widest text-sm py-3.5 rounded-xl shadow-lg transition-all"
-                        >
-                            Start Learning →
-                        </button>
-                    </div>
-
-                    {/* Back link */}
-                    <button
-                        onClick={() => navigate('/')}
-                        className="mt-4 w-full text-center text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-2"
-                    >
-                        ← Back to Home
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // ─── CHAT PANEL ─────────────────────────────────────────────────────────────
+    // ── Render ─────────────────────────────────────────────────────────────────
     return (
-        <div
-            className="-mx-4 -my-8 md:-my-16 flex flex-col bg-slate-50 dark:bg-slate-950"
-            style={{ height: 'calc(100dvh - 64px)' }}
-        >
-            {/* Context bar */}
-            <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto no-scrollbar">
-                    <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[11px] font-black uppercase tracking-wider whitespace-nowrap">
-                        {subject}
-                    </span>
-                    <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-[11px] font-bold whitespace-nowrap">
-                        Grade {grade}
-                    </span>
-                    <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-[11px] font-bold whitespace-nowrap">
-                        {language}
-                    </span>
-                </div>
+        <div className="fixed inset-0 bg-[#0D0D0D] text-white flex flex-col overflow-hidden">
 
-                <div className="flex items-center gap-1 flex-shrink-0">
-                    {user && chatMessages.length > 0 && (
-                        <button
-                            onClick={handleSave}
-                            disabled={isSaving || savedOk}
-                            title={savedOk ? 'Saved!' : 'Save conversation'}
-                            className={`p-1.5 rounded-lg transition-colors ${
-                                savedOk
-                                    ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20'
-                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                        >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        </button>
-                    )}
-                    <button
-                        onClick={handleChange}
-                        title="Change subject or grade"
-                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                        <Settings className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Change</span>
-                    </button>
-                    <button
-                        onClick={handleNewChat}
-                        title="New conversation"
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    >
-                        <RotateCcw className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">New</span>
-                    </button>
-                </div>
+            {/* Sidebar */}
+            <Sidebar
+                open={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+                user={user}
+                chatHistory={chatHistory}
+                onNewChat={handleNewChat}
+                onAuth={handleAuth}
+                onNavigate={path => { navigate(path); setSidebarOpen(false); }}
+            />
+
+            {/* Top bar */}
+            <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3">
+                <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="p-2 rounded-xl text-[#777] hover:text-white hover:bg-[#1A1A1A] transition-colors"
+                    aria-label="Open sidebar"
+                >
+                    <Menu className="w-5 h-5" />
+                </button>
+
+                {hasMessages && (
+                    <div className="flex items-center gap-2 min-w-0 overflow-x-auto no-scrollbar">
+                        <span className="px-2.5 py-1 bg-indigo-900/40 text-indigo-300 rounded-full text-[11px] font-bold whitespace-nowrap">{subject}</span>
+                        <span className="text-[#444] text-[11px] whitespace-nowrap">Grade {grade}</span>
+                        <span className="text-[#444] text-[11px] whitespace-nowrap">· {language}</span>
+                    </div>
+                )}
             </div>
 
-            {/* Messages area */}
-            <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5" style={{ minHeight: 0 }}>
-                {chatMessages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full pb-8 animate-fade-in">
-                        <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/40 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
-                            <MessageSquare className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2 text-center">
-                            Let's study {subject}
-                        </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 text-center max-w-xs">
-                            Ask anything — I'll answer straight from the Samacheer textbook in {language}.
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-                            {getSuggestions(subject).map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() => sendMessage(s)}
-                                    className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-600 dark:hover:text-indigo-400 transition-all shadow-sm"
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
+            {/* Center: empty state or messages */}
+            {!hasMessages ? (
+                <div className="flex-1 flex flex-col items-center justify-center px-6 select-none">
+                    <div className="mb-2">
+                        <img
+                            src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png"
+                            alt="FeelEd AI"
+                            className="w-16 h-16 object-contain mx-auto mb-4 opacity-80"
+                            referrerPolicy="no-referrer"
+                        />
                     </div>
-                ) : (
-                    chatMessages.map((msg, i) => (
-                        <div
-                            key={msg.id}
-                            className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                            {msg.role === 'model' && (
-                                <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0 mt-1 text-base select-none">
-                                    🤖
-                                </div>
-                            )}
-
-                            <div className={`max-w-[80%] md:max-w-[68%] ${msg.role === 'user' ? 'order-first' : ''}`}>
-                                {msg.role === 'model' && msg.ragUsed && (
-                                    <div className="flex items-center gap-1.5 mb-1.5 ml-1">
-                                        <BookOpen className="w-3 h-3 text-emerald-600 flex-shrink-0" />
-                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">
-                                            From Samacheer Textbook
-                                        </span>
+                    <h1 className="text-3xl md:text-[2.6rem] font-bold text-white text-center leading-tight tracking-tight">
+                        What are you learning today?
+                    </h1>
+                    <p className="text-[#555] text-sm md:text-base text-center mt-3">
+                        Ask anything in Tamil or English
+                    </p>
+                </div>
+            ) : (
+                <div className="flex-1 overflow-y-auto px-4 py-6" style={{ minHeight: 0 }}>
+                    <div className="max-w-3xl mx-auto space-y-6">
+                        {chatMessages.map((msg, i) => (
+                            <div
+                                key={msg.id}
+                                className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                            >
+                                {msg.role === 'model' && (
+                                    <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm select-none">
+                                        🤖
                                     </div>
                                 )}
-
-                                <div className={`px-4 py-3 rounded-2xl shadow-sm ${
-                                    msg.role === 'user'
-                                        ? 'bg-indigo-600 text-white rounded-br-sm'
-                                        : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-bl-sm border border-slate-100 dark:border-slate-700'
-                                }`}>
-                                    {msg.role === 'user' ? (
-                                        <p className="text-sm leading-relaxed">{msg.text}</p>
-                                    ) : (
-                                        <div className="text-sm leading-relaxed prose prose-sm prose-slate dark:prose-invert max-w-none text-slate-900 dark:text-white">
-                                            {i === lastAiIndex ? (
-                                                <TypewriterMarkdown text={msg.text} />
-                                            ) : (
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
-                                            )}
+                                <div className={`max-w-[80%] md:max-w-[70%] ${msg.role === 'user' ? '' : ''}`}>
+                                    {msg.role === 'model' && msg.ragUsed && (
+                                        <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                                            <BookOpen className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                                            <span className="text-[10px] font-black text-emerald-500 uppercase tracking-wider">
+                                                From Samacheer Textbook
+                                            </span>
                                         </div>
                                     )}
+                                    <div className={`px-4 py-3 rounded-2xl ${
+                                        msg.role === 'user'
+                                            ? 'bg-indigo-600 text-white rounded-br-sm'
+                                            : 'bg-[#1A1A1A] text-[#E8E8E8] rounded-bl-sm border border-[#2A2A2A]'
+                                    }`}>
+                                        {msg.role === 'user' ? (
+                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                                        ) : (
+                                            <div className="text-sm leading-relaxed prose prose-sm prose-invert max-w-none">
+                                                {i === lastAiIndex
+                                                    ? <TypewriterMarkdown text={msg.text} />
+                                                    : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
+                                                }
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-
-                                {msg.role === 'model' && (
-                                    <div className="mt-1 ml-1">
-                                        <button
-                                            onClick={() => handleTTS(msg)}
-                                            title={playingMsgId === msg.id ? 'Stop' : 'Listen'}
-                                            className={`p-1 rounded-md transition-colors ${
-                                                playingMsgId === msg.id
-                                                    ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30'
-                                                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
-                                            }`}
-                                        >
-                                            {playingMsgId === msg.id
-                                                ? <VolumeX className="w-3.5 h-3.5" />
-                                                : <Volume2 className="w-3.5 h-3.5" />
-                                            }
-                                        </button>
+                                {msg.role === 'user' && (
+                                    <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-white text-xs font-black select-none">
+                                        {user?.displayName?.[0]?.toUpperCase() ?? 'U'}
                                     </div>
                                 )}
                             </div>
+                        ))}
 
-                            {msg.role === 'user' && (
-                                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mt-1 text-white text-xs font-black select-none">
-                                    {user?.displayName?.[0]?.toUpperCase() ?? 'U'}
+                        {isLoading && (
+                            <div className="flex gap-3 animate-fade-in">
+                                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 text-sm select-none">🤖</div>
+                                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl rounded-bl-sm px-4 py-3">
+                                    <div className="flex gap-1.5 items-center">
+                                        {[0, 150, 300].map(d => (
+                                            <span
+                                                key={d}
+                                                className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"
+                                                style={{ animationDelay: `${d}ms` }}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-                    ))
-                )}
-
-                {isLoading && (
-                    <div className="flex gap-3 justify-start animate-fade-in">
-                        <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0 mt-1 text-base select-none">
-                            🤖
-                        </div>
-                        <div className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                            <div className="flex gap-1.5 items-center">
-                                {[0, 150, 300].map(delay => (
-                                    <span
-                                        key={delay}
-                                        className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
-                                        style={{ animationDelay: `${delay}ms` }}
-                                    />
-                                ))}
                             </div>
-                        </div>
+                        )}
+
+                        <div ref={bottomRef} />
+                    </div>
+                </div>
+            )}
+
+            {/* Bottom area */}
+            <div className="flex-shrink-0 px-4 pb-5 pt-2">
+                {/* Mode chips (empty state only) */}
+                {!hasMessages && (
+                    <div className="flex flex-wrap gap-2 justify-center mb-4">
+                        {[
+                            { icon: '📖', label: 'Story Mode',     color: 'hover:border-indigo-500 hover:text-indigo-300', action: () => navigate('/generator') },
+                            { icon: '🎮', label: 'Game Mode',      color: 'hover:border-green-500 hover:text-green-300',   action: () => sendMessage('Give me an interactive quiz on my subject') },
+                            { icon: '🎙️', label: 'Spoken English', color: 'hover:border-purple-500 hover:text-purple-300', action: () => sendMessage('Let\'s practice spoken English conversation') },
+                        ].map(chip => (
+                            <button
+                                key={chip.label}
+                                onClick={chip.action}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full border border-[#2A2A2A] bg-[#141414] text-[#AAAAAA] text-sm transition-all ${chip.color}`}
+                            >
+                                <span>{chip.icon}</span>
+                                <span>{chip.label}</span>
+                            </button>
+                        ))}
                     </div>
                 )}
 
-                <div ref={bottomRef} />
-            </div>
+                {/* Uploaded image preview */}
+                {uploadedImage && (
+                    <div className="max-w-3xl mx-auto mb-2 flex items-center gap-3 px-1">
+                        <img
+                            src={`data:${uploadedImage.mime};base64,${uploadedImage.base64}`}
+                            alt="Uploaded"
+                            className="w-12 h-12 rounded-xl object-cover border border-[#333]"
+                        />
+                        <span className="text-[#777] text-xs flex-1">Image queued — ask your question</span>
+                        <button onClick={() => setUploadedImage(null)} className="text-[#555] hover:text-white transition-colors">
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                )}
 
-            {/* Input bar */}
-            <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 py-3">
-                <form onSubmit={handleSubmit} className="flex items-center gap-2 max-w-3xl mx-auto">
-                    <button
-                        type="button"
-                        onClick={handleVoice}
-                        disabled={isSttLoading}
-                        aria-label={isListening ? 'Stop recording' : 'Start voice input'}
-                        className={`flex-shrink-0 p-2.5 rounded-full transition-all ${
-                            isListening
-                                ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-200 dark:shadow-red-900/30'
-                                : isSttLoading
-                                ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-400'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600'
-                        }`}
-                    >
-                        {isSttLoading
-                            ? <Loader2 className="w-5 h-5 animate-spin" />
-                            : <Mic className="w-5 h-5" />
-                        }
-                    </button>
+                {/* Input bar */}
+                <div className="max-w-3xl mx-auto relative" ref={plusRef}>
+                    {/* Plus popup */}
+                    {plusOpen && (
+                        <PlusMenu
+                            board={setupBoard}     setBoard={setSetupBoard}
+                            grade={setupGrade}     setGrade={setSetupGrade}
+                            subject={setupSubject} setSubject={setSetupSubject}
+                            language={setupLanguage} setLanguage={setSetupLanguage}
+                            onApply={applyContext}
+                            onClose={() => setPlusOpen(false)}
+                            fileInputRef={fileInputRef as any}
+                            onImageClick={() => fileInputRef.current?.click()}
+                        />
+                    )}
 
+                    {/* Hidden file input */}
                     <input
-                        ref={inputRef}
-                        type="text"
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        placeholder={`Ask about ${subject}...`}
-                        disabled={isLoading}
-                        className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-700 transition-all disabled:opacity-60"
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={handleImageFile}
                     />
 
-                    <button
-                        type="submit"
-                        disabled={isLoading || !input.trim()}
-                        className="flex-shrink-0 p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 dark:disabled:bg-indigo-900/50 text-white rounded-full transition-colors shadow-sm"
-                        aria-label="Send message"
+                    <form
+                        onSubmit={e => { e.preventDefault(); sendMessage(input); }}
+                        className="flex items-center gap-1.5 bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl px-2 py-2 focus-within:border-[#444] transition-colors"
                     >
-                        {isLoading
-                            ? <Loader2 className="w-5 h-5 animate-spin" />
-                            : <Send className="w-5 h-5" />
-                        }
-                    </button>
-                </form>
+                        {/* Plus button */}
+                        <button
+                            type="button"
+                            onClick={() => setPlusOpen(!plusOpen)}
+                            className={`flex-shrink-0 p-2 rounded-xl transition-all ${plusOpen ? 'bg-indigo-600 text-white' : 'text-[#666] hover:text-white hover:bg-[#2A2A2A]'}`}
+                            aria-label="Upload or set context"
+                        >
+                            <Plus className="w-5 h-5" />
+                        </button>
+
+                        {/* Text input */}
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={input}
+                            onChange={e => setInput(e.target.value)}
+                            placeholder="Ask anything..."
+                            disabled={isLoading}
+                            className="flex-1 bg-transparent text-white placeholder-[#555] text-sm focus:outline-none px-2 disabled:opacity-60"
+                        />
+
+                        {/* Mic button */}
+                        <button
+                            type="button"
+                            onClick={handleVoice}
+                            disabled={isSttLoading}
+                            aria-label={isListening ? 'Stop recording' : 'Voice input'}
+                            className={`flex-shrink-0 p-2 rounded-xl transition-all ${
+                                isListening
+                                    ? 'bg-red-500 text-white animate-pulse'
+                                    : isSttLoading
+                                    ? 'text-indigo-400 bg-[#1E1E1E]'
+                                    : 'text-[#666] hover:text-white hover:bg-[#2A2A2A]'
+                            }`}
+                        >
+                            {isSttLoading
+                                ? <Loader2 className="w-5 h-5 animate-spin" />
+                                : <Mic className="w-5 h-5" />
+                            }
+                        </button>
+
+                        {/* Send button */}
+                        <button
+                            type="submit"
+                            disabled={isLoading || !input.trim()}
+                            aria-label="Send"
+                            className="flex-shrink-0 p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 disabled:cursor-not-allowed text-white transition-all"
+                        >
+                            {isLoading
+                                ? <Loader2 className="w-5 h-5 animate-spin" />
+                                : <Send className="w-5 h-5" />
+                            }
+                        </button>
+                    </form>
+                </div>
+
+                {/* Footer (empty state only) */}
+                {!hasMessages && (
+                    <p className="text-center text-[#333] text-xs mt-4">
+                        Powered by Sarvam • © 2026 FeelEd AI
+                    </p>
+                )}
             </div>
         </div>
     );
