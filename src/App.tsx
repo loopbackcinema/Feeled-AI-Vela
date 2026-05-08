@@ -5,7 +5,7 @@ import AnswerScreen from './components/AnswerScreen';
 import PracticeScreen from './components/PracticeScreen';
 import ExamModeScreen from './components/ExamModeScreen';
 import { generateStory, generateVoice, generateImage, generateConcept, generatePractice, generateExamPrep } from './services/geminiService';
-import { Story, StoryRequest, Page, ConceptResponse, PracticeQuestion, ExamPrep, StudentContext } from './types';
+import { StoryRequest, Page, StudentContext } from './types';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
@@ -24,6 +24,8 @@ import StudentDashboard from './components/StudentDashboard';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useStudentStore } from './stores/studentStore';
+import { useSessionStore } from './stores/sessionStore';
 
 const PAGE_TO_PATH: Record<Page, string> = {
     home: '/',
@@ -50,24 +52,23 @@ const App: React.FC = () => {
     const { user, loading } = useAuth();
     const navigate = useNavigate();
 
-    const [currentQuestion, setCurrentQuestion] = useState('');
-    const [studentContext, setStudentContext] = useState<StudentContext>({
-        board: 'Tamil Nadu State Board (Samacheer)',
-        standard: '10th',
-        subject: 'Science',
-        language: 'English',
-        learningMode: 'Senior',
-        goal: 'Exam'
-    });
-    const [conceptData, setConceptData] = useState<ConceptResponse | null>(null);
-    const [practiceData, setPracticeData] = useState<PracticeQuestion[] | null>(null);
-    const [examData, setExamData] = useState<ExamPrep | null>(null);
+    // Global stores
+    const { board, standard, subject, language, learningMode, goal, setContext } = useStudentStore();
+    const studentContext: StudentContext = { board, standard, subject, language, learningMode, goal };
+    const setSession = useSessionStore(state => state.set);
+    const {
+        currentQuestion,
+        conceptData,
+        practiceData,
+        examData,
+        generatedStory,
+        base64Audio,
+        base64Image,
+        imageMimeType,
+        lastLanguage,
+    } = useSessionStore();
 
-    const [generatedStory, setGeneratedStory] = useState<Story | null>(null);
-    const [base64Audio, setBase64Audio] = useState<string | null>(null);
-    const [base64Image, setBase64Image] = useState<string | null>(null);
-    const [imageMimeType, setImageMimeType] = useState<string | null>(null);
-    const [lastLanguage, setLastLanguage] = useState<string>('English');
+    // UI-only state stays local
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
     const [isImageLoading, setIsImageLoading] = useState<boolean>(false);
@@ -86,15 +87,11 @@ const App: React.FC = () => {
 
         setIsLoading(true);
         setError(null);
-        setGeneratedStory(null);
-        setBase64Audio(null);
-        setBase64Image(null);
-        setImageMimeType(null);
-        setLastLanguage(request.language);
+        setSession({ generatedStory: null, base64Audio: null, base64Image: null, imageMimeType: null, lastLanguage: request.language });
 
         try {
             const { story } = await generateStory(request);
-            setGeneratedStory(story);
+            setSession({ generatedStory: story });
             navigate('/story');
             setIsLoading(false);
 
@@ -116,15 +113,12 @@ const App: React.FC = () => {
             setIsImageLoading(true);
 
             generateVoice(story, request)
-                .then(({ base64Audio }) => setBase64Audio(base64Audio))
+                .then(({ base64Audio }) => setSession({ base64Audio }))
                 .catch((e) => console.error("Audio synthesis failed:", e))
                 .finally(() => setIsAudioLoading(false));
 
             generateImage(story)
-                .then(({ base64Image, mimeType }) => {
-                    setBase64Image(base64Image);
-                    setImageMimeType(mimeType);
-                })
+                .then(({ base64Image, mimeType }) => setSession({ base64Image, imageMimeType: mimeType }))
                 .catch((e) => console.error("Visual synthesis failed:", e))
                 .finally(() => setIsImageLoading(false));
 
@@ -132,13 +126,10 @@ const App: React.FC = () => {
             setError(err instanceof Error ? err.message : 'An error occurred during pedagogical synthesis.');
             setIsLoading(false);
         }
-    }, [user, navigate]);
+    }, [user, navigate, setSession]);
 
     const handleTryAnother = () => {
-        setGeneratedStory(null);
-        setBase64Audio(null);
-        setBase64Image(null);
-        setImageMimeType(null);
+        setSession({ generatedStory: null, base64Audio: null, base64Image: null, imageMimeType: null });
         navigate('/generator');
     };
 
@@ -174,14 +165,12 @@ const App: React.FC = () => {
     const handleAskQuestion = async (question: string, context: StudentContext) => {
         setIsLoading(true);
         setError(null);
-        setCurrentQuestion(question);
-        setStudentContext(context);
-        setBase64Image(null);
-        setImageMimeType(null);
+        setSession({ currentQuestion: question, base64Image: null, imageMimeType: null });
+        setContext(context);
 
         try {
             const data = await generateConcept(question, context);
-            setConceptData(data);
+            setSession({ conceptData: data });
             navigate('/chat');
             await logStudyActivity('concept', question, context.subject);
 
@@ -193,10 +182,7 @@ const App: React.FC = () => {
                     concept_explanation: '',
                     resolution: ''
                 } as any)
-                    .then(({ base64Image, mimeType }) => {
-                        setBase64Image(base64Image);
-                        setImageMimeType(mimeType);
-                    })
+                    .then(({ base64Image, mimeType }) => setSession({ base64Image, imageMimeType: mimeType }))
                     .catch(e => console.error("Visual synthesis failed:", e))
                     .finally(() => setIsImageLoading(false));
             }
@@ -212,7 +198,7 @@ const App: React.FC = () => {
         setError(null);
         try {
             const data = await generatePractice(currentQuestion, studentContext);
-            setPracticeData(data);
+            setSession({ practiceData: data });
             navigate('/practice');
         } catch (err: any) {
             setError(formatError(err));
@@ -224,10 +210,10 @@ const App: React.FC = () => {
     const handleExamMode = async (topic: string, context: StudentContext) => {
         setIsLoading(true);
         setError(null);
-        setStudentContext(context);
+        setContext(context);
         try {
             const data = await generateExamPrep(topic, context);
-            setExamData(data);
+            setSession({ examData: data });
             navigate('/exam');
             await logStudyActivity('exam', topic, context.subject);
         } catch (err: any) {
