@@ -1,6 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
-import { fetchRagContext, languageToMedium, normaliseGrade } from '../lib/rag';
 
 const schema = {
     type: Type.OBJECT,
@@ -29,31 +28,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     try {
         const { question, context } = req.body;
-        const medium = languageToMedium(context.language);
-        const grade  = normaliseGrade(context.standard);
-
-        // Fetch relevant textbook passages from Pinecone (best-effort)
-        const ragContext = await fetchRagContext({
-            query:   question,
-            subject: context.subject,
-            grade,
-            medium,
-            board:   context.board ?? 'TN Samacheer',
-        });
-
-        const ragSection = ragContext
-            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${context.subject}, ${medium} Medium):
-${ragContext}
-
-Use the above textbook content as your PRIMARY source. Your textbookAnswer and markBasedAnswers must closely follow the textbook wording. For simpleExplanation, rephrase in simpler terms.`
-            : `No textbook excerpt available — answer from general academic knowledge.`;
-
-        const prompt = `You are an expert academic tutor for TN Samacheer Board students.
+        const prompt = `You are an expert academic tutor. Answer the student's question.
         Question: ${question}
         Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
         Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
-
-        ${ragSection}
 
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
