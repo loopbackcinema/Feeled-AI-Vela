@@ -70,7 +70,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ examPrep, topic, contex
                                         {index + 1}
                                     </div>
                                     
-                                    <div className="prose dark:prose-invert max-w-none prose-p:text-lg prose-p:leading-relaxed prose-strong:text-indigo-600 prose-headings:font-black">
+                                    <div className="prose prose-slate dark:prose-invert max-w-none text-slate-900 dark:text-white prose-p:text-lg prose-p:leading-relaxed prose-strong:text-indigo-600 prose-headings:font-black">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{note}</ReactMarkdown>
                                     </div>
                                 </div>
@@ -93,7 +93,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ examPrep, topic, contex
                                     <div className="text-orange-400 font-black text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
                                         <Flame className="w-4 h-4" /> Prediction {index + 1}
                                     </div>
-                                    <div className="prose prose-invert max-w-none prose-p:text-xl prose-p:font-bold prose-p:leading-tight">
+                                    <div className="prose prose-invert max-w-none text-white prose-p:text-xl prose-p:font-bold prose-p:leading-tight">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{q}</ReactMarkdown>
                                     </div>
                                     <div className="mt-6 flex items-center gap-2 text-white/40 text-sm font-medium">
@@ -117,7 +117,7 @@ const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ examPrep, topic, contex
                             {(examPrep.importantQuestions ?? []).map((q, index) => (
                                 <div key={index} className="flex gap-4 group">
                                     <span className="text-slate-300 font-black text-2xl group-hover:text-rose-500 transition-colors">{index + 1}</span>
-                                    <div className="prose dark:prose-invert max-w-none prose-p:m-0 text-base text-slate-700 dark:text-slate-300 leading-relaxed font-bold">
+                                    <div className="prose prose-slate dark:prose-invert max-w-none prose-p:m-0 text-base text-slate-700 dark:text-slate-300 leading-relaxed font-bold">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{q}</ReactMarkdown>
                                     </div>
                                 </div>

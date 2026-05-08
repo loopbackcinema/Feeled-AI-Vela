@@ -106,46 +106,46 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({
                     </div>
 
                     {/* Main Content Area */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-xl shadow-slate-200/50 dark:shadow-none min-h-[400px]">
-                        <div className="prose dark:prose-invert max-w-none prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8 shadow-xl shadow-slate-200/50 dark:shadow-none min-h-[200px] w-full overflow-visible">
+                        <div className="prose prose-slate dark:prose-invert max-w-none text-slate-900 dark:text-white prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400">
                             {activeTab === 'standard' && (
-                                <>
+                                <div className="block w-full text-slate-900 dark:text-white">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600">
                                             <BookOpen className="w-6 h-6" />
                                         </div>
-                                        <h2 className="text-2xl font-black m-0">Detailed Explanation</h2>
+                                        <h2 className="text-2xl font-black m-0 text-slate-900 dark:text-white">Detailed Explanation</h2>
                                     </div>
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {concept.textbookAnswer}
                                     </ReactMarkdown>
-                                </>
+                                </div>
                             )}
                             {activeTab === '2mark' && (
-                                <>
+                                <div className="block w-full text-slate-900 dark:text-white">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600">
                                             <Target className="w-6 h-6" />
                                         </div>
-                                        <h2 className="text-2xl font-black m-0">Concise (2 Mark) Answer</h2>
+                                        <h2 className="text-2xl font-black m-0 text-slate-900 dark:text-white">Concise (2 Mark) Answer</h2>
                                     </div>
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {concept.markBasedAnswers?.twoMark || ''}
                                     </ReactMarkdown>
-                                </>
+                                </div>
                             )}
                             {activeTab === '5mark' && (
-                                <>
+                                <div className="block w-full text-slate-900 dark:text-white">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600">
                                             <FileText className="w-6 h-6" />
                                         </div>
-                                        <h2 className="text-2xl font-black m-0">Structured (5 Mark) Answer</h2>
+                                        <h2 className="text-2xl font-black m-0 text-slate-900 dark:text-white">Structured (5 Mark) Answer</h2>
                                     </div>
                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                         {concept.markBasedAnswers?.fiveMark || ''}
                                     </ReactMarkdown>
-                                </>
+                                </div>
                             )}
                         </div>
                     </div>

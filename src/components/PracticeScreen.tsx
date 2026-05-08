@@ -74,7 +74,7 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ questions, topic, subje
                 </span>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm mb-8">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 shadow-sm mb-8 text-slate-900 dark:text-white">
                 <div className="mb-4">
                     <span className="inline-block px-2 py-1 bg-indigo-50 text-indigo-600 rounded text-xs font-bold uppercase tracking-wider">
                         {currentQ.type === 'mcq' ? 'Multiple Choice' : currentQ.type === 'short' ? 'Short Answer' : 'Long Answer'}
