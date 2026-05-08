@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ExamPrep, StudentContext } from '../types';
-import { ArrowLeft, Flame, AlertCircle, FileText, Target, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Flame, AlertCircle, FileText, Target, Lightbulb, MessageCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -12,11 +13,20 @@ interface ExamModeScreenProps {
 }
 
 const ExamModeScreen: React.FC<ExamModeScreenProps> = ({ examPrep, topic, context, onBack }) => {
+    const navigate = useNavigate();
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 animate-fade-in">
-            <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-8 font-black transition-colors">
-                <ArrowLeft className="w-4 h-4" /> Back to Home
-            </button>
+            <div className="flex items-center gap-3 mb-8">
+                <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-black transition-colors">
+                    <ArrowLeft className="w-4 h-4" /> Back
+                </button>
+                <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-black transition-colors border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400"
+                >
+                    <MessageCircle className="w-4 h-4" /> Ask in Chat
+                </button>
+            </div>
 
             <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">

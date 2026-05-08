@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Story, QuizQuestion } from '../types';
 import Spinner from './Spinner';
 import StoryChat from './StoryChat';
@@ -128,6 +129,7 @@ async function decodePcmAudioData(data: Uint8Array, ctx: AudioContext): Promise<
 
 const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audio, isAudioLoading, base64Image, imageMimeType, isImageLoading, onTryAnother }) => {
     const { user, userProfile } = useAuth();
+    const navigate = useNavigate();
     const audioContextRef = useRef<AudioContext | null>(null);
     const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
     const certificateRef = useRef<HTMLDivElement>(null);
@@ -222,6 +224,28 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
 
     return (
         <div className="w-full max-w-4xl mx-auto animate-fade-in pb-32 px-4 print:max-w-full">
+            {/* Top Nav Bar */}
+            <div className="flex items-center gap-3 mb-10 no-print">
+                <button
+                    onClick={onTryAnother}
+                    className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 font-medium transition-colors text-sm"
+                >
+                    ← Back
+                </button>
+                <button
+                    onClick={() => navigate('/', { state: { prefilledMessage: `Tell me more about the story: "${story.title}"` } })}
+                    className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 font-medium transition-colors border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400"
+                >
+                    💬 Ask about story
+                </button>
+                <button
+                    onClick={() => navigate('/', { state: { prefilledMessage: `Give me exam prep for: "${story.title}"` } })}
+                    className="flex items-center gap-1.5 text-orange-500 hover:text-orange-600 font-medium transition-colors border border-orange-200 dark:border-orange-800/50 rounded-lg px-3 py-1.5 text-sm hover:border-orange-400"
+                >
+                    📝 Exam Mode
+                </button>
+            </div>
+
             {/* Header */}
             <div className="text-center mb-16 space-y-6">
                 <h2 className="text-5xl md:text-7xl font-black text-indigo-900 dark:text-indigo-400 tracking-tighter print:text-4xl">{story.title}</h2>

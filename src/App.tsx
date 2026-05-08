@@ -47,12 +47,31 @@ const PAGE_TO_PATH: Record<Page, string> = {
     'admin-dashboard': '/admin',
 };
 
-/** Thin page shell used for non-chat inner pages */
-const PageShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors">
-        {children}
-    </div>
-);
+/** Thin page shell — optional top nav bar for static info pages */
+const PageShell: React.FC<{ children: React.ReactNode; showNav?: boolean }> = ({ children, showNav }) => {
+    const nav = useNavigate();
+    return (
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors">
+            {showNav && (
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                    <button
+                        onClick={() => nav(-1)}
+                        className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 text-sm font-medium transition-colors"
+                    >
+                        ← Back
+                    </button>
+                    <button
+                        onClick={() => nav('/')}
+                        className="flex items-center gap-1.5 text-slate-500 hover:text-indigo-600 text-sm font-medium transition-colors"
+                    >
+                        🏠 Home
+                    </button>
+                </div>
+            )}
+            {children}
+        </div>
+    );
+};
 
 const App: React.FC = () => {
     const { user, loading } = useAuth();
@@ -226,19 +245,19 @@ const App: React.FC = () => {
             } />
 
             {/* Secondary pages */}
-            <Route path="/dashboard"  element={<PageShell><div className="container mx-auto px-4 py-8 max-w-7xl"><StudentDashboard onNavigate={navigateTo} /></div></PageShell>} />
-            <Route path="/my-stories" element={<PageShell><div className="container mx-auto px-4 py-8 max-w-7xl"><MyStories onNavigate={navigateTo} /></div></PageShell>} />
-            <Route path="/about"      element={<PageShell><AboutUs onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/teachers"   element={<PageShell><Teachers onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/parents"    element={<PageShell><Parents onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/research"   element={<PageShell><Research onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/pilot"      element={<PageShell><PilotProgram onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/contact"    element={<PageShell><Contact onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/founder"    element={<PageShell><Founder onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/privacy"    element={<PageShell><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/inclusive"  element={<PageShell><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/dashboard"  element={<PageShell showNav><div className="container mx-auto px-4 py-8 max-w-7xl"><StudentDashboard onNavigate={navigateTo} /></div></PageShell>} />
+            <Route path="/my-stories" element={<PageShell showNav><div className="container mx-auto px-4 py-8 max-w-7xl"><MyStories onNavigate={navigateTo} /></div></PageShell>} />
+            <Route path="/about"      element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/teachers"   element={<PageShell showNav><Teachers onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/parents"    element={<PageShell showNav><Parents onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/research"   element={<PageShell showNav><Research onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/pilot"      element={<PageShell showNav><PilotProgram onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/contact"    element={<PageShell showNav><Contact onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/founder"    element={<PageShell showNav><Founder onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/privacy"    element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/inclusive"  element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
             <Route path="/admin"      element={
-                <PageShell>
+                <PageShell showNav>
                     <div className="p-8 text-center">
                         <h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2>
                         <p>Coming soon: Student analytics and story review.</p>

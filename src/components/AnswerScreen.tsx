@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ConceptResponse, StudentContext } from '../types';
-import { BookOpen, Edit3, Lightbulb, ArrowLeft, PenTool, Headphones, Hash, Target, FileText, Loader2 } from 'lucide-react';
+import { BookOpen, Edit3, Lightbulb, ArrowLeft, PenTool, Headphones, Hash, Target, FileText, Loader2, MessageCircle, Zap } from 'lucide-react';
 import TypewriterMarkdown from './TypewriterMarkdown';
 
 interface AnswerScreenProps {
@@ -15,17 +16,18 @@ interface AnswerScreenProps {
     isImageLoading?: boolean;
 }
 
-const AnswerScreen: React.FC<AnswerScreenProps> = ({ 
-    concept, 
-    question, 
-    context, 
-    onBack, 
-    onPractice, 
+const AnswerScreen: React.FC<AnswerScreenProps> = ({
+    concept,
+    question,
+    context,
+    onBack,
+    onPractice,
     onStory,
     base64Image,
     imageMimeType,
     isImageLoading
 }) => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'standard' | '2mark' | '5mark'>('standard');
 
     return (
@@ -176,19 +178,33 @@ const AnswerScreen: React.FC<AnswerScreenProps> = ({
 
                     {/* Action Sidebar */}
                     <div className="space-y-3">
-                        <button 
+                        <button
                             onClick={onPractice}
                             className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-white py-4 px-6 rounded-xl font-black transition-all shadow-lg hover:-translate-y-1"
                         >
                             <PenTool className="w-5 h-5" />
                             Test My Knowledge
                         </button>
-                        <button 
+                        <button
                             onClick={() => onStory(question)}
                             className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-4 px-6 rounded-xl font-black transition-all shadow-lg shadow-indigo-200 dark:shadow-none hover:-translate-y-1"
                         >
                             <Headphones className="w-5 h-5" />
                             Explain with Story
+                        </button>
+                        <button
+                            onClick={() => navigate('/')}
+                            className="w-full flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 hover:border-indigo-400 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 py-4 px-6 rounded-xl font-black transition-all hover:-translate-y-1"
+                        >
+                            <MessageCircle className="w-5 h-5" />
+                            Continue in Chat
+                        </button>
+                        <button
+                            onClick={() => navigate('/', { state: { prefilledMessage: `Give me exam prep for: ${question}` } })}
+                            className="w-full flex items-center justify-center gap-2 border border-orange-200 dark:border-orange-800/50 hover:border-orange-400 text-orange-600 dark:text-orange-400 hover:text-orange-700 py-4 px-6 rounded-xl font-black transition-all hover:-translate-y-1"
+                        >
+                            <Zap className="w-5 h-5" />
+                            Exam Mode
                         </button>
                     </div>
                 </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PracticeQuestion } from '../types';
-import { ArrowLeft, CheckCircle2, XCircle, ChevronRight } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, ChevronRight, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -14,6 +15,7 @@ interface PracticeScreenProps {
 
 const PracticeScreen: React.FC<PracticeScreenProps> = ({ questions, topic, subject, onBack }) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showAnswer, setShowAnswer] = useState(false);
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -63,9 +65,17 @@ const PracticeScreen: React.FC<PracticeScreenProps> = ({ questions, topic, subje
 
     return (
         <div className="max-w-3xl mx-auto px-4 py-8">
-            <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 mb-8 font-medium transition-colors">
-                <ArrowLeft className="w-4 h-4" /> Exit Practice
-            </button>
+            <div className="flex items-center gap-3 mb-8">
+                <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-medium transition-colors">
+                    <ArrowLeft className="w-4 h-4" /> Exit Practice
+                </button>
+                <button
+                    onClick={() => navigate('/', { state: { prefilledMessage: `Chat with me about: ${topic}` } })}
+                    className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-medium transition-colors border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm hover:border-indigo-400"
+                >
+                    <MessageCircle className="w-4 h-4" /> Chat about this
+                </button>
+            </div>
 
             <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">Practice Mode</h2>

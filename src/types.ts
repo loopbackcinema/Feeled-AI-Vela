@@ -39,6 +39,7 @@ export interface StudyChatMessage {
     text: string;
     ragUsed?: boolean;
     timestamp: number;
+    suggestions?: string[];
 }
 
 export interface StudentContext {
