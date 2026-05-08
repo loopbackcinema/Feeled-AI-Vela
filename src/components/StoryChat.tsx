@@ -2,6 +2,15 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage, Story } from '../types';
 import { sendChatMessage } from '../services/geminiService';
 
+async function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
 interface StoryChatProps {
     story: Story;
     language: string;
@@ -12,6 +21,11 @@ const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [isSttLoading, setIsSttLoading] = useState(false);
+    const [isTtsLoading, setIsTtsLoading] = useState(false);
+    const [ttsEnabled, setTtsEnabled] = useState(true);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioCtxRef = useRef<AudioContext | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -21,6 +35,37 @@ const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    const playTts = async (text: string) => {
+        if (!ttsEnabled) return;
+        setIsTtsLoading(true);
+        try {
+            const res = await fetch('/api/sarvam-tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, language }),
+            });
+            const data = await res.json();
+            if (!data.base64Audio) return;
+
+            if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+                audioCtxRef.current = new AudioContext();
+            }
+            const audioCtx = audioCtxRef.current;
+            const raw = atob(data.base64Audio);
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            const audioBuffer = await audioCtx.decodeAudioData(bytes.buffer);
+            const source = audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
+        } catch (err) {
+            console.error('TTS error:', err);
+        } finally {
+            setIsTtsLoading(false);
+        }
+    };
 
     const handleSend = async (text: string) => {
         if (!text.trim() || isLoading) return;
@@ -34,6 +79,7 @@ const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
             const result = await sendChatMessage(userMessage.text, messages, story);
             const aiMessage: ChatMessage = { role: 'model', text: result.text };
             setMessages(prev => [...prev, aiMessage]);
+            playTts(result.text);
         } catch (error) {
             console.error('Chat error:', error);
             const errMsg: ChatMessage = { role: 'model', text: "I'm sorry, I'm finding it hard to reflect right now. Could you ask again?" };
@@ -43,32 +89,55 @@ const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
         }
     };
 
-    const startListening = () => {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert('Speech recognition is not supported in this browser.');
+    const startListening = async () => {
+        if (isListening) {
+            mediaRecorderRef.current?.stop();
             return;
         }
 
-        const recognition = new SpeechRecognition();
-        // Use the language passed from the story request
-        recognition.lang = language === 'Tamil' ? 'ta-IN' : 'en-US'; 
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            const chunks: BlobPart[] = [];
 
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
-        recognition.onerror = (event: any) => {
-            console.error('Speech recognition error:', event.error);
-            setIsListening(false);
-        };
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
 
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setInput(transcript);
-        };
+            recorder.onstop = async () => {
+                stream.getTracks().forEach(t => t.stop());
+                setIsListening(false);
+                setIsSttLoading(true);
+                try {
+                    const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+                    const audioBase64 = await blobToBase64(blob);
+                    const res = await fetch('/api/sarvam-stt', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            audioBase64,
+                            mimeType: blob.type,
+                            languageCode: language === 'Tamil' ? 'ta-IN' : 'en-IN',
+                        }),
+                    });
+                    const data = await res.json();
+                    if (data.transcript) setInput(data.transcript);
+                } catch (err) {
+                    console.error('STT error:', err);
+                } finally {
+                    setIsSttLoading(false);
+                }
+            };
 
-        recognition.start();
+            mediaRecorderRef.current = recorder;
+            setIsListening(true);
+            recorder.start();
+            setTimeout(() => {
+                if (recorder.state === 'recording') recorder.stop();
+            }, 8000);
+        } catch {
+            alert('Could not access microphone. Please allow microphone permissions.');
+        }
     };
 
     const suggestions = [
@@ -92,7 +161,21 @@ const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
                         <p className="text-indigo-100 text-[10px] font-black uppercase tracking-[0.4em] mt-2">Socratic Pedagogical Support</p>
                     </div>
                 </div>
-                <span className="text-white text-[10px] font-black bg-indigo-900/50 px-4 py-2 rounded-full uppercase tracking-widest border border-white/10 relative z-10">BETA V3.0</span>
+                <div className="flex items-center gap-3 relative z-10">
+                    <button
+                        onClick={() => setTtsEnabled(v => !v)}
+                        title={ttsEnabled ? 'Mute AI voice' : 'Unmute AI voice'}
+                        className={`p-2 rounded-full transition-all border border-white/20 ${ttsEnabled ? 'bg-white/20 text-white' : 'bg-white/10 text-white/40'}`}
+                    >
+                        {isTtsLoading
+                            ? <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                            : ttsEnabled
+                            ? <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072M12 6v12m-3.536-9.536a5 5 0 000 7.072M9 12H4.5"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.07 4.93a10 10 0 010 14.14"/></svg>
+                            : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+                        }
+                    </button>
+                    <span className="text-white text-[10px] font-black bg-indigo-900/50 px-4 py-2 rounded-full uppercase tracking-widest border border-white/10">BETA V3.0</span>
+                </div>
             </div>
             
             {/* Chat Area */}
@@ -154,12 +237,22 @@ const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
                     <button
                         type="button"
                         onClick={startListening}
-                        className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600'} shadow-lg`}
-                        title="Voice Input"
+                        disabled={isSttLoading}
+                        title={isListening ? 'Tap to stop' : 'Voice input (Sarvam AI)'}
+                        className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all shadow-lg ${
+                            isListening
+                                ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse'
+                                : isSttLoading
+                                ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-400'
+                                : 'bg-white dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600'
+                        }`}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
+                        {isSttLoading
+                            ? <svg className="h-8 w-8 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                            : <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                        }
                     </button>
                     <button 
                         type="submit" 

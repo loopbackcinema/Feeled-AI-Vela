@@ -1,6 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Mic, BookOpen, Flame, Headphones, ChevronRight, Loader2, Target } from 'lucide-react';
 import { StudentContext } from '../types';
+
+async function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
 
 interface HomeScreenProps {
     onAskQuestion: (question: string, context: StudentContext) => void;
@@ -12,6 +21,9 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLearnWithStory, isLoading, error }) => {
     const [question, setQuestion] = useState('');
+    const [isListening, setIsListening] = useState(false);
+    const [isSttLoading, setIsSttLoading] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const [context, setContext] = useState<StudentContext>({
         board: 'Tamil Nadu State Board (Samacheer)',
         standard: '10th',
@@ -61,26 +73,57 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
         onExamMode(topicToSearch, context);
     };
 
-    const handleVoiceInput = () => {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-            alert("Voice input is not supported in your browser. Please use Chrome.");
+    const handleVoiceInput = async () => {
+        // If already recording, stop
+        if (isListening) {
+            mediaRecorderRef.current?.stop();
             return;
         }
-        const recognition = new SpeechRecognition();
-        recognition.lang = context.language === 'Tamil' ? 'ta-IN' : 'en-US';
-        recognition.onstart = () => {
-            // Optional: Add visual feedback for listening
-        };
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setQuestion(transcript);
-        };
-        recognition.onerror = (event: any) => {
-            console.error("Speech recognition error", event.error);
-            alert("Could not hear you properly. Please try again.");
-        };
-        recognition.start();
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            const chunks: BlobPart[] = [];
+
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
+
+            recorder.onstop = async () => {
+                stream.getTracks().forEach(t => t.stop());
+                setIsListening(false);
+                setIsSttLoading(true);
+                try {
+                    const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+                    const audioBase64 = await blobToBase64(blob);
+                    const res = await fetch('/api/sarvam-stt', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            audioBase64,
+                            mimeType: blob.type,
+                            languageCode: context.language === 'Tamil' ? 'ta-IN' : 'en-IN',
+                        }),
+                    });
+                    const data = await res.json();
+                    if (data.transcript) setQuestion(data.transcript);
+                } catch (err) {
+                    console.error('STT error:', err);
+                } finally {
+                    setIsSttLoading(false);
+                }
+            };
+
+            mediaRecorderRef.current = recorder;
+            setIsListening(true);
+            recorder.start();
+            // Auto-stop after 8 seconds
+            setTimeout(() => {
+                if (recorder.state === 'recording') recorder.stop();
+            }, 8000);
+        } catch {
+            alert('Could not access microphone. Please allow microphone permissions and try again.');
+        }
     };
 
     return (
@@ -187,12 +230,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onAskQuestion, onExamMode, onLe
                         disabled={isLoading}
                     />
                     <div className="absolute right-2 flex items-center gap-2">
-                        <button 
+                        <button
                             type="button"
                             onClick={handleVoiceInput}
-                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-700 rounded-full transition-colors"
+                            disabled={isSttLoading}
+                            title={isListening ? 'Tap to stop' : 'Voice input (Sarvam AI)'}
+                            className={`p-2 rounded-full transition-colors ${
+                                isListening
+                                    ? 'text-red-500 bg-red-50 dark:bg-red-900/20 animate-pulse'
+                                    : isSttLoading
+                                    ? 'text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20'
+                                    : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-700'
+                            }`}
                         >
-                            <Mic className="w-5 h-5" />
+                            {isSttLoading
+                                ? <Loader2 className="w-5 h-5 animate-spin" />
+                                : <Mic className="w-5 h-5" />
+                            }
                         </button>
                         <button 
                             type="submit"
