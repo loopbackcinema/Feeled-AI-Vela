@@ -130,7 +130,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                 </p>
                 <div className="flex flex-col md:flex-row justify-center gap-8">
                     <a 
-                        href="mailto:contact@feeledai.com?subject=Pilot Program Inquiry" 
+                        href="mailto:admin@feeledai.com?subject=Pilot Program Inquiry" 
                         className="bg-slate-900 dark:bg-indigo-600 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all border-b-[12px] border-slate-950 dark:border-indigo-950 active:border-b-0"
                     >
                         Apply for Pilot Program

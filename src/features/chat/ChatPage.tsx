@@ -683,27 +683,25 @@ const ChatPage: React.FC = () => {
             />
 
             {/* Top bar */}
-            <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-transparent">
+            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 dark:border-[#1A1A1A]">
                 <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors" aria-label="Open sidebar">
                     <Menu className="w-5 h-5" />
                 </button>
-                {hasMessages && (
-                    <div className="flex items-center gap-2 min-w-0 overflow-x-auto no-scrollbar">
-                        <span className="px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full text-[11px] font-bold whitespace-nowrap">{subject}</span>
-                        <span className="text-gray-400 dark:text-[#444] text-[11px] whitespace-nowrap">Grade {grade} · {language}</span>
-                    </div>
-                )}
+                <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight">FeelEd AI</span>
+                <button onClick={handleNewChat} className="p-2 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors" aria-label="New chat">
+                    <SquarePen className="w-5 h-5" />
+                </button>
             </div>
 
             {/* Content */}
             {!hasMessages ? (
-                <div className="flex-1 flex flex-col items-center justify-center px-6 pb-4">
+                <div className="flex-1 flex flex-col items-center justify-center px-6" style={{ paddingBottom: '10vh' }}>
                     <img src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" alt="FeelEd AI" className="w-16 h-16 object-contain mx-auto mb-5 opacity-70" referrerPolicy="no-referrer" />
                     <h1 className="text-3xl md:text-[2.6rem] font-bold text-gray-900 dark:text-white text-center leading-tight tracking-tight">
                         What are you learning today?
                     </h1>
-                    <p className="text-gray-400 dark:text-[#555] text-sm md:text-base text-center mt-3">
-                        Ask anything in Tamil or English
+                    <p className="text-gray-400 dark:text-[#555] text-sm md:text-base text-center mt-3 max-w-sm">
+                        Your personal Samacheer tutor — learn, practise, and master every subject
                     </p>
                 </div>
             ) : (
@@ -779,23 +777,8 @@ const ChatPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Bottom area */}
-            <div className="flex-shrink-0 px-4 pb-5 pt-2">
-                {/* Mode chips */}
-                {!hasMessages && (
-                    <div className="flex flex-wrap gap-2 justify-center mb-4">
-                        {[
-                            { icon: '📖', label: 'Story Mode',  color: 'hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-300', action: () => navigate('/generator') },
-                            { icon: '🎮', label: 'Game Mode',   color: 'hover:border-green-400 hover:text-green-700 dark:hover:border-green-500 dark:hover:text-green-300',   action: () => sendMessage('Give me an interactive quiz on my subject') },
-                            { icon: '📝', label: 'Exam Mode',   color: 'hover:border-rose-400 hover:text-rose-700 dark:hover:border-rose-500 dark:hover:text-rose-300',       action: () => sendMessage('Give me exam preparation: important questions, revision notes, and predicted exam questions for my subject') },
-                        ].map(chip => (
-                            <button key={chip.label} onClick={chip.action} className={`flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-gray-600 dark:text-[#AAAAAA] text-sm transition-all ${chip.color}`}>
-                                <span>{chip.icon}</span><span>{chip.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-
+            {/* Bottom area — fixed at bottom, safe-area aware */}
+            <div className="flex-shrink-0 px-4 pt-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)' }}>
                 {/* Uploaded image preview */}
                 {uploadedImage && (
                     <div className="max-w-3xl mx-auto mb-2 flex items-center gap-3 px-1">
@@ -834,7 +817,7 @@ const ChatPage: React.FC = () => {
                             onChange={e => setInput(e.target.value)}
                             placeholder="Ask anything..."
                             disabled={isLoading}
-                            className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#555] text-sm focus:outline-none px-2 disabled:opacity-60"
+                            className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#555] text-sm focus:outline-none px-2 disabled:opacity-60 min-w-0"
                         />
                         <button type="button" onClick={handleVoice} disabled={isSttLoading} aria-label={isListening ? 'Stop' : 'Voice input'} className={`flex-shrink-0 p-2 rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : isSttLoading ? 'text-indigo-500' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-[#2A2A2A]'}`}>
                             {isSttLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mic className="w-5 h-5" />}
@@ -845,8 +828,23 @@ const ChatPage: React.FC = () => {
                     </form>
                 </div>
 
+                {/* Mode chips — below input */}
                 {!hasMessages && (
-                    <p className="text-center text-gray-300 dark:text-[#333] text-xs mt-4">
+                    <div className="flex flex-wrap gap-2 justify-center mt-3">
+                        {[
+                            { icon: '📖', label: 'Story Mode',  color: 'hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-300', action: () => navigate('/generator') },
+                            { icon: '🎮', label: 'Game Mode',   color: 'hover:border-green-400 hover:text-green-700 dark:hover:border-green-500 dark:hover:text-green-300',   action: () => sendMessage('Give me an interactive quiz on my subject') },
+                            { icon: '📝', label: 'Exam Mode',   color: 'hover:border-rose-400 hover:text-rose-700 dark:hover:border-rose-500 dark:hover:text-rose-300',       action: () => sendMessage('Give me exam preparation: important questions, revision notes, and predicted exam questions for my subject') },
+                        ].map(chip => (
+                            <button key={chip.label} onClick={chip.action} className={`flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-gray-600 dark:text-[#AAAAAA] text-sm transition-all ${chip.color}`}>
+                                <span>{chip.icon}</span><span>{chip.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {!hasMessages && (
+                    <p className="text-center text-xs mt-3" style={{ color: '#888888' }}>
                         Powered by Sarvam • © 2026 FeelEd AI
                     </p>
                 )}

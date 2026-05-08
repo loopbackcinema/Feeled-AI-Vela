@@ -141,7 +141,7 @@ const Parents: React.FC<ParentsProps> = ({ onNavigate }) => {
                 </div>
                 <div className="flex flex-col md:flex-row justify-center gap-8">
                     <a 
-                        href="mailto:contact@feeledai.com?subject=Parent Inquiry" 
+                        href="mailto:admin@feeledai.com?subject=Parent Inquiry" 
                         className="bg-rose-600 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-rose-700 dark:hover:bg-rose-500 transition-all border-b-[12px] border-rose-900 dark:border-rose-950 active:border-b-0"
                     >
                         Contact FeelEd AI

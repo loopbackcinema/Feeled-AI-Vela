@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
-import { doc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen } from 'lucide-react';
+import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare } from 'lucide-react';
 
 interface ActivityLog {
     id: string;
@@ -28,6 +28,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     
     const [activities, setActivities] = useState<ActivityLog[]>([]);
     const [scores, setScores] = useState<PracticeScore[]>([]);
+    const [storiesCount, setStoriesCount] = useState(0);
+    const [chatSessionsCount, setChatSessionsCount] = useState(0);
     const [isLoadingData, setIsLoadingData] = useState(true);
     
     // Profile form state
@@ -76,6 +78,16 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     return timeB - timeA;
                 });
                 setScores(fetchedScores.slice(0, 5));
+
+                // Count stories
+                const storiesQ = query(collection(db, 'stories'), where('userId', '==', user.uid));
+                const storiesSnap = await getDocs(storiesQ);
+                setStoriesCount(storiesSnap.size);
+
+                // Count chat sessions
+                const chatsQ = query(collection(db, 'chat_sessions'), where('userId', '==', user.uid));
+                const chatsSnap = await getDocs(chatsQ);
+                setChatSessionsCount(chatsSnap.size);
 
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
@@ -129,34 +141,43 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
-                    <div className="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-xl text-blue-600 dark:text-blue-400">
-                        <Book className="w-8 h-8" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-xl text-blue-600 dark:text-blue-400 flex-shrink-0">
+                        <BookOpen className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Topics Studied</p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">{activities.length > 0 ? activities.length + '+' : '0'}</p>
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Topics Studied</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">{isLoadingData ? '…' : activities.length}</p>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
-                    <div className="bg-emerald-100 dark:bg-emerald-900/50 p-4 rounded-xl text-emerald-600 dark:text-emerald-400">
-                        <Target className="w-8 h-8" />
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-indigo-100 dark:bg-indigo-900/50 p-3 rounded-xl text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                        <MessageSquare className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Practice Tests</p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">{scores.length}</p>
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Chat Sessions</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">{isLoadingData ? '…' : chatSessionsCount}</p>
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
-                    <div className="bg-purple-100 dark:bg-purple-900/50 p-4 rounded-xl text-purple-600 dark:text-purple-400">
-                        <TrendingUp className="w-8 h-8" />
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-purple-100 dark:bg-purple-900/50 p-3 rounded-xl text-purple-600 dark:text-purple-400 flex-shrink-0">
+                        <Book className="w-6 h-6" />
                     </div>
                     <div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Avg. Score</p>
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Stories Made</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">{isLoadingData ? '…' : storiesCount}</p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-emerald-100 dark:bg-emerald-900/50 p-3 rounded-xl text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                        <TrendingUp className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Avg. Score</p>
                         <p className="text-2xl font-black text-slate-900 dark:text-white">
-                            {scores.length > 0 
-                                ? Math.round((scores.reduce((acc, curr) => acc + (curr.score / curr.total), 0) / scores.length) * 100) + '%' 
+                            {isLoadingData ? '…' : scores.length > 0
+                                ? Math.round((scores.reduce((acc, curr) => acc + (curr.score / curr.total), 0) / scores.length) * 100) + '%'
                                 : 'N/A'}
                         </p>
                     </div>

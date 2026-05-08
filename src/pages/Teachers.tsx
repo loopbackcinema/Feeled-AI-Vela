@@ -147,7 +147,7 @@ const Teachers: React.FC<TeachersProps> = ({ onNavigate }) => {
                 </div>
                 <div className="flex flex-col md:flex-row justify-center gap-8">
                     <a 
-                        href="mailto:contact@feeledai.com?subject=Teacher Inquiry" 
+                        href="mailto:admin@feeledai.com?subject=Teacher Inquiry" 
                         className="bg-slate-900 dark:bg-slate-800 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-all border-b-[12px] border-slate-950 dark:border-slate-950 active:border-b-0"
                     >
                         Contact FeelEd AI

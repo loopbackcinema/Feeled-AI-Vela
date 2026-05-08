@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StoryRequest } from '../types';
 import { STD_OPTIONS, LANGUAGE_OPTIONS, NARRATOR_VOICE_OPTIONS, EMOTION_TONE_OPTIONS } from '../constants';
 import LoadingIndicator from './LoadingIndicator';
@@ -14,6 +15,7 @@ interface StoryGeneratorFormProps {
 
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [topic, setTopic] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [std, setStd] = useState(STD_OPTIONS[4]);
@@ -61,6 +63,14 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
     return (
         <div className="w-full max-w-5xl mx-auto space-y-12 animate-fade-in py-12">
+            <div className="flex items-center justify-start mb-2">
+                <button
+                    onClick={() => navigate('/')}
+                    className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-semibold text-sm transition-colors border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 hover:border-indigo-400 bg-white dark:bg-slate-900"
+                >
+                    🏠 Home
+                </button>
+            </div>
             <div className="text-center space-y-4">
                 <span className="px-4 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] border border-blue-100 dark:border-blue-800">
                     Proprietary Affective Engine

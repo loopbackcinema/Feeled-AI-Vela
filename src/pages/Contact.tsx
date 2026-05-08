@@ -35,9 +35,9 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                         <p>For questions, support, suggestions, or feedback:</p>
                         
                         <div className="space-y-3 mt-4">
-                            <a href="mailto:contact@feeledai.com" className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-blue-100 dark:hover:border-slate-700">
+                            <a href="mailto:admin@feeledai.com" className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-blue-100 dark:hover:border-slate-700">
                                 <span className="text-blue-500 text-xl">📧</span>
-                                <span className="font-semibold text-slate-700 dark:text-slate-300">contact@feeledai.com</span>
+                                <span className="font-semibold text-slate-700 dark:text-slate-300">admin@feeledai.com</span>
                             </a>
                             <a href="tel:+919092450286" className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-blue-100 dark:hover:border-slate-700">
                                 <span className="text-blue-500 text-xl">📱</span>
@@ -72,7 +72,7 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                         <div className="bg-white/10 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
                             <p className="text-sm text-indigo-200 mb-2 uppercase tracking-wide font-bold">Email Subject Line:</p>
                             <p className="font-mono text-white mb-4">“Partnership with FeelEd AI”</p>
-                            <a href="mailto:contact@feeledai.com?subject=Partnership with FeelEd AI" className="inline-flex items-center gap-2 bg-white text-indigo-900 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg">
+                            <a href="mailto:admin@feeledai.com?subject=Partnership with FeelEd AI" className="inline-flex items-center gap-2 bg-white text-indigo-900 px-6 py-3 rounded-xl font-bold hover:bg-indigo-50 transition-colors shadow-lg">
                                 <span>✉️</span> Contact Partnerships
                             </a>
                         </div>
@@ -104,8 +104,8 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                                     </ul>
                                 </div>
                                 <div className="flex flex-col justify-center items-start space-y-4">
-                                    <a href="mailto:contact@feeledai.com" className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 transition-colors border-b-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-500 dark:hover:border-emerald-600">
-                                        contact@feeledai.com
+                                    <a href="mailto:admin@feeledai.com" className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 dark:hover:text-emerald-300 transition-colors border-b-2 border-emerald-200 dark:border-emerald-800 hover:border-emerald-500 dark:hover:border-emerald-600">
+                                        admin@feeledai.com
                                     </a>
                                     <span className="inline-block px-4 py-2 bg-emerald-200 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 rounded-lg text-sm font-bold transition-colors">
                                         ⚡ Response time: 24–48 hours

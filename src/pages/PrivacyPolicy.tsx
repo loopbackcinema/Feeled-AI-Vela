@@ -191,7 +191,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onNavigate }) => {
                         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-3 transition-colors">7. Contact Us</h2>
                         <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 transition-colors">For any privacy, data protection, or security-related questions:</p>
                         <div className="space-y-1 text-sm font-medium transition-colors">
-                            <p>📧 <a href="mailto:contact@feeledai.com" className="text-blue-600 dark:text-blue-400 hover:underline">contact@feeledai.com</a></p>
+                            <p>📧 <a href="mailto:admin@feeledai.com" className="text-blue-600 dark:text-blue-400 hover:underline">admin@feeledai.com</a></p>
                             <p>📩 <a href="mailto:feeledai@gmail.com" className="text-blue-600 dark:text-blue-400 hover:underline">feeledai@gmail.com</a></p>
                             <p>📞 +91 90924 50286</p>
                             <p>📍 Chennai, India</p>
