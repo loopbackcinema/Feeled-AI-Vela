@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const systemInstruction = `You are the interactive educational narrator of the story "${story.title}".
         CONCEPTS TO REINFORCE: "${story.concept_explanation}".
         EMOTIONAL TONE: "${story.emotion_tone}".
-        
+
         RULES:
         1. Act as a Socratic Tutor: Instead of giving direct answers, ask a small follow-up question that helps the student find the answer themselves.
         2. Keep it Friendly: Use the persona of a world-class educational mentor.
@@ -43,7 +43,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.5-flash',
             contents: contents,
             config: {
                 systemInstruction: systemInstruction,

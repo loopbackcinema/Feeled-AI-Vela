@@ -37,12 +37,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
         const { topic, std, language, emotionTone } = req.body;
         const prompt = `You are a world-class educational storyteller and pedagogical expert.
-        
+
         TASK: Convert the academic topic "${topic}" into a deeply emotional, immersive, and student-friendly story.
         TARGET AUDIENCE: A ${std} student.
         LANGUAGE: ${language}.
         EMOTIONAL ARC: ${emotionTone}.
-        
+
         STORY REQUIREMENTS:
         1. Introduction: Hook the reader and introduce the protagonist and the setting.
         2. Emotional Trigger: Create a high-arousal emotional moment or problem that requires the educational concept to solve.
@@ -52,21 +52,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         6. Conclusion: Provide a heartwarming and educational closure.
 
         QUIZ GENERATION:
-        Generate exactly 3 high-quality multiple-choice questions. 
+        Generate exactly 3 high-quality multiple-choice questions.
         Questions must specifically test the understanding of how the educational concept worked within the story.
         Include 4 options for each question (A, B, C, D).
-        
+
         Return output strictly in JSON format matching the schema.`;
-        
+
         const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
+            model: 'gemini-2.5-pro',
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: storySchema,
             },
         });
-        
+
         if (!response.text) throw new Error("Empty response from Gemini");
         const story = JSON.parse(response.text.trim());
         res.status(200).json({ story });

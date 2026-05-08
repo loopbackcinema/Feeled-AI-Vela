@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { Story, StoryRequest, ChatMessage, ConceptResponse, PracticeQuestion, ExamPrep, StudentContext } from '../types';
 
@@ -32,22 +31,22 @@ export const generateConcept = async (question: string, context: StudentContext)
 
     const prompt = `You are an expert academic tutor for ${context.board}, ${context.standard}, Subject: ${context.subject}.
     The student is in ${context.learningMode} mode and their goal is ${context.goal}.
-    
+
     The student asked: "${question}".
-    
+
     CRITICAL INSTRUCTIONS:
     1. Language: Respond ENTIRELY in ${context.language}.
     2. Formatting: USE MARKDOWN. Use **bold** for key terms, *italics* for emphasis, and bullet points for lists.
     3. Accuracy: Align strictly with ${context.board} textbook standards.
-    
+
     PEDAGOGICAL STRATEGY:
     - IF JUNIOR MODE (Class 1-7): Use extremely simple, child-friendly language. Use lots of emojis (🌈, 🍎, ✨). Use storytelling and "magical" analogies. Imagine you are talking to a 7-year-old.
     - IF SENIOR MODE (Class 8-12): Use professional academic language, focus on technical accuracy and conceptual depth.
-    
+
     GOAL-BASED STRATEGY:
     - IF DEEP LEARNING: Focus on "First Principles". Explain the "WHY" and "HOW" behind the concept. Include a "Deep Dive" section that explores the history or advanced applications of the topic. Make it feel like a masterclass.
     - IF EXAM PREP: Focus on "Step-by-Step" teaching. Break down complex topics into logical steps. Provide "Examiner's Tips" on how to avoid common mistakes. Focus on what is likely to be asked in the exam.
-    
+
     Provide:
     1. textbookAnswer: A comprehensive answer using Markdown.
     2. examFormat: 3-5 key bullet points for writing in an exam.
@@ -56,7 +55,7 @@ export const generateConcept = async (question: string, context: StudentContext)
     5. markBasedAnswers: Provide a specific "2 Mark" (concise) and "5 Mark" (detailed with headings) version of the answer.`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-2.5-pro',
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -87,16 +86,16 @@ export const generatePractice = async (topic: string, context: StudentContext): 
     const ai = getAI();
     const prompt = `Generate a practice test for ${context.board}, Class ${context.standard}, Subject: ${context.subject} on the topic: "${topic}".
     Language: ${context.language}.
-    
+
     Create exactly 4 questions:
     - 2 Multiple Choice Questions (MCQ) with 4 options each.
     - 1 Short Answer Question.
     - 1 Long Answer Question.
-    
+
     Format: NO MARKDOWN. Return a JSON array of objects.`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-2.5-pro',
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -124,18 +123,18 @@ export const generateExamPrep = async (topic: string, context: StudentContext): 
     Generate a high-utility "Exam Survival Kit" for the topic: "${topic}".
     Language: ${context.language}.
     Learning Mode: ${context.learningMode}.
-    
+
     CRITICAL: DO NOT BE GENERIC. Show "Genius" level insights.
-    
+
     INSTRUCTIONS:
     1. importantQuestions: Identify 3-5 "Must-Know" questions that are frequently repeated in the last 10 years of exams.
     2. revisionNotes: Provide a "Step-by-Step" teaching guide. Break down the topic into logical, easy-to-digest steps as if you are ChatGPT teaching a student one-on-one.
     3. predictedQuestions: Predict 2 high-value questions (5 or 10 marks) that are likely to appear this year based on syllabus weightage.
-    
+
     USE MARKDOWN for all text fields.`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-2.5-pro',
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -159,7 +158,7 @@ export const generateStory = async (request: StoryRequest): Promise<{ story: Sto
     Topic: ${request.topic}
     Language: ${request.language}
     Emotion Tone: ${request.emotionTone}
-    
+
     The story must have:
     1. A catchy title
     2. An engaging introduction
@@ -168,11 +167,11 @@ export const generateStory = async (request: StoryRequest): Promise<{ story: Sto
     5. A resolution
     6. A moral message
     7. A conclusion
-    
+
     Return the response strictly as a JSON object.`;
 
     const response = await ai.models.generateContent({
-        model: 'gemini-3.1-pro-preview',
+        model: 'gemini-2.5-pro',
         contents: prompt,
         config: {
             responseMimeType: "application/json",
@@ -227,12 +226,12 @@ export const generateVoice = async (story: Story, request: StoryRequest): Promis
 
 export const generateImage = async (story: Story): Promise<{ base64Image: string; mimeType: string }> => {
     const ai = getAI();
-    const imagePrompt = `Create a realistic, photorealistic digital art image that captures the essence of the following story scene. 
-    The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}". 
-    Scene description: "${story.introduction}". 
-    
-    CRITICAL RESTRICTIONS: 
-    1. ABSOLUTELY NO TEXT, WORDS, LETTERS, SUBTITLES, OR LABELS in the image. 
+    const imagePrompt = `Create a realistic, photorealistic digital art image that captures the essence of the following story scene.
+    The image should be visually stunning and evoke the story's emotional tone of "${story.emotion_tone}".
+    Scene description: "${story.introduction}".
+
+    CRITICAL RESTRICTIONS:
+    1. ABSOLUTELY NO TEXT, WORDS, LETTERS, SUBTITLES, OR LABELS in the image.
     2. The image must be purely visual/artistic.
     3. No gibberish text or symbols that look like letters.
     4. Focus on the characters and environment.`;
@@ -246,10 +245,10 @@ export const generateImage = async (story: Story): Promise<{ base64Image: string
             }
         }
     });
-    
+
     let base64Image = "";
     let mimeType = "";
-    
+
     for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) {
             base64Image = part.inlineData.data || "";
@@ -262,12 +261,12 @@ export const generateImage = async (story: Story): Promise<{ base64Image: string
 
 export const sendChatMessage = async (message: string, history: ChatMessage[], story: Story): Promise<{ text: string }> => {
     const ai = getAI();
-    const systemInstruction = `You are a helpful AI tutor. You just told the student a story about ${story.title}. 
+    const systemInstruction = `You are a helpful AI tutor. You just told the student a story about ${story.title}.
     Answer their questions based on the story and the underlying educational concept.
     Story context: ${story.concept_explanation}`;
 
     const chat = ai.chats.create({
-        model: "gemini-3.1-pro-preview",
+        model: "gemini-2.5-pro",
         config: {
             systemInstruction: systemInstruction,
         },

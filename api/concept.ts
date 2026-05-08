@@ -31,7 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         5. simpleExplanation: Easy to understand explanation.`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-3.1-pro-preview',
+            model: 'gemini-2.5-pro',
             contents: prompt,
             config: { responseMimeType: "application/json", responseSchema: schema },
         });

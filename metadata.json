@@ -1,7 +1,0 @@
-{
-  "name": "FeelEd AI",
-  "description": "An emotional story-based learning engine that converts any academic topic into a story-driven emotional learning experience. Users can enter a topic, grade, language, and emotion to generate a narrated story.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}
