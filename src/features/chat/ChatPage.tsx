@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-    ArrowLeft, Send, Mic, Loader2, Volume2, VolumeX,
-    RotateCcw, Save, BookOpen, MessageSquare,
+    Send, Mic, Loader2, Volume2, VolumeX,
+    RotateCcw, Save, BookOpen, MessageSquare, Settings,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
@@ -14,7 +14,6 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage } from '../../types';
 
-// Converts Gemini TTS raw L16 PCM base64 to a playable WAV data URL
 function buildWAVDataURL(base64PCM: string, sampleRate = 24000): string {
     const pcm = Uint8Array.from(atob(base64PCM), c => c.charCodeAt(0));
     const dataLen = pcm.byteLength;
@@ -33,21 +32,62 @@ function buildWAVDataURL(base64PCM: string, sampleRate = 24000): string {
     return `data:audio/wav;base64,${btoa(bin)}`;
 }
 
-const SUGGESTIONS = [
-    "Explain Newton's laws of motion",
-    "What is osmosis?",
-    "Help me revise for tomorrow's exam",
-    "Explain photosynthesis simply",
-    "What are the types of chemical reactions?",
-    "Summarise the French Revolution",
-];
+const ALL_GRADES = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'];
+const ALL_BOARDS = ['Tamil Nadu State Board (Samacheer)', 'CBSE', 'ICSE'];
+const LANGUAGES = ['English', 'Tamil', 'Hindi', 'Telugu', 'Kannada', 'Malayalam'];
+
+const STT_LANG: Record<string, string> = {
+    English: 'en-IN', Tamil: 'ta-IN', Hindi: 'hi-IN',
+    Telugu: 'te-IN', Kannada: 'kn-IN', Malayalam: 'ml-IN',
+};
+
+function getSubjectsForGrade(grade: string): string[] {
+    const num = parseInt(grade);
+    if (num <= 7) return ['Maths', 'English', 'Tamil', 'EVS', 'General Knowledge'];
+    if (num <= 10) return ['Tamil', 'English', 'Maths', 'Science', 'Social Science'];
+    return ['Tamil', 'English', 'Maths', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
+}
+
+const SUBJECT_SUGGESTIONS: Record<string, string[]> = {
+    Maths: ['How do I solve quadratic equations?', 'Explain algebra with an example', 'What are prime numbers?', 'Help me understand fractions', 'What is the Pythagorean theorem?'],
+    Science: ["Explain Newton's laws of motion", 'What is photosynthesis?', 'How does osmosis work?', 'What are the types of chemical reactions?', 'Explain the structure of an atom'],
+    'Social Science': ['Summarise the French Revolution', 'What is democracy?', 'Key features of the Indian Constitution', 'Explain the causes of World War II', 'What are the branches of government?'],
+    Physics: ['Explain electromagnetic induction', "What is Ohm's law?", 'Derive the equations of motion', 'What is the photoelectric effect?', 'Explain waves and sound'],
+    Chemistry: ['Explain periodic table trends', 'What is a chemical bond?', 'How does electrolysis work?', 'Explain organic chemistry basics', 'What is the mole concept?'],
+    Biology: ['Explain cell division: mitosis vs meiosis', 'How does the immune system work?', 'Explain genetics and heredity', 'What is the central dogma?', 'Describe the human digestive system'],
+    Tamil: ['தமிழ் இலக்கணம் விளக்கு', 'சங்க இலக்கியம் பற்றி கூறு', 'கவிதை எழுத உதவு', 'தமிழ் எழுத்துகள் என்ன?', 'திருக்குறள் பற்றி விளக்கு'],
+    English: ['Help me improve my essay writing', 'Explain active vs passive voice', 'What are literary devices?', 'Help with comprehension skills', 'Explain tenses in English'],
+    EVS: ['What are natural resources?', 'Explain the water cycle', 'What causes pollution?', 'How can we protect the environment?', 'What is the food chain?'],
+    'General Knowledge': ['What are the continents?', 'Name the planets in our solar system', 'Who was the first President of India?', "What is India's national animal?", 'What is the capital of France?'],
+    'Computer Science': ['What is an algorithm?', 'Explain object-oriented programming', 'What is the difference between RAM and ROM?', 'How does the internet work?', 'What are data structures?'],
+};
+
+function getSuggestions(subject: string): string[] {
+    return SUBJECT_SUGGESTIONS[subject] ?? [
+        'Help me revise for tomorrow\'s exam',
+        'Explain this concept in simple terms',
+        'Give me practice questions',
+        'Summarise the key points',
+    ];
+}
 
 const ChatPage: React.FC = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { board, standard, subject, language } = useStudentStore();
+    const { board, standard, subject, language, setContext } = useStudentStore();
     const chatMessages = useSessionStore(s => s.chatMessages);
+    const chatReady = useSessionStore(s => s.chatReady);
     const setSession = useSessionStore(s => s.set);
+
+    // Setup panel local state (pre-filled from existing context)
+    const [setupBoard, setSetupBoard] = useState(board || ALL_BOARDS[0]);
+    const [setupGrade, setSetupGrade] = useState(standard || '10th');
+    const [setupSubject, setSetupSubject] = useState(subject || 'Science');
+    const [setupLanguage, setSetupLanguage] = useState(language || 'English');
+
+    // Derived: ensure subject is valid for chosen grade when grade changes
+    const subjectsForGrade = getSubjectsForGrade(setupGrade);
+    const effectiveSubject = subjectsForGrade.includes(setupSubject) ? setupSubject : subjectsForGrade[0];
 
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -65,10 +105,32 @@ const ChatPage: React.FC = () => {
     const grade = standard.replace(/\D/g, '') || standard;
     const medium = language === 'Tamil' ? 'Tamil' : 'English';
 
-    // Auto-scroll on new messages
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatMessages, isLoading]);
+
+    // Sync setup fields when returning to setup panel
+    useEffect(() => {
+        if (!chatReady) {
+            setSetupBoard(board || ALL_BOARDS[0]);
+            setSetupGrade(standard || '10th');
+            setSetupSubject(subject || 'Science');
+            setSetupLanguage(language || 'English');
+        }
+    }, [chatReady]);
+
+    const handleStartLearning = () => {
+        const finalSubject = subjectsForGrade.includes(effectiveSubject) ? effectiveSubject : subjectsForGrade[0];
+        const learningMode = parseInt(setupGrade) <= 7 ? 'Junior' : 'Senior';
+        setContext({
+            board: setupBoard,
+            standard: setupGrade,
+            subject: finalSubject,
+            language: setupLanguage,
+            learningMode,
+        });
+        setSession({ chatReady: true });
+    };
 
     const sendMessage = useCallback(async (text: string) => {
         const trimmed = text.trim();
@@ -110,7 +172,7 @@ const ChatPage: React.FC = () => {
             setSession({
                 chatMessages: [
                     ...updated,
-                    { id: `${Date.now()}-e`, role: 'model', text: "Sorry, something went wrong. Please try again.", timestamp: Date.now() },
+                    { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() },
                 ],
             });
         } finally {
@@ -148,7 +210,11 @@ const ChatPage: React.FC = () => {
                     const r = await fetch('/api/sarvam-stt', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ audioBase64, mimeType: blob.type, languageCode: language === 'Tamil' ? 'ta-IN' : 'en-IN' }),
+                        body: JSON.stringify({
+                            audioBase64,
+                            mimeType: blob.type,
+                            languageCode: STT_LANG[language] ?? 'en-IN',
+                        }),
                     });
                     const d = await r.json();
                     if (d.transcript) {
@@ -203,9 +269,15 @@ const ChatPage: React.FC = () => {
     const handleNewChat = () => {
         audioRef.current?.pause();
         setPlayingMsgId(null);
-        setSession({ chatMessages: [] });
+        setSession({ chatReady: false, chatMessages: [] });
         setInput('');
         setSavedOk(false);
+    };
+
+    const handleChange = () => {
+        audioRef.current?.pause();
+        setPlayingMsgId(null);
+        setSession({ chatReady: false });
     };
 
     const handleSave = async () => {
@@ -227,34 +299,169 @@ const ChatPage: React.FC = () => {
         }
     };
 
-    // Index of the last model message (gets typewriter animation)
     const lastAiIndex = chatMessages.reduceRight(
         (acc, msg, i) => (acc === -1 && msg.role === 'model' ? i : acc), -1
     );
 
+    // ─── SETUP PANEL ────────────────────────────────────────────────────────────
+    if (!chatReady) {
+        return (
+            <div
+                className="-mx-4 -my-8 md:-my-16 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 py-8 overflow-y-auto"
+                style={{ height: 'calc(100dvh - 64px)' }}
+            >
+                <div className="w-full max-w-md animate-fade-in">
+                    {/* Header */}
+                    <div className="flex flex-col items-center mb-8">
+                        <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/40 rounded-2xl flex items-center justify-center mb-4 shadow-inner">
+                            <MessageSquare className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight text-center">
+                            Study with FeelEd AI
+                        </h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 text-center">
+                            Set your context and start a personalised chat session
+                        </p>
+                    </div>
+
+                    {/* Setup Card */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg p-6 space-y-5">
+
+                        {/* Board */}
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                                Syllabus / Board
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {ALL_BOARDS.map(b => (
+                                    <button
+                                        key={b}
+                                        type="button"
+                                        onClick={() => setSetupBoard(b)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                                            setupBoard === b
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
+                                        }`}
+                                    >
+                                        {b === 'Tamil Nadu State Board (Samacheer)' ? 'TN Samacheer' : b}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Grade */}
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                                Grade
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                                {ALL_GRADES.map(g => (
+                                    <button
+                                        key={g}
+                                        type="button"
+                                        onClick={() => {
+                                            setSetupGrade(g);
+                                            const newSubjects = getSubjectsForGrade(g);
+                                            if (!newSubjects.includes(setupSubject)) {
+                                                setSetupSubject(newSubjects[0]);
+                                            }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                                            setupGrade === g
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
+                                        }`}
+                                    >
+                                        {g}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Subject */}
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                                Subject
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {subjectsForGrade.map(s => (
+                                    <button
+                                        key={s}
+                                        type="button"
+                                        onClick={() => setSetupSubject(s)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                                            effectiveSubject === s
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
+                                        }`}
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Language */}
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
+                                Language
+                            </label>
+                            <div className="flex flex-wrap gap-2">
+                                {LANGUAGES.map(l => (
+                                    <button
+                                        key={l}
+                                        type="button"
+                                        onClick={() => setSetupLanguage(l)}
+                                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                                            setupLanguage === l
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-400 hover:text-indigo-600'
+                                        }`}
+                                    >
+                                        {l}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Start button */}
+                        <button
+                            onClick={handleStartLearning}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-black uppercase tracking-widest text-sm py-3.5 rounded-xl shadow-lg transition-all"
+                        >
+                            Start Learning →
+                        </button>
+                    </div>
+
+                    {/* Back link */}
+                    <button
+                        onClick={() => navigate('/')}
+                        className="mt-4 w-full text-center text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors py-2"
+                    >
+                        ← Back to Home
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // ─── CHAT PANEL ─────────────────────────────────────────────────────────────
     return (
         <div
             className="-mx-4 -my-8 md:-my-16 flex flex-col bg-slate-50 dark:bg-slate-950"
             style={{ height: 'calc(100dvh - 64px)' }}
         >
-            {/* Top bar: context + actions */}
+            {/* Context bar */}
             <div className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                <button
-                    onClick={() => navigate('/')}
-                    className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex-shrink-0"
-                    aria-label="Back to home"
-                >
-                    <ArrowLeft className="w-4 h-4" />
-                </button>
-
                 <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto no-scrollbar">
                     <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full text-[11px] font-black uppercase tracking-wider whitespace-nowrap">
                         {subject}
                     </span>
-                    <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+                    <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-[11px] font-bold whitespace-nowrap">
                         Grade {grade}
                     </span>
-                    <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-[11px] font-bold uppercase tracking-wider whitespace-nowrap">
+                    <span className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-[11px] font-bold whitespace-nowrap">
                         {language}
                     </span>
                 </div>
@@ -275,6 +482,14 @@ const ChatPage: React.FC = () => {
                         </button>
                     )}
                     <button
+                        onClick={handleChange}
+                        title="Change subject or grade"
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <Settings className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Change</span>
+                    </button>
+                    <button
                         onClick={handleNewChat}
                         title="New conversation"
                         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -288,19 +503,18 @@ const ChatPage: React.FC = () => {
             {/* Messages area */}
             <div className="flex-1 overflow-y-auto px-4 py-6 space-y-5" style={{ minHeight: 0 }}>
                 {chatMessages.length === 0 ? (
-                    /* Empty state */
                     <div className="flex flex-col items-center justify-center h-full pb-8 animate-fade-in">
                         <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900/40 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
                             <MessageSquare className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
                         </div>
-                        <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2">
-                            Chat with FeelEd AI
+                        <h2 className="text-xl font-black text-slate-900 dark:text-white mb-2 text-center">
+                            Let's study {subject}
                         </h2>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 text-center max-w-xs">
-                            Ask anything about {subject} — I'll answer straight from the Samacheer textbook.
+                            Ask anything — I'll answer straight from the Samacheer textbook in {language}.
                         </p>
                         <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-                            {SUGGESTIONS.map(s => (
+                            {getSuggestions(subject).map(s => (
                                 <button
                                     key={s}
                                     onClick={() => sendMessage(s)}
@@ -317,7 +531,6 @@ const ChatPage: React.FC = () => {
                             key={msg.id}
                             className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                            {/* AI avatar */}
                             {msg.role === 'model' && (
                                 <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0 mt-1 text-base select-none">
                                     🤖
@@ -325,7 +538,6 @@ const ChatPage: React.FC = () => {
                             )}
 
                             <div className={`max-w-[80%] md:max-w-[68%] ${msg.role === 'user' ? 'order-first' : ''}`}>
-                                {/* RAG badge */}
                                 {msg.role === 'model' && msg.ragUsed && (
                                     <div className="flex items-center gap-1.5 mb-1.5 ml-1">
                                         <BookOpen className="w-3 h-3 text-emerald-600 flex-shrink-0" />
@@ -335,7 +547,6 @@ const ChatPage: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Bubble */}
                                 <div className={`px-4 py-3 rounded-2xl shadow-sm ${
                                     msg.role === 'user'
                                         ? 'bg-indigo-600 text-white rounded-br-sm'
@@ -354,7 +565,6 @@ const ChatPage: React.FC = () => {
                                     )}
                                 </div>
 
-                                {/* Listen button (AI messages only) */}
                                 {msg.role === 'model' && (
                                     <div className="mt-1 ml-1">
                                         <button
@@ -375,7 +585,6 @@ const ChatPage: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* User avatar */}
                             {msg.role === 'user' && (
                                 <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mt-1 text-white text-xs font-black select-none">
                                     {user?.displayName?.[0]?.toUpperCase() ?? 'U'}
@@ -385,7 +594,6 @@ const ChatPage: React.FC = () => {
                     ))
                 )}
 
-                {/* Typing indicator */}
                 {isLoading && (
                     <div className="flex gap-3 justify-start animate-fade-in">
                         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0 mt-1 text-base select-none">
@@ -410,10 +618,7 @@ const ChatPage: React.FC = () => {
 
             {/* Input bar */}
             <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 py-3">
-                <form
-                    onSubmit={handleSubmit}
-                    className="flex items-center gap-2 max-w-3xl mx-auto"
-                >
+                <form onSubmit={handleSubmit} className="flex items-center gap-2 max-w-3xl mx-auto">
                     <button
                         type="button"
                         onClick={handleVoice}

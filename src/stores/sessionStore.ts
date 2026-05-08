@@ -12,6 +12,7 @@ interface SessionState {
     imageMimeType: string | null;
     lastLanguage: string;
     chatMessages: StudyChatMessage[];
+    chatReady: boolean;
 }
 
 type SessionStore = SessionState & {
@@ -30,6 +31,7 @@ const initial: SessionState = {
     imageMimeType: null,
     lastLanguage: 'English',
     chatMessages: [],
+    chatReady: false,
 };
 
 export const useSessionStore = create<SessionStore>((set) => ({
