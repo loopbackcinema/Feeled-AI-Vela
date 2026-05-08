@@ -22,13 +22,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const prompt = `You are an expert academic tutor preparing a student for an exam tomorrow.
         Topic: ${topic}
         Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
+        Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
 
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
         2. Keep output concise and scannable.
         3. importantQuestions: 5-10 highly probable exam questions.
         4. revisionNotes: Quick bullet points for last-minute revision.
-        5. predictedQuestions: 3 tricky or high-value predicted questions.`;
+        5. predictedQuestions: 3 tricky or high-value predicted questions.
+        6. Write every question and note in ${context.language} only.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',

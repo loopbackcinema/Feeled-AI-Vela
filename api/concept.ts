@@ -31,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const prompt = `You are an expert academic tutor. Answer the student's question.
         Question: ${question}
         Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
+        Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
 
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).

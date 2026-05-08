@@ -26,12 +26,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const prompt = `You are an expert academic tutor creating a practice test.
         Topic: ${topic}
         Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
+        Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
 
         CRITICAL RULES:
         1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
         2. Generate exactly 4 questions: 2 MCQs, 1 short answer, 1 long answer.
         3. For MCQs, provide exactly 4 options.
-        4. Provide the correct answer clearly.`;
+        4. Provide the correct answer clearly.
+        5. Write all questions and answers in ${context.language} only.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
