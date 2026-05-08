@@ -1,7 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Pinecone } from '@pinecone-database/pinecone';
+import type { PineconeRecord } from '@pinecone-database/pinecone';
 import { GoogleGenAI } from '@google/genai';
-import pdfParse from 'pdf-parse';
+// pdf-parse is CommonJS-only — no default ESM export
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>;
 
 // Requires Pinecone index configured with 768 dimensions (text-embedding-004 output)
 export const config = { api: { bodyParser: { sizeLimit: '25mb' } } };
@@ -71,7 +74,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         let upserted = 0;
         for (let i = 0; i < chunks.length; i += BATCH) {
             const batch = chunks.slice(i, i + BATCH);
-            const vectors = await Promise.all(
+            const records: PineconeRecord[] = await Promise.all(
                 batch.map(async (chunk) => ({
                     id: `${docId}-${chunk.chunkIndex}`,
                     values: await embedText(ai, chunk.text),
@@ -86,14 +89,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     },
                 }))
             );
-            await index.upsert(vectors);
-            upserted += vectors.length;
+            // Pinecone SDK v7: upsert takes { records: [...] }
+            await index.upsert({ records });
+            upserted += records.length;
         }
 
         return res.status(200).json({
             success: true,
             chunksIngested: upserted,
-            totalPages: pages.filter(p => p.trim()).length,
+            totalPages: pages.filter((p: string) => p.trim()).length,
         });
     } catch (error: any) {
         console.error('RAG ingest error:', error);
