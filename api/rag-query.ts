@@ -22,8 +22,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Embed the question
         const embRes = await ai.models.embedContent({
-            model: 'text-embedding-004',
+            model: 'gemini-embedding-001',
             contents: question,
+            config: { outputDimensionality: 768 },
         });
         const queryVector: number[] =
             (embRes as any).embedding?.values ??

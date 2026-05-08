@@ -24,8 +24,9 @@ function chunkPageText(text: string): string[] {
 
 async function embedText(ai: GoogleGenAI, text: string): Promise<number[]> {
     const res = await ai.models.embedContent({
-        model: 'text-embedding-004',
+        model: 'gemini-embedding-001',
         contents: text,
+        config: { outputDimensionality: 768 },
     });
     return (res as any).embedding?.values ?? (res as any).embeddings?.[0]?.values ?? [];
 }
