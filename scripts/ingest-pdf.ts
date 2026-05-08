@@ -1,19 +1,21 @@
+import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import * as fs   from 'fs';
 import * as path from 'path';
-import { PDFParse } from 'pdf-parse';
 import { GoogleGenAI } from '@google/genai';
 import { Pinecone }    from '@pinecone-database/pinecone';
 import type { PineconeRecord } from '@pinecone-database/pinecone';
 
+// pdf-parse is CommonJS-only — use createRequire for ESM compat
+const require  = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>;
+
 // ── Tuning constants ─────────────────────────────────────────────────────────
-const MAX_WORDS   = 300;   // ↓ from 375 — tighter, more focused chunks
+const MAX_WORDS   = 300;   // tighter, more focused chunks
 const OVERLAP     = 40;    // word overlap between adjacent chunks (context bridge)
-const TEXT_LIMIT  = 1500;  // chars stored in Pinecone metadata (↑ from 1000)
+const TEXT_LIMIT  = 1500;  // chars stored in Pinecone metadata
 
 // ── Chapter heading detector ─────────────────────────────────────────────────
-// Returns { chapterNum, chapterTitle } when a line looks like a chapter heading,
-// null otherwise.
 function detectChapterHeading(
     line: string,
 ): { chapterNum: number; chapterTitle: string } | null {
@@ -28,7 +30,7 @@ function detectChapterHeading(
     m = l.match(/^(?:UNIT|Unit)\s+(\d+)[:\s\-–]*(.*)/i);
     if (m) return { chapterNum: parseInt(m[1], 10), chapterTitle: l.slice(0, 70) };
 
-    // Pure ALL-CAPS line  (e.g. "HEREDITY AND EVOLUTION") — treat as chapter
+    // Pure ALL-CAPS line (e.g. "HEREDITY AND EVOLUTION") — treat as chapter
     if (l === l.toUpperCase() && /[A-Z]{4,}/.test(l) && l.length >= 6 && l.length <= 80) {
         return { chapterNum: 0, chapterTitle: l.slice(0, 70) };
     }
@@ -40,7 +42,6 @@ function detectChapterHeading(
 type ChunkType = 'formula' | 'example' | 'definition' | 'exercise' | 'summary' | 'text';
 
 function detectChunkType(text: string): ChunkType {
-    // Check specific patterns in order of specificity
     if (/formula\s*[:\-]|[A-Z]\s*=\s*[A-Z0-9]|[²³√∑∴∵×÷]|\d+\s*[+\-×÷]\s*\d+\s*=/.test(text))
         return 'formula';
     if (/\bExample\s*\d*\s*[:\-]|\bFor example\b|\be\.g\.\b|\bFor instance\b/i.test(text))
@@ -156,21 +157,22 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
         throw new Error('Missing API_KEY, PINECONE_API_KEY, or PINECONE_INDEX in .env.local');
     }
 
-    // Parse PDF
-    const pdfBuffer = fs.readFileSync(pdfPath);
-    const parser    = new PDFParse({ data: pdfBuffer });
-    const pdfData   = await parser.getText();
-    await parser.destroy();
+    // Parse PDF — pdfParse returns { text: string, numpages: number }
+    // Pages are delimited by form-feed characters (\f) in the text output
+    const pdfBuffer  = fs.readFileSync(pdfPath);
+    const pdfData    = await pdfParse(pdfBuffer);
+    const pages      = pdfData.text.split('\f');
+    const totalPages = pdfData.numpages;
 
     // Build chunks with chapter + chunkType metadata
     const chunks: ChunkRecord[] = [];
-    let globalIndex    = 0;
+    let globalIndex       = 0;
     let currentChapter    = 'Introduction';
     let currentChapterNum = 0;
     const chaptersFound   = new Set<string>();
 
-    for (const { text, num } of pdfData.pages) {
-        const pageText = text.trim();
+    for (let p = 0; p < pages.length; p++) {
+        const pageText = pages[p].trim();
         if (!pageText) continue;
 
         // Scan first 8 lines of each page for a chapter heading
@@ -189,7 +191,7 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
             if (!sub.trim()) continue;
             chunks.push({
                 text:       sub,
-                page:       num,
+                page:       p + 1,
                 chapter:    currentChapter,
                 chapterNum: currentChapterNum,
                 chunkType:  detectChunkType(sub),
@@ -198,7 +200,6 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
         }
     }
 
-    const totalPages = pdfData.total;
     onProgress?.({ phase: 'parsed', pages: totalPages, chunks: chunks.length });
 
     // Connect to Pinecone
