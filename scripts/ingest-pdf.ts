@@ -1,13 +1,76 @@
 import { fileURLToPath } from 'url';
-import * as fs from 'fs';
+import * as fs   from 'fs';
 import * as path from 'path';
 import { PDFParse } from 'pdf-parse';
 import { GoogleGenAI } from '@google/genai';
-import { Pinecone } from '@pinecone-database/pinecone';
+import { Pinecone }    from '@pinecone-database/pinecone';
 import type { PineconeRecord } from '@pinecone-database/pinecone';
 
-const MAX_WORDS_PER_CHUNK = 375; // ≈ 500 tokens (1 token ≈ 0.75 words)
+// ── Tuning constants ─────────────────────────────────────────────────────────
+const MAX_WORDS   = 300;   // ↓ from 375 — tighter, more focused chunks
+const OVERLAP     = 40;    // word overlap between adjacent chunks (context bridge)
+const TEXT_LIMIT  = 1500;  // chars stored in Pinecone metadata (↑ from 1000)
 
+// ── Chapter heading detector ─────────────────────────────────────────────────
+// Returns { chapterNum, chapterTitle } when a line looks like a chapter heading,
+// null otherwise.
+function detectChapterHeading(
+    line: string,
+): { chapterNum: number; chapterTitle: string } | null {
+    const l = line.trim();
+    if (!l || l.length < 4 || l.length > 100) return null;
+
+    // "CHAPTER 3", "Chapter 3 - Cell Biology", "Chapter 3: Cell Biology"
+    let m = l.match(/^(?:CHAPTER|Chapter)\s+(\d+)[:\s\-–]*(.*)/i);
+    if (m) return { chapterNum: parseInt(m[1], 10), chapterTitle: l.slice(0, 70) };
+
+    // "UNIT 2 - Electricity", "Unit 2"
+    m = l.match(/^(?:UNIT|Unit)\s+(\d+)[:\s\-–]*(.*)/i);
+    if (m) return { chapterNum: parseInt(m[1], 10), chapterTitle: l.slice(0, 70) };
+
+    // Pure ALL-CAPS line  (e.g. "HEREDITY AND EVOLUTION") — treat as chapter
+    if (l === l.toUpperCase() && /[A-Z]{4,}/.test(l) && l.length >= 6 && l.length <= 80) {
+        return { chapterNum: 0, chapterTitle: l.slice(0, 70) };
+    }
+
+    return null;
+}
+
+// ── Chunk-type classifier ────────────────────────────────────────────────────
+type ChunkType = 'formula' | 'example' | 'definition' | 'exercise' | 'summary' | 'text';
+
+function detectChunkType(text: string): ChunkType {
+    // Check specific patterns in order of specificity
+    if (/formula\s*[:\-]|[A-Z]\s*=\s*[A-Z0-9]|[²³√∑∴∵×÷]|\d+\s*[+\-×÷]\s*\d+\s*=/.test(text))
+        return 'formula';
+    if (/\bExample\s*\d*\s*[:\-]|\bFor example\b|\be\.g\.\b|\bFor instance\b/i.test(text))
+        return 'example';
+    if (/\bDefinition\s*[:\-]|\bis defined as\b|\bis called\b|\bis known as\b|\brefers to\b/i.test(text))
+        return 'definition';
+    if (/\bExercise\b|\bIn-text [Qq]uestions?\b|\bActivity\s*\d|\bFill in|\bMatch the following/i.test(text))
+        return 'exercise';
+    if (/\bSummary\b|\bKey [Pp]oints?\b|\bPoints to Remember\b|\bWhat We Have Learnt\b/i.test(text))
+        return 'summary';
+    return 'text';
+}
+
+// ── Overlapping word-level chunker ───────────────────────────────────────────
+function chunkText(text: string): string[] {
+    const words = text.split(/\s+/).filter(Boolean);
+    if (words.length <= MAX_WORDS) return [text.trim()];
+
+    const chunks: string[] = [];
+    let i = 0;
+    while (i < words.length) {
+        const end = Math.min(i + MAX_WORDS, words.length);
+        chunks.push(words.slice(i, end).join(' '));
+        if (end === words.length) break;
+        i += MAX_WORDS - OVERLAP;
+    }
+    return chunks;
+}
+
+// ── Env loader ───────────────────────────────────────────────────────────────
 export function loadEnvLocal(): Record<string, string> {
     const envPath = path.resolve(process.cwd(), '.env.local');
     if (!fs.existsSync(envPath)) return {};
@@ -22,23 +85,14 @@ export function loadEnvLocal(): Record<string, string> {
     return env;
 }
 
-function chunkText(text: string): string[] {
-    const words = text.split(/\s+/).filter(Boolean);
-    if (words.length <= MAX_WORDS_PER_CHUNK) return [text.trim()];
-    const chunks: string[] = [];
-    for (let i = 0; i < words.length; i += MAX_WORDS_PER_CHUNK) {
-        chunks.push(words.slice(i, i + MAX_WORDS_PER_CHUNK).join(' '));
-    }
-    return chunks;
-}
-
+// ── Embed with retry ─────────────────────────────────────────────────────────
 async function embedText(ai: GoogleGenAI, text: string, retries = 3): Promise<number[]> {
     for (let attempt = 0; attempt < retries; attempt++) {
         try {
             const res = await ai.models.embedContent({
                 model: 'gemini-embedding-001',
                 contents: text,
-                config: { outputDimensionality: 768 }, // match Pinecone index dimension
+                config: { outputDimensionality: 768 },
             });
             return (res as any).embedding?.values ?? (res as any).embeddings?.[0]?.values ?? [];
         } catch (err: any) {
@@ -52,34 +106,44 @@ async function embedText(ai: GoogleGenAI, text: string, retries = 3): Promise<nu
     return [];
 }
 
+// ── Types ────────────────────────────────────────────────────────────────────
 export type ProgressEvent =
-    | { phase: 'parsed'; pages: number; chunks: number }
-    | { phase: 'upload'; uploaded: number; total: number };
+    | { phase: 'parsed';  pages: number; chunks: number }
+    | { phase: 'upload';  uploaded: number; total: number };
 
 export interface IngestOptions {
     pdfPath: string;
     subject: string;
-    medium: string;
-    grade?: string;
-    board?: string;
-    env?: Record<string, string>;
+    medium:  string;
+    grade?:  string;
+    board?:  string;
+    env?:    Record<string, string>;
     onProgress?: (event: ProgressEvent) => void;
 }
 
 export interface IngestResult {
     chunksIngested: number;
-    totalPages: number;
-    elapsedSec: number;
+    totalPages:     number;
+    elapsedSec:     number;
+    chaptersFound:  string[];
 }
 
+interface ChunkRecord {
+    text:       string;
+    page:       number;
+    chapter:    string;
+    chapterNum: number;
+    chunkType:  string;
+    chunkIndex: number;
+}
+
+// ── Main ingest function ─────────────────────────────────────────────────────
 export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
     const {
-        pdfPath,
-        subject,
-        medium,
+        pdfPath, subject, medium,
         grade = '10',
         board = 'TN Samacheer',
-        env = {},
+        env   = {},
         onProgress,
     } = opts;
 
@@ -92,32 +156,62 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
         throw new Error('Missing API_KEY, PINECONE_API_KEY, or PINECONE_INDEX in .env.local');
     }
 
-    // pdf-parse v2: class-based API — new PDFParse({ data }) → getText() → { pages, total }
+    // Parse PDF
     const pdfBuffer = fs.readFileSync(pdfPath);
     const parser    = new PDFParse({ data: pdfBuffer });
     const pdfData   = await parser.getText();
     await parser.destroy();
 
-    const chunks: { text: string; page: number; chunkIndex: number }[] = [];
-    let globalIndex = 0;
+    // Build chunks with chapter + chunkType metadata
+    const chunks: ChunkRecord[] = [];
+    let globalIndex    = 0;
+    let currentChapter    = 'Introduction';
+    let currentChapterNum = 0;
+    const chaptersFound   = new Set<string>();
+
     for (const { text, num } of pdfData.pages) {
         const pageText = text.trim();
         if (!pageText) continue;
+
+        // Scan first 8 lines of each page for a chapter heading
+        const pageLines = pageText.split('\n');
+        for (const line of pageLines.slice(0, 8)) {
+            const heading = detectChapterHeading(line);
+            if (heading) {
+                currentChapter    = heading.chapterTitle;
+                if (heading.chapterNum > 0) currentChapterNum = heading.chapterNum;
+                chaptersFound.add(currentChapter);
+                break;
+            }
+        }
+
         for (const sub of chunkText(pageText)) {
-            if (sub.trim()) chunks.push({ text: sub, page: num, chunkIndex: globalIndex++ });
+            if (!sub.trim()) continue;
+            chunks.push({
+                text:       sub,
+                page:       num,
+                chapter:    currentChapter,
+                chapterNum: currentChapterNum,
+                chunkType:  detectChunkType(sub),
+                chunkIndex: globalIndex++,
+            });
         }
     }
 
     const totalPages = pdfData.total;
     onProgress?.({ phase: 'parsed', pages: totalPages, chunks: chunks.length });
 
+    // Connect to Pinecone
     const ai    = new GoogleGenAI({ apiKey });
     const pc    = new Pinecone({ apiKey: pineconeKey });
-    const index = pineconeHost ? pc.index(pineconeIndex, pineconeHost) : pc.index(pineconeIndex);
+    const index = pineconeHost
+        ? pc.index(pineconeIndex, pineconeHost)
+        : pc.index(pineconeIndex);
 
     const docId = `${board}-${grade}-${subject}-${medium}`
         .toLowerCase().replace(/\s+/g, '-');
 
+    // Embed and upsert in batches of 10
     const BATCH     = 10;
     let upserted    = 0;
     const startTime = Date.now();
@@ -133,9 +227,12 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
                     grade,
                     subject,
                     medium,
+                    chapter:    chunk.chapter,
+                    chapterNum: chunk.chapterNum,
+                    chunkType:  chunk.chunkType,
                     page:       chunk.page,
                     chunkIndex: chunk.chunkIndex,
-                    text:       chunk.text.slice(0, 1000), // Pinecone metadata string limit
+                    text:       chunk.text.slice(0, TEXT_LIMIT),
                 },
             }))
         );
@@ -145,17 +242,22 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
         if (i + BATCH < chunks.length) await new Promise(r => setTimeout(r, 200));
     }
 
-    return { chunksIngested: upserted, totalPages, elapsedSec: (Date.now() - startTime) / 1000 };
+    return {
+        chunksIngested: upserted,
+        totalPages,
+        elapsedSec:    (Date.now() - startTime) / 1000,
+        chaptersFound: [...chaptersFound],
+    };
 }
 
-// ─── CLI entry point ───────────────────────────────────────────────────────────
+// ── CLI entry point ───────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 if (path.resolve(process.argv[1] ?? '') === path.resolve(__filename)) {
-    const [,, pdfPath, subject, medium] = process.argv;
+    const [,, pdfPath, subject, medium, grade = '10'] = process.argv;
 
     if (!pdfPath || !subject || !medium) {
-        console.error('Usage: npm run ingest <pdfPath> <subject> <medium>');
-        console.error('Example: npm run ingest ./pdfs/science.pdf Science English');
+        console.error('Usage: npm run ingest <pdfPath> <subject> <medium> [grade]');
+        console.error('Example: npm run ingest ./pdfs/science.pdf Science English 10');
         process.exit(1);
     }
 
@@ -170,13 +272,14 @@ if (path.resolve(process.argv[1] ?? '') === path.resolve(__filename)) {
     const sizeMb = (stat.size / 1024 / 1024).toFixed(2);
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('  FeelEd AI — Syllabus Ingestion');
+    console.log('  FeelEd AI — Syllabus Ingestion v2');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`  File    : ${path.basename(absolutePath)} (${sizeMb} MB)`);
     console.log(`  Subject : ${subject}`);
-    console.log(`  Grade   : 10`);
+    console.log(`  Grade   : ${grade}`);
     console.log(`  Medium  : ${medium}`);
     console.log(`  Board   : TN Samacheer`);
+    console.log(`  Chunking: ${MAX_WORDS} words max, ${OVERLAP} word overlap`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('\n  Parsing PDF and building chunks...');
 
@@ -185,6 +288,7 @@ if (path.resolve(process.argv[1] ?? '') === path.resolve(__filename)) {
         pdfPath: absolutePath,
         subject,
         medium,
+        grade,
         env,
         onProgress: (event) => {
             if (event.phase === 'parsed') {
@@ -198,10 +302,14 @@ if (path.resolve(process.argv[1] ?? '') === path.resolve(__filename)) {
                 }
             }
         },
-    }).then(({ chunksIngested, totalPages, elapsedSec }) => {
+    }).then(({ chunksIngested, totalPages, elapsedSec, chaptersFound }) => {
         console.log(`\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
         console.log(`  Pages parsed  : ${totalPages}`);
         console.log(`  Chunks stored : ${chunksIngested}`);
+        console.log(`  Chapters found: ${chaptersFound.length}`);
+        if (chaptersFound.length > 0) {
+            chaptersFound.forEach(c => console.log(`    • ${c}`));
+        }
         console.log(`  Time elapsed  : ${elapsedSec.toFixed(1)}s`);
         console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
         console.log('\n  Ingestion complete. Pinecone vectors are ready.\n');

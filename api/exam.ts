@@ -1,115 +1,66 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type } from '@google/genai';
+import { fetchRagContext, normaliseGrade, effectiveMedium } from './_rag.js';
 
 const schema = {
     type: Type.OBJECT,
     properties: {
         importantQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
         revisionNotes:      { type: Type.ARRAY, items: { type: Type.STRING } },
-        predictedQuestions: { type: Type.ARRAY, items: { type: Type.STRING } }
+        predictedQuestions: { type: Type.ARRAY, items: { type: Type.STRING } },
     },
-    required: ["importantQuestions", "revisionNotes", "predictedQuestions"]
+    required: ['importantQuestions', 'revisionNotes', 'predictedQuestions'],
 };
-
-function normalizeBoard(board: string): string {
-    return board.includes('Samacheer') ? 'TN Samacheer' : board;
-}
-
-async function fetchRagContext(
-    query: string, subject: string, grade: string, medium: string, board: string
-): Promise<{ context: string | null; chunksFound: number; scores: number[] }> {
-    const { API_KEY, PINECONE_API_KEY, PINECONE_HOST } = process.env;
-    if (!API_KEY || !PINECONE_API_KEY || !PINECONE_HOST) {
-        return { context: null, chunksFound: 0, scores: [] };
-    }
-    try {
-        const embRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${API_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: { parts: [{ text: query }] }, outputDimensionality: 768 }),
-            }
-        );
-        if (!embRes.ok) return { context: null, chunksFound: 0, scores: [] };
-        const embData = await embRes.json() as any;
-        const vector: number[] = embData.embedding?.values ?? [];
-        if (vector.length === 0) return { context: null, chunksFound: 0, scores: [] };
-
-        const normalizedBoard = normalizeBoard(board);
-        const effectiveMedium = medium === 'Tamil' ? 'English' : medium;
-
-        const filter: Record<string, { $eq: string }> = {
-            subject: { $eq: subject },
-            grade:   { $eq: grade },
-            medium:  { $eq: effectiveMedium },
-            board:   { $eq: normalizedBoard },
-        };
-
-        const pinRes = await fetch(`${PINECONE_HOST}/query`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Api-Key': PINECONE_API_KEY },
-            body: JSON.stringify({ vector, topK: 5, includeMetadata: true, filter }),
-        });
-        if (!pinRes.ok) return { context: null, chunksFound: 0, scores: [] };
-        const pinData = await pinRes.json() as any;
-
-        const goodMatches = (pinData.matches ?? []).filter((m: any) => (m.score ?? 0) > 0.4);
-        const chunks: string[] = goodMatches.map((m: any) => m.metadata?.text as string).filter(Boolean);
-        const scores: number[] = goodMatches.map((m: any) => +(m.score ?? 0).toFixed(3));
-
-        return { context: chunks.length > 0 ? chunks.join('\n\n') : null, chunksFound: chunks.length, scores };
-    } catch (err) {
-        console.error('[RAG] fetch error:', err);
-        return { context: null, chunksFound: 0, scores: [] };
-    }
-}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
     const API_KEY = process.env.API_KEY;
-    if (!API_KEY) return res.status(500).json({ error: "API_KEY not set" });
+    if (!API_KEY) return res.status(500).json({ error: 'API_KEY not set' });
     const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     try {
         const { topic, context } = req.body;
-        const medium = context.language === 'Tamil' ? 'Tamil' : 'English';
-        const grade  = (context.standard ?? '').replace(/\D/g, '') || context.standard;
+        const medium = effectiveMedium(context.language === 'Tamil' ? 'Tamil' : 'English');
+        const grade  = normaliseGrade(context.standard ?? '');
 
-        const { context: ragContext, chunksFound, scores } = await fetchRagContext(
-            topic, context.subject, grade, medium, context.board ?? 'TN Samacheer'
-        );
+        const { context: ragContext, chunksFound, citations, scores } = await fetchRagContext({
+            query:   topic,
+            subject: context.subject,
+            grade,
+            medium,
+            board:   context.board ?? 'TN Samacheer',
+        });
 
-        console.log(`[exam] board="${context.board}" → "${normalizeBoard(context.board ?? '')}" | grade="${grade}" | medium="${medium}" | RAG chunks=${chunksFound} scores=[${scores.join(',')}]`);
+        console.log(`[exam] grade="${grade}" subject="${context.subject}" medium="${medium}" RAG=${chunksFound} scores=[${scores.join(',')}]`);
 
         const ragSection = ragContext
             ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${context.subject}, English Medium):\n${ragContext}\n\nBase your importantQuestions, revisionNotes, and predictedQuestions DIRECTLY on the above textbook content.`
-            : `No textbook excerpt available — generate from general academic knowledge.`;
+            : 'No textbook excerpt available — generate from general academic knowledge.';
 
         const prompt = `You are an expert academic tutor preparing a student for an exam tomorrow.
-        Topic: ${topic}
-        Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
-        Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
+Topic: ${topic}
+Context: Board: ${context.board}, Class: ${context.standard}, Subject: ${context.subject}
+Response Language: ${context.language} — ALL text in your response MUST be written in ${context.language}.
 
-        ${ragSection}
+${ragSection}
 
-        CRITICAL RULES:
-        1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
-        2. Keep output concise and scannable.
-        3. importantQuestions: 5-10 highly probable exam questions from the textbook.
-        4. revisionNotes: Quick bullet points for last-minute revision — key facts from the textbook.
-        5. predictedQuestions: 3 tricky or high-value predicted questions aligned to the syllabus.
-        6. Write every question and note in ${context.language} only.`;
+CRITICAL RULES:
+1. DO NOT use any markdown formatting (no asterisks **, no hashes ###).
+2. Keep output concise and scannable.
+3. importantQuestions: 5-10 highly probable exam questions from the textbook.
+4. revisionNotes: Quick bullet points for last-minute revision — key facts from the textbook.
+5. predictedQuestions: 3 tricky or high-value predicted questions aligned to the syllabus.
+6. Write every question and note in ${context.language} only.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
             contents: prompt,
-            config: { responseMimeType: "application/json", responseSchema: schema },
+            config: { responseMimeType: 'application/json', responseSchema: schema },
         });
 
-        if (!response.text) throw new Error("Empty response");
+        if (!response.text) throw new Error('Empty response');
         const data = JSON.parse(response.text.trim());
-        res.status(200).json(data);
+        res.status(200).json({ ...data, ragCitations: citations });
     } catch (error) {
         console.error('Exam API Error:', error);
         res.status(500).json({ error: 'Failed to generate exam prep' });

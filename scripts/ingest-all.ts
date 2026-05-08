@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs   from 'fs';
 import * as path from 'path';
 import { ingestPdf, loadEnvLocal } from './ingest-pdf.ts';
 
@@ -7,13 +7,21 @@ const MEDIUM_MAP: Record<string, string> = {
     TM: 'Tamil',
 };
 
+// Extract subject from filename patterns like:
+//   Class_10_Science_English_Medium.pdf
+//   Class_10_Maths-EM.pdf
+//   Class_10_Social_Science.pdf
 function extractSubject(filename: string): string {
     const base  = path.basename(filename, '.pdf');
-    // Match Class_10_<Subject>_<English|Tamil>_Medium or Class_10_<Subject>-
     const match = base.match(/^Class_\d+_(.+?)(?:_(English|Tamil)_Medium|-)/);
     if (match) return match[1].replace(/_/g, ' ');
-    // Fallback: take the segment after Class_<grade>_
-    return base.replace(/^Class_\d+_/, '').split(/[_-]/)[0];
+    return base.replace(/^Class_\d+_/, '').split(/[_-]/)[0].replace(/_/g, ' ');
+}
+
+// Extract grade from filename, e.g. Class_10_... → "10"
+function extractGrade(filename: string): string {
+    const m = filename.match(/Class_(\d+)/);
+    return m ? m[1] : '10';
 }
 
 interface PdfTask {
@@ -21,6 +29,7 @@ interface PdfTask {
     filename: string;
     subject:  string;
     medium:   string;
+    grade:    string;
     sizeMb:   string;
 }
 
@@ -59,7 +68,8 @@ async function main() {
                 filename,
                 subject: extractSubject(filename),
                 medium,
-                sizeMb: (stat.size / 1024 / 1024).toFixed(1),
+                grade:   extractGrade(filename),
+                sizeMb:  (stat.size / 1024 / 1024).toFixed(1),
             });
         }
     }
@@ -69,27 +79,28 @@ async function main() {
         process.exit(1);
     }
 
-    const enCount    = tasks.filter(t => t.medium === 'English').length;
-    const tmCount    = tasks.filter(t => t.medium === 'Tamil').length;
+    const enCount      = tasks.filter(t => t.medium === 'English').length;
+    const tmCount      = tasks.filter(t => t.medium === 'Tamil').length;
     const overallStart = Date.now();
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('  FeelEd AI — Batch Syllabus Ingestion');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`  Folder : ${rootFolder}`);
-    console.log(`  Files  : ${tasks.length} total  (${enCount} English, ${tmCount} Tamil)`);
-    console.log(`  Grade  : 10   Board : TN Samacheer`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('  FeelEd AI — Batch Syllabus Ingestion v2');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`  Folder  : ${rootFolder}`);
+    console.log(`  Files   : ${tasks.length} total  (${enCount} English, ${tmCount} Tamil)`);
+    console.log(`  Board   : TN Samacheer`);
+    console.log(`  Chunking: 300 words max, 40 word overlap, chapter-aware`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-    type Result =
-        | { task: PdfTask; ok: true;  chunks: number; pages: number; elapsed: number }
-        | { task: PdfTask; ok: false; error: string };
+    type OkResult   = { task: PdfTask; ok: true;  chunks: number; pages: number; chapters: number; elapsed: number };
+    type ErrResult  = { task: PdfTask; ok: false; error: string };
+    type Result     = OkResult | ErrResult;
 
     const results: Result[] = [];
 
     for (let i = 0; i < tasks.length; i++) {
         const task = tasks[i];
-        console.log(`[${i + 1}/${tasks.length}] ${task.medium} — ${task.subject}`);
+        console.log(`[${i + 1}/${tasks.length}] Grade ${task.grade} ${task.medium} — ${task.subject}`);
         console.log(`  File    : ${task.filename} (${task.sizeMb} MB)`);
         console.log(`  Parsing PDF...`);
 
@@ -99,6 +110,7 @@ async function main() {
                 pdfPath:  task.filePath,
                 subject:  task.subject,
                 medium:   task.medium,
+                grade:    task.grade,
                 env,
                 onProgress: (event) => {
                     if (event.phase === 'parsed') {
@@ -114,33 +126,42 @@ async function main() {
                 },
             });
             process.stdout.write(`\r  Upload  : ${result.chunksIngested}/${result.chunksIngested} done   \n`);
+            console.log(`  Chapters: ${result.chaptersFound.length} detected`);
             console.log(`  Elapsed : ${result.elapsedSec.toFixed(1)}s\n`);
-            results.push({ task, ok: true, chunks: result.chunksIngested, pages: result.totalPages, elapsed: result.elapsedSec });
+            results.push({
+                task, ok: true,
+                chunks:   result.chunksIngested,
+                pages:    result.totalPages,
+                chapters: result.chaptersFound.length,
+                elapsed:  result.elapsedSec,
+            });
         } catch (err: any) {
             console.error(`  ERROR   : ${err.message ?? err}\n`);
             results.push({ task, ok: false, error: err.message ?? String(err) });
         }
     }
 
-    const succeeded    = results.filter((r): r is Extract<Result, { ok: true }> => r.ok);
-    const failed       = results.filter((r): r is Extract<Result, { ok: false }> => !r.ok);
+    const succeeded    = results.filter((r): r is OkResult  => r.ok);
+    const failed       = results.filter((r): r is ErrResult => !r.ok);
     const totalChunks  = succeeded.reduce((sum, r) => sum + r.chunks, 0);
     const totalElapsed = ((Date.now() - overallStart) / 1000).toFixed(0);
 
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('  BATCH INGESTION COMPLETE');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`  Files     : ${succeeded.length}/${tasks.length} succeeded`);
     console.log(`  Vectors   : ${totalChunks.toLocaleString()} total in Pinecone`);
     console.log(`  Total time: ${totalElapsed}s`);
     if (failed.length > 0) {
         console.log('\n  FAILED:');
         for (const r of failed) {
-            console.log(`    [${r.task.medium}] ${r.task.filename}`);
+            console.log(`    [${r.task.medium}] Grade ${r.task.grade} ${r.task.filename}`);
             console.log(`    => ${r.error}`);
         }
     }
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('\n  Re-ingest command for a single file:');
+    console.log('  npm run ingest <pdfPath> <subject> <medium> <grade>');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }
 
 main().catch(err => {

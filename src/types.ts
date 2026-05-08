@@ -33,6 +33,15 @@ export interface ChatMessage {
 
 export type Page = 'home' | 'chat' | 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'inclusive' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard' | 'answer' | 'practice' | 'exam';
 
+export interface RagCitation {
+    subject:    string;
+    chapter:    string;
+    chapterNum: number;
+    page:       number;
+    chunkType:  string;
+    score:      number;
+}
+
 export interface StudyChatMessage {
     id: string;
     role: 'user' | 'model';
@@ -40,6 +49,7 @@ export interface StudyChatMessage {
     ragUsed?: boolean;
     timestamp: number;
     suggestions?: string[];
+    ragCitations?: RagCitation[];
 }
 
 export interface StudentContext {

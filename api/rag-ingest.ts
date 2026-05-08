@@ -6,18 +6,51 @@ import { GoogleGenAI } from '@google/genai';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>;
 
-// Requires Pinecone index configured with 768 dimensions (text-embedding-004 output)
+// Pinecone index must be configured with 768 dimensions (gemini-embedding-001 output)
 export const config = { api: { bodyParser: { sizeLimit: '25mb' } } };
 
-// 500 tokens ≈ 375 words (1 token ≈ 0.75 words)
-const MAX_WORDS_PER_CHUNK = 375;
+const MAX_WORDS  = 300;   // ↓ from 375
+const OVERLAP    = 40;    // word overlap between chunks
+const TEXT_LIMIT = 1500;  // chars stored in metadata (↑ from 1000)
 
+// ── Chapter heading detector ─────────────────────────────────────────────────
+function detectChapterHeading(line: string): { chapterNum: number; chapterTitle: string } | null {
+    const l = line.trim();
+    if (!l || l.length < 4 || l.length > 100) return null;
+
+    let m = l.match(/^(?:CHAPTER|Chapter)\s+(\d+)[:\s\-–]*(.*)/i);
+    if (m) return { chapterNum: parseInt(m[1], 10), chapterTitle: l.slice(0, 70) };
+
+    m = l.match(/^(?:UNIT|Unit)\s+(\d+)[:\s\-–]*(.*)/i);
+    if (m) return { chapterNum: parseInt(m[1], 10), chapterTitle: l.slice(0, 70) };
+
+    if (l === l.toUpperCase() && /[A-Z]{4,}/.test(l) && l.length >= 6 && l.length <= 80) {
+        return { chapterNum: 0, chapterTitle: l.slice(0, 70) };
+    }
+    return null;
+}
+
+// ── Chunk-type classifier ────────────────────────────────────────────────────
+function detectChunkType(text: string): string {
+    if (/formula\s*[:\-]|[A-Z]\s*=\s*[A-Z0-9]|[²³√∑∴∵×÷]/.test(text)) return 'formula';
+    if (/\bExample\s*\d*\s*[:\-]|\bFor example\b|\be\.g\.\b/i.test(text))  return 'example';
+    if (/\bDefinition\s*[:\-]|\bis defined as\b|\bis called\b/i.test(text)) return 'definition';
+    if (/\bExercise\b|\bIn-text [Qq]uestions?\b|\bActivity\s*\d/i.test(text)) return 'exercise';
+    if (/\bSummary\b|\bKey [Pp]oints?\b|\bPoints to Remember\b/i.test(text)) return 'summary';
+    return 'text';
+}
+
+// ── Overlapping chunker ───────────────────────────────────────────────────────
 function chunkPageText(text: string): string[] {
     const words = text.split(/\s+/).filter(Boolean);
-    if (words.length <= MAX_WORDS_PER_CHUNK) return [text.trim()];
+    if (words.length <= MAX_WORDS) return [text.trim()];
     const chunks: string[] = [];
-    for (let i = 0; i < words.length; i += MAX_WORDS_PER_CHUNK) {
-        chunks.push(words.slice(i, i + MAX_WORDS_PER_CHUNK).join(' '));
+    let i = 0;
+    while (i < words.length) {
+        const end = Math.min(i + MAX_WORDS, words.length);
+        chunks.push(words.slice(i, end).join(' '));
+        if (end === words.length) break;
+        i += MAX_WORDS - OVERLAP;
     }
     return chunks;
 }
@@ -45,19 +78,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        // Parse PDF — form feed character (\f) separates pages in pdf-parse output
         const pdfBuffer = Buffer.from(pdfBase64, 'base64');
-        const pdfData = await pdfParse(pdfBuffer);
-        const pages = pdfData.text.split('\f');
+        const pdfData   = await pdfParse(pdfBuffer);
+        const pages     = pdfData.text.split('\f');
 
-        // Build chunks with page provenance
-        const chunks: { text: string; page: number; chunkIndex: number }[] = [];
-        let globalIndex = 0;
+        interface ChunkRecord {
+            text: string; page: number; chapter: string;
+            chapterNum: number; chunkType: string; chunkIndex: number;
+        }
+
+        const chunks: ChunkRecord[] = [];
+        let globalIndex    = 0;
+        let currentChapter    = 'Introduction';
+        let currentChapterNum = 0;
+
         for (let p = 0; p < pages.length; p++) {
             const pageText = pages[p].trim();
             if (!pageText) continue;
+
+            // Chapter detection
+            const pageLines = pageText.split('\n');
+            for (const line of pageLines.slice(0, 8)) {
+                const heading = detectChapterHeading(line);
+                if (heading) {
+                    currentChapter    = heading.chapterTitle;
+                    if (heading.chapterNum > 0) currentChapterNum = heading.chapterNum;
+                    break;
+                }
+            }
+
             for (const sub of chunkPageText(pageText)) {
-                if (sub.trim()) chunks.push({ text: sub, page: p + 1, chunkIndex: globalIndex++ });
+                if (sub.trim()) chunks.push({
+                    text: sub, page: p + 1,
+                    chapter: currentChapter, chapterNum: currentChapterNum,
+                    chunkType: detectChunkType(sub),
+                    chunkIndex: globalIndex++,
+                });
             }
         }
 
@@ -70,27 +126,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const docId = `${board}-${grade}-${subject}-${medium}`
             .toLowerCase().replace(/\s+/g, '-');
 
-        // Embed and upsert in batches of 10 to stay within rate limits
         const BATCH = 10;
         let upserted = 0;
         for (let i = 0; i < chunks.length; i += BATCH) {
             const batch = chunks.slice(i, i + BATCH);
             const records: PineconeRecord[] = await Promise.all(
                 batch.map(async (chunk) => ({
-                    id: `${docId}-${chunk.chunkIndex}`,
+                    id:     `${docId}-${chunk.chunkIndex}`,
                     values: await embedText(ai, chunk.text),
                     metadata: {
-                        board,
-                        grade,
-                        subject,
-                        medium,
-                        page: chunk.page,
+                        board, grade, subject, medium,
+                        chapter:    chunk.chapter,
+                        chapterNum: chunk.chapterNum,
+                        chunkType:  chunk.chunkType,
+                        page:       chunk.page,
                         chunkIndex: chunk.chunkIndex,
-                        text: chunk.text.slice(0, 1000), // Pinecone metadata string limit
+                        text:       chunk.text.slice(0, TEXT_LIMIT),
                     },
                 }))
             );
-            // Pinecone SDK v7: upsert takes { records: [...] }
             await index.upsert({ records });
             upserted += records.length;
         }

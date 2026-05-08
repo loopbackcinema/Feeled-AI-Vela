@@ -18,7 +18,9 @@ export const generateConcept = async (question: string, context: StudentContext)
 };
 
 export const generatePractice = async (topic: string, context: StudentContext): Promise<PracticeQuestion[]> => {
-    return post<PracticeQuestion[]>('/api/practice', { topic, context });
+    // API now returns { questions, ragCitations } — extract just the questions array
+    const data = await post<{ questions: PracticeQuestion[] } | PracticeQuestion[]>('/api/practice', { topic, context });
+    return Array.isArray(data) ? data : (data as any).questions ?? [];
 };
 
 export const generateExamPrep = async (topic: string, context: StudentContext): Promise<ExamPrep> => {

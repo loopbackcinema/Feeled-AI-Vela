@@ -17,7 +17,7 @@ import {
     QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
-import { StudyChatMessage } from '../../types';
+import { StudyChatMessage, RagCitation } from '../../types';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -501,7 +501,7 @@ const ChatPage: React.FC = () => {
             }),
         });
         if (!res.ok) throw new Error('API error');
-        return res.json() as Promise<{ reply: string; ragUsed: boolean; suggestions: string[] }>;
+        return res.json() as Promise<{ reply: string; ragUsed: boolean; suggestions: string[]; ragCitations: RagCitation[] }>;
     }, []);
 
     // Core send function
@@ -550,7 +550,7 @@ const ChatPage: React.FC = () => {
                     language: actualLang,
                     medium: actualLang === 'Tamil' ? 'Tamil' : 'English',
                 });
-                const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, timestamp: Date.now() };
+                const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
                 const finalMsgs = [...newMessages, aiMsg];
                 setSession({ chatMessages: finalMsgs });
                 setPendingQuestion('');
@@ -571,7 +571,7 @@ const ChatPage: React.FC = () => {
 
         try {
             const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime);
-            const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, timestamp: Date.now() };
+            const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
@@ -751,6 +751,23 @@ const ChatPage: React.FC = () => {
                                             ))}
                                         </div>
                                     )}
+
+                                    {/* Citation card */}
+                                    {msg.role === 'model' && msg.ragCitations && msg.ragCitations.length > 0 && (() => {
+                                        const best = msg.ragCitations[0];
+                                        const parts: string[] = ['TN Samacheer'];
+                                        if (best.chapter) parts.push(best.chapter);
+                                        if (best.page > 0) parts.push(`p. ${best.page}`);
+                                        if (best.chunkType && best.chunkType !== 'text') parts.push(best.chunkType);
+                                        return (
+                                            <div className="flex items-center gap-1.5 mt-2 ml-1 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/40 w-fit max-w-full">
+                                                <BookOpen className="w-3 h-3 text-emerald-600 dark:text-emerald-500 flex-shrink-0" />
+                                                <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium truncate">
+                                                    📚 {parts.join(' · ')}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                                 {msg.role === 'user' && (
                                     <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-white text-xs font-black select-none">
