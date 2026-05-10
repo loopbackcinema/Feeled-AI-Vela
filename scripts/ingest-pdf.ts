@@ -8,7 +8,7 @@ import type { PineconeRecord } from '@pinecone-database/pinecone';
 
 // pdf-parse is CommonJS-only — use createRequire for ESM compat
 const require  = createRequire(import.meta.url);
-const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.mjs');
 const pdfParse = async (buffer: Buffer): Promise<{text: string, numpages: number}> => {
   const doc = await pdfjsLib.getDocument({data: new Uint8Array(buffer)}).promise;
   let text = '';
