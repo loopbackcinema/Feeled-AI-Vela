@@ -27,7 +27,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             body: JSON.stringify({
                 inputs: [safeText],
                 target_language_code: targetLanguageCode,
-                speaker: 'meera',
+                speaker: 'anushka',
                 model: 'bulbul:v1',
             }),
         });
