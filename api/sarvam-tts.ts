@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 inputs: [safeText],
                 target_language_code: targetLanguageCode,
                 speaker: 'anushka',
-                model: 'bulbul:v1',
+                model: 'bulbul:v2',
             }),
         });
 
