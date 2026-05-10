@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Menu, X, Plus, Mic, Send, Loader2, BookOpen,
+    Menu, X, Plus, Mic, Send, Loader2, BookOpen, Volume2,
     LogIn, LogOut, SquarePen, Image as ImageIcon, Settings2, ChevronRight,
     LayoutDashboard, BookMarked, FlaskConical, User, Lock, Globe, ArrowLeft,
 } from 'lucide-react';
@@ -583,6 +583,22 @@ const ChatPage: React.FC = () => {
         }
     }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession]);
 
+    // TTS
+    const playTts = async (text: string) => {
+        try {
+            const r = await fetch("/api/sarvam-tts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: text.slice(0, 500), language: STT_LANG[language] ?? "en-IN" }),
+            });
+            const d = await r.json();
+            if (d.base64Audio) {
+                const audio = new Audio(`data:audio/wav;base64,${d.base64Audio}`);
+                audio.play();
+            }
+        } catch {}
+    };
+
     // STT
     const handleVoice = async () => {
         if (isListening) { mediaRef.current?.stop(); return; }
@@ -736,6 +752,11 @@ const ChatPage: React.FC = () => {
                                         )}
                                     </div>
 
+                                    {msg.role === 'model' && (
+                                        <button onClick={() => playTts(msg.text)} className="ml-1 mt-1 p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all" title="Listen">
+                                            <Volume2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                     {/* Suggestion chips below AI messages */}
                                     {msg.role === 'model' && msg.suggestions && msg.suggestions.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
