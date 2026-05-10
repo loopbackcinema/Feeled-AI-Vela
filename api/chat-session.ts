@@ -59,22 +59,19 @@ where question1, question2, question3 are 3 short follow-up questions the studen
             })),
             { role: 'user', parts: userParts },
         ];
+res.setHeader('Content-Type', 'text/event-stream');
+res.setHeader('Cache-Control', 'no-cache');
+res.setHeader('Connection', 'keep-alive');
+let fullText = '';
+const stream = await ai.models.generateContentStream({ model: 'gemini-2.5-flash', contents, config: { systemInstruction } });
+for await (const chunk of stream) {
+    const t = chunk.text || '';
+    if (t) { fullText += t; res.write('data: ' + JSON.stringify({ chunk: t }) + '\n\n'); }
+}
+const { reply, suggestions } = parseSuggestions(fullText);
+res.write('data: ' + JSON.stringify({ done: true, ragUsed: chunksFound > 0, suggestions, ragCitations: citations }) + '\n\n');
+res.end();
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents,
-            config: { systemInstruction },
-        });
-
-        if (!response.text) throw new Error('Empty response');
-
-        const { reply, suggestions } = parseSuggestions(response.text);
-        res.status(200).json({
-            reply,
-            ragUsed:      chunksFound > 0,
-            suggestions,
-            ragCitations: citations,
-        });
     } catch (error) {
         console.error('Chat Session Error:', error);
         res.status(500).json({ error: 'Failed to generate response' });

@@ -482,27 +482,53 @@ const ChatPage: React.FC = () => {
     }, [setupBoard, setupGrade, setupSubject, setupLanguage, setContext]);
 
     // API call helper
-    const callAPI = useCallback(async (
-        text: string,
-        history: StudyChatMessage[],
-        ctx: { board: string; grade: string; subject: string; language: string; medium: string },
-        imgBase64?: string,
-        imgMime?: string,
-    ) => {
-        const res = await fetch('/api/chat-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: text,
-                history: history.slice(-12).map(m => ({ role: m.role, text: m.text })),
-                context: ctx,
-                imageBase64: imgBase64 || undefined,
-                imageMimeType: imgMime || undefined,
-            }),
-        });
-        if (!res.ok) throw new Error('API error');
-        return res.json() as Promise<{ reply: string; ragUsed: boolean; suggestions: string[]; ragCitations: RagCitation[] }>;
-    }, []);
+const callAPI = useCallback(async (
+    text: string,
+    history: StudyChatMessage[],
+    ctx: { board: string; grade: string; subject: string; language: string; medium: string },
+    imgBase64?: string,
+    imgMime?: string,
+) => {
+    const res = await fetch('/api/chat-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            message: text,
+            history: history.slice(-12).map(m => ({ role: m.role, text: m.text })),
+            context: ctx,
+            imageBase64: imgBase64 || undefined,
+            imageMimeType: imgMime || undefined,
+        }),
+    });
+    if (!res.ok) throw new Error('API error');
+    const reader = res.body!.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let finalData: any = {};
+    const streamingId = `${Date.now()}-streaming`;
+    setSession(prev => ({ chatMessages: [...(prev.chatMessages || []), { id: streamingId, role: 'model', text: '', timestamp: Date.now() }] }));
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const lines = decoder.decode(value).split('\n');
+        for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try {
+                const data = JSON.parse(line.slice(6));
+                if (data.chunk) {
+                    fullText += data.chunk;
+                    setSession(prev => ({
+                        chatMessages: (prev.chatMessages || []).map(m =>
+                            m.id === streamingId ? { ...m, text: fullText } : m
+                        )
+                    }));
+                }
+                if (data.done) finalData = data;
+            } catch {}
+        }
+    }
+    return { reply: fullText, ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], streamingId };
+}, [setSession]);
 
     // Core send function
     const sendMessage = useCallback(async (text: string) => {
