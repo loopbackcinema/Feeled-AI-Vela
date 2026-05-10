@@ -56,7 +56,7 @@ CRITICAL RULES:
 5. Write all questions and answers in ${context.language} only.`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: { responseMimeType: 'application/json', responseSchema: questionSchema },
         });

@@ -53,7 +53,7 @@ CRITICAL RULES:
 6. Write every question and note in ${context.language} only.`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: { responseMimeType: 'application/json', responseSchema: schema },
         });
