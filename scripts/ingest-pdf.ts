@@ -8,9 +8,17 @@ import type { PineconeRecord } from '@pinecone-database/pinecone';
 
 // pdf-parse is CommonJS-only — use createRequire for ESM compat
 const require  = createRequire(import.meta.url);
-const pdfParseLib = require('pdf-parse');
-const pdfParse = pdfParseLib.PDFParse as (buf: Buffer) => Promise<{ text: string; numpages: number }>;
-
+const pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js');
+const pdfParse = async (buffer: Buffer): Promise<{text: string, numpages: number}> => {
+  const doc = await pdfjsLib.getDocument({data: new Uint8Array(buffer)}).promise;
+  let text = '';
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((item: any) => item.str).join(' ') + '\n';
+  }
+  return { text, numpages: doc.numPages };
+};
 // ── Tuning constants ─────────────────────────────────────────────────────────
 const MAX_WORDS   = 300;   // tighter, more focused chunks
 const OVERLAP     = 40;    // word overlap between adjacent chunks (context bridge)
