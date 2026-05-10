@@ -61,7 +61,7 @@ where question1, question2, question3 are 3 short follow-up questions the studen
         ];
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-pro',
+            model: 'gemini-2.5-flash',
             contents,
             config: { systemInstruction },
         });
