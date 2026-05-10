@@ -8,7 +8,8 @@ import type { PineconeRecord } from '@pinecone-database/pinecone';
 
 // pdf-parse is CommonJS-only — use createRequire for ESM compat
 const require  = createRequire(import.meta.url);
-const pdfParse = require('pdf-parse') as (buf: Buffer) => Promise<{ text: string; numpages: number }>;
+const pdfParseLib = require('pdf-parse');
+const pdfParse = pdfParseLib.PDFParse as (buf: Buffer) => Promise<{ text: string; numpages: number }>;
 
 // ── Tuning constants ─────────────────────────────────────────────────────────
 const MAX_WORDS   = 300;   // tighter, more focused chunks
