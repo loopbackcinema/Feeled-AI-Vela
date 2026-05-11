@@ -37,7 +37,7 @@ const TypewriterMarkdown: React.FC<TypewriterMarkdownProps> = ({ text }) => {
 
     return (
         <>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayed}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{displayed.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, '')}</ReactMarkdown>
             {!done && (
                 <span className="inline-block w-0.5 h-4 bg-indigo-500 dark:bg-indigo-400 animate-pulse rounded-full ml-0.5" />
             )}
