@@ -517,9 +517,10 @@ const callAPI = useCallback(async (
                 const data = JSON.parse(line.slice(6));
                 if (data.chunk) {
                     fullText += data.chunk;
+                    const cleanText = fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, '');
                     setSession(prev => ({
                         chatMessages: (prev.chatMessages || []).map(m =>
-                            m.id === streamingId ? { ...m, text: fullText } : m
+                            m.id === streamingId ? { ...m, text: cleanText } : m
                         )
                     }));
                 }
@@ -527,7 +528,7 @@ const callAPI = useCallback(async (
             } catch {}
         }
     }
-    return { reply: fullText, ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], streamingId };
+    return { reply: fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, ''), ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], streamingId };
 }, [setSession]);
 
     // Core send function
