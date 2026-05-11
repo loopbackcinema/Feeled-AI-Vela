@@ -15,7 +15,9 @@ const pdfParse = async (buffer: Buffer): Promise<{text: string, numpages: number
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
-    text += content.items.map((item: any) => item.str).join(' ') + '\n';
+    const lineTexts = content.items.map((item: any) => item.str);
+        lineTexts.forEach((s: string) => { if (s.trim()) text += s + '\n'; });
+        text += '\n';
   }
   return { text, numpages: doc.numPages };
 };
@@ -29,18 +31,33 @@ function detectChapterHeading(
     line: string,
 ): { chapterNum: number; chapterTitle: string } | null {
     const l = line.trim();
-    if (!l || l.length < 4 || l.length > 100) return null;
+    if (l.length < 3 || l.length > 80) return null;
 
-    // "CHAPTER 3", "Chapter 3 - Cell Biology", "Chapter 3: Cell Biology"
+    // "CHAPTER 3", "Chapter 3 - Cell Biology"
     let m = l.match(/^(?:CHAPTER|Chapter)\s+(\d+)[:\s\-–]*(.*)/i);
     if (m) return { chapterNum: parseInt(m[1], 10), chapterTitle: l.slice(0, 70) };
 
-    // "UNIT 2 - Electricity", "Unit 2"
-    m = l.match(/^(?:UNIT|Unit)\s+(\d+)[:\s\-–]*(.*)/i);
+    // "1. Laws of Motion" or "1.6 Impulse"
+    m = l.match(/^(\d+)[\.\s]+([A-Z][a-zA-Z\s]{3,50})$/);
     if (m) return { chapterNum: parseInt(m[1], 10), chapterTitle: l.slice(0, 70) };
 
-    // Pure ALL-CAPS line (e.g. "HEREDITY AND EVOLUTION") — treat as chapter
-    if (l === l.toUpperCase() && /[A-Z]{4,}/.test(l) && l.length >= 6 && l.length <= 80) {
+   // Short title case line (3-6 words, starts with capital, no punctuation)
+    const words = l.split(/\s+/);
+    if (words.length >= 2 && words.length <= 6) {
+        const startsWithCap = /^[A-Z]/.test(l);
+        const noPunctuation = !/[,;:!?]/.test(l);
+        const stopWords = new Set(['of','and','the','in','for','to','a','an','on','with','by','from','at','is','are','was','were']);
+        const notSentence = words.filter(w => /^[a-z]/.test(w) && stopWords.has(w) === false).length <= 1;
+        const noNumbers = !/\d/.test(l);
+        const notBoilerplate = l.toUpperCase().includes('GOVERNMENT') === false && l.toUpperCase().includes('TAMILNADU') === false && l.toUpperCase().includes('TEXTBOOK') === false && l.toUpperCase().includes('CORPORATION') === false;
+        if (startsWithCap && noPunctuation && notSentence && noNumbers && notBoilerplate) {
+            return { chapterNum: 0, chapterTitle: l.slice(0, 70) };
+        }
+    }
+
+    // ALL CAPS line
+    const capsBoilerplate = ['GOVERNMENT','TAMILNADU','TEXTBOOK','CORPORATION','DEPARTMENT','STANDARD','EDITION'].some(w => l.includes(w));
+    if (l === l.toUpperCase() && l.length > 5 && /[A-Z]/.test(l) && capsBoilerplate === false) {
         return { chapterNum: 0, chapterTitle: l.slice(0, 70) };
     }
 
