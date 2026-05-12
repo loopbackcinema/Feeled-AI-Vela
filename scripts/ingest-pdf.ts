@@ -142,8 +142,10 @@ export interface IngestOptions {
     pdfPath: string;
     subject: string;
     medium:  string;
-    grade?:  string;
-    board?:  string;
+    grade?:   string;
+    board?:   string;
+    year?:    string;
+    docType?: string;
     env?:    Record<string, string>;
     onProgress?: (event: ProgressEvent) => void;
 }
@@ -168,8 +170,10 @@ interface ChunkRecord {
 export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
     const {
         pdfPath, subject, medium,
-        grade = '10',
-        board = 'TN Samacheer',
+        grade   = '10',
+        board   = 'TN Samacheer',
+        year    = '2024',
+        docType = 'textbook',
         env   = {},
         onProgress,
     } = opts;
@@ -235,7 +239,7 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
         ? pc.index(pineconeIndex, pineconeHost)
         : pc.index(pineconeIndex);
 
-    const docId = `${board}-${grade}-${subject}-${medium}`
+    const docId = `${board}-${grade}-${subject}-${medium}-${docType}-${year}`
         .toLowerCase().replace(/\s+/g, '-');
 
     // Embed and upsert in batches of 10
@@ -254,6 +258,8 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
                     grade,
                     subject,
                     medium,
+                    year,
+                    docType,
                     chapter:    chunk.chapter,
                     chapterNum: chunk.chapterNum,
                     chunkType:  chunk.chunkType,
@@ -280,11 +286,11 @@ export async function ingestPdf(opts: IngestOptions): Promise<IngestResult> {
 // ── CLI entry point ───────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 if (path.resolve(process.argv[1] ?? '') === path.resolve(__filename)) {
-    const [,, pdfPath, subject, medium, grade = '10'] = process.argv;
+    const [,, pdfPath, subject, medium, grade = '10', year = '2024', docType = 'textbook'] = process.argv;
 
     if (!pdfPath || !subject || !medium) {
-        console.error('Usage: npm run ingest <pdfPath> <subject> <medium> [grade]');
-        console.error('Example: npm run ingest ./pdfs/science.pdf Science English 10');
+        console.error('Usage: npm run ingest <pdfPath> <subject> <medium> [grade] [year] [docType]');
+        console.error('Example: npm run ingest ./pdfs/science.pdf Science English 10 2024 question-paper');
         process.exit(1);
     }
 
