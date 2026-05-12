@@ -17,7 +17,7 @@ const pdfParse = async (buffer: Buffer): Promise<{text: string, numpages: number
     const content = await page.getTextContent();
     const lineTexts = content.items.map((item: any) => item.str);
         lineTexts.forEach((s: string) => { if (s.trim()) text += s + '\n'; });
-        text += '\n';
+        text += '\f';
   }
   return { text, numpages: doc.numPages };
 };
