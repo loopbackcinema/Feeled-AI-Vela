@@ -73,13 +73,13 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
             </div>
             <div className="text-center space-y-4">
                 <span className="px-4 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] border border-blue-100 dark:border-blue-800">
-                    Proprietary Affective Engine
+                    ✨ Story Mode
                 </span>
                 <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Professional <span className="shimmer-text">Learning Engine</span>
+                    Professional <span className="shimmer-text">Story Mode</span>
                 </h1>
                 <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-                    Convert complex educational concepts into verified narrative learning experiences for students.
+                    Learn any concept through emotion-driven stories — in Tamil or English.
                 </p>
             </div>
 

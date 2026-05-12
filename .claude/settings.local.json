@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(git *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npm install *)",
+      "Bash(wait_for_background_task bc41senk8 *)",
+      "Bash(git push *)",
+      "Bash(npm run *)",
+      "Bash(npx vercel *)",
+      "Bash(curl *)",
+      "Bash(node -e \"const p = require\\('@pinecone-database/pinecone'\\); console.log\\(Object.keys\\(p\\)\\); const {Pinecone} = p; const pc = new Pinecone\\({apiKey:'test'}\\); const idx = pc.index\\('x'\\); console.log\\(typeof idx.upsert\\);\")",
+      "Bash(node -e \"console.log\\(require\\('@pinecone-database/pinecone/package.json'\\).version\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"console.log\\(require\\('./package.json'\\).scripts\\)\")",
+      "Bash(npx tsx *)",
+      "Bash(dir C:\\\\Users\\\\Edit pc\\\\Desktop\\\\Feeled AI RAG *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\Edit pc\\\\Desktop\\\\Feeled AI RAG\" -Recurse -Force | ForEach-Object { \"$\\($_.FullName\\) [$\\($_.Length\\) bytes]\" })",
+      "Bash(node --input-type=module)",
+      "Bash(node -e \"const pkg = require\\('./node_modules/pdf-parse/package.json'\\); console.log\\(JSON.stringify\\({main: pkg.main, module: pkg.module, exports: pkg.exports, type: pkg.type}, null, 2\\)\\)\")",
+      "Bash(wait)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('textbookAnswer:', d['textbookAnswer'][:200]\\); print\\('keyKeywords:', d['keyKeywords']\\)\")"
+    ]
+  }
+}

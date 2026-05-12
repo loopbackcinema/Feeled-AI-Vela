@@ -26,7 +26,7 @@ const StorySection: React.FC<{ title: string; content: string }> = ({ title, con
             {title === 'Resolution' && '✅'}
             {title === 'Moral_message' && '🌟'}
             {title === 'Conclusion' && '🎓'}
-            {title.replace(/_/g, ' ')}
+            {title === 'Emotional_trigger' ? 'Emotional Trigger' : title === 'Concept_explanation' ? 'Concept Explanation' : title === 'Moral_message' ? 'Moral Message' : title.replace(/_/g, ' ')}
         </h3>
         <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-xl font-medium">{content}</p>
     </div>

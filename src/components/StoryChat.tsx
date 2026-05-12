@@ -150,7 +150,7 @@ const StoryChat: React.FC<StoryChatProps> = ({ story, language }) => {
     ];
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-[4rem] shadow-2xl border-4 border-white dark:border-slate-800 ring-8 ring-indigo-50/50 dark:ring-indigo-900/20 overflow-hidden flex flex-col h-[700px] transform transition-all duration-500 hover:scale-[1.01]">
+        <div className="bg-white dark:bg-slate-900 rounded-[4rem] shadow-2xl border-4 border-white dark:border-slate-800 ring-8 ring-indigo-50/50 dark:ring-indigo-900/20 overflow-hidden flex flex-col min-h-[500px] max-h-[700px]">
             {/* Header */}
             <div className="bg-gradient-to-r from-indigo-700 to-blue-700 p-10 flex items-center justify-between shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1)_0%,transparent_50%)]"></div>
