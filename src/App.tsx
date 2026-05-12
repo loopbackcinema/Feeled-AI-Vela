@@ -18,6 +18,7 @@ import InclusiveResearch from './pages/InclusiveResearch';
 import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 import MyStories from './components/MyStories';
+import GameMode from './pages/GameMode';
 import StudentDashboard from './components/StudentDashboard';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
@@ -43,7 +44,7 @@ const PAGE_TO_PATH: Record<Page, string> = {
     contact: '/contact',
     founder: '/founder',
     privacy: '/privacy',
-    inclusive: '/inclusive',
+    'game': '/game',
     'admin-dashboard': '/admin',
 };
 
@@ -256,6 +257,7 @@ const App: React.FC = () => {
             <Route path="/founder"    element={<PageShell showNav><Founder onNavigate={navigateTo} /></PageShell>} />
             <Route path="/privacy"    element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
             <Route path="/inclusive"  element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
+            <Route path="/game" element={<GameMode />} />
             <Route path="/admin"      element={
                 <PageShell showNav>
                     <div className="p-8 text-center">
