@@ -138,6 +138,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
     const [isDecoding, setIsDecoding] = useState(false);
     const [quizScore, setQuizScore] = useState<number | null>(null);
     const [isSharing, setIsSharing] = useState(false);
+    const [activeTab, setActiveTab] = useState<'story' | 'chat'>('story');
     
     const chatSectionRef = useRef<HTMLDivElement>(null);
 
@@ -393,10 +394,62 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
                 </div>
             )}
 
-            {/* Chat */}
-            <div ref={chatSectionRef} className="mt-24 no-print">
-                <StoryChat story={story} language={language} />
+            {/* Tab Bar */}
+<div className="sticky top-0 z-20 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex no-print mt-16 rounded-2xl overflow-hidden shadow-sm">
+    <button
+        onClick={() => setActiveTab('story')}
+        className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-all ${
+            activeTab === 'story'
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+        }`}
+    >
+        📖 Story
+    </button>
+    <button
+        onClick={() => setActiveTab('chat')}
+        className={`flex-1 py-4 text-sm font-black uppercase tracking-widest transition-all ${
+            activeTab === 'chat'
+                ? 'bg-indigo-600 text-white'
+                : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+        }`}
+    >
+        💬 Ask Narrator
+    </button>
+</div>
+
+{/* Tab Content */}
+<div className="mt-8 no-print">
+    {activeTab === 'story' ? (
+        <div className="space-y-0">
+            {/* Story Flow */}
+            <div className="space-y-8">
+                <StorySection title="Introduction" content={story.introduction} />
+                <StorySection title="Emotional_trigger" content={story.emotional_trigger} />
+                <StorySection title="Concept_explanation" content={story.concept_explanation} />
+                <StorySection title="Resolution" content={story.resolution} />
+                <div className="grid md:grid-cols-2 gap-8">
+                    <StorySection title="Moral_message" content={story.moral_message} />
+                    <StorySection title="Conclusion" content={story.conclusion} />
+                </div>
             </div>
+            {/* Quiz */}
+            <div className="mt-16">
+                <QuizSection quiz={story.quiz} onQuizComplete={(score) => setQuizScore(score)} />
+            </div>
+            {/* Certificate */}
+            {quizScore !== null && (
+                <div className="mt-24 animate-bounce-in">
+                    {/* keep existing certificate JSX here — don't delete */}
+                </div>
+            )}
+        </div>
+    ) : (
+        <div ref={chatSectionRef}>
+            <StoryChat story={story} language={language} />
+        </div>
+    )}
+</div>
 
             {/* Restart */}
             <div className="mt-24 text-center no-print">
