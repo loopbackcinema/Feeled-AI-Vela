@@ -898,7 +898,7 @@ const callAPI = useCallback(async (
                     <div className="flex flex-wrap gap-2 justify-center mt-3">
                         {[
                             { icon: '📖', label: 'Story Mode',  color: 'hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-300', action: () => navigate('/generator') },
-                            { icon: '🎮', label: 'Game Mode',   color: 'hover:border-green-400 hover:text-green-700 dark:hover:border-green-500 dark:hover:text-green-300',   action: () => sendMessage('Give me an interactive quiz on my subject') },
+                            { icon: '🎮', label: 'Game Mode',   color: 'hover:border-green-400 hover:text-green-700 dark:hover:border-green-500 dark:hover:text-green-300',   action: () => window.location.href = '/game' },
                             { icon: '📝', label: 'Exam Mode',   color: 'hover:border-rose-400 hover:text-rose-700 dark:hover:border-rose-500 dark:hover:text-rose-300',       action: () => sendMessage('Give me exam preparation: important questions, revision notes, and predicted exam questions for my subject') },
                         ].map(chip => (
                             <button key={chip.label} onClick={chip.action} className={`flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-gray-600 dark:text-[#AAAAAA] text-sm transition-all ${chip.color}`}>
