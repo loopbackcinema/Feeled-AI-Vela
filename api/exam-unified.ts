@@ -253,8 +253,11 @@ async function handleExplain(req: VercelRequest, res: VercelResponse) {
     const { question, userAnswer, correctAnswer, subject, questionType } = req.body || {};
     if (!question) return res.status(400).json({ error: 'question required' });
 
-    const apiKey = process.env.API_KEY || '';
-    const ai = new GoogleGenAI({ apiKey });
+    console.log('[exam-explain] Starting, apiKey exists:', !!process.env.API_KEY);
+
+    const API_KEY = process.env.API_KEY;
+    if (!API_KEY) return res.status(500).json({ error: 'API_KEY not set' });
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
 
     const isOpenEnded = questionType === 'Short Answer' || questionType === 'Long Answer';
 
@@ -280,21 +283,19 @@ Explain in 2-3 simple encouraging sentences:
 
 Keep it simple, positive, and easy for a 10th grade student to understand.`;
 
+    let explanation: string;
     try {
-        const response = await withTimeout(
-            ai.models.generateContent({
-                model: 'gemini-2.0-flash',
-                contents: prompt,
-            }),
-            8000
-        );
-
-        const explanation = response.text ?? 'Keep practicing this concept!';
-        return res.status(200).json({ explanation });
-    } catch (err) {
-        console.error('[exam-unified] explain error:', err);
-        return res.status(500).json({ error: 'Failed to generate explanation' });
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.0-flash',
+            contents: prompt,
+        });
+        explanation = response.text ?? 'Keep practicing this concept!';
+    } catch (geminiErr: any) {
+        console.error('[exam-explain] Gemini error:', geminiErr?.message, geminiErr?.status);
+        return res.status(500).json({ error: 'Failed to generate explanation', details: geminiErr?.message });
     }
+
+    return res.status(200).json({ explanation });
 }
 
 // ── router ────────────────────────────────────────────────────────────────────
