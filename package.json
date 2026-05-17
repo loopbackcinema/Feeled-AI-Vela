@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "tsc",
     "ingest": "npx tsx scripts/ingest-pdf.ts",
-    "ingest-all": "npx tsx scripts/ingest-all.ts"
+    "ingest-all": "npx tsx scripts/ingest-all.ts",
+    "tag-ingest": "npx tsx scripts/tag-and-reingest.ts"
   },
   "dependencies": {
     "@google/genai": "^1.28.0",
