@@ -280,16 +280,23 @@ Explain in 2-3 simple encouraging sentences:
 
 Keep it simple, positive, and easy for a 10th grade student to understand.`;
 
-    const response = await withTimeout(
-        ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        }),
-        8000
-    );
+    try {
+        const response = await withTimeout(
+            ai.models.generateContent({
+                model: 'gemini-2.0-flash',
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            }),
+            8000
+        );
 
-    const explanation = (response as any).text || (response as any).candidates?.[0]?.content?.parts?.[0]?.text || 'Keep practicing this concept!';
-    return res.status(200).json({ explanation });
+        const explanation = response.text ??
+            (response as any).candidates?.[0]?.content?.parts?.[0]?.text ??
+            'Keep practicing this concept!';
+        return res.status(200).json({ explanation });
+    } catch (err) {
+        console.error('[exam-unified] explain error:', err);
+        return res.status(500).json({ error: 'Failed to generate explanation' });
+    }
 }
 
 // ── router ────────────────────────────────────────────────────────────────────
