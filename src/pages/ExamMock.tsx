@@ -63,6 +63,7 @@ export default function ExamMock() {
 
     // Results state
     const [results, setResults] = useState<Record<string, ExamResult>>({});
+    const [openQ, setOpenQ] = useState<string | null>(null);
 
     // Restore session
     useEffect(() => {
@@ -466,7 +467,6 @@ export default function ExamMock() {
         const { mcqCorrect, marksEarned } = getScore();
         const pct = Math.round((mcqCorrect / Math.max(questions.filter(q => q.questionType === 'MCQ').length, 1)) * 100);
         const badge = getPerformanceBadge(pct);
-        const [openQ, setOpenQ] = useState<string | null>(null);
 
         return (
             <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 px-4 py-12">
