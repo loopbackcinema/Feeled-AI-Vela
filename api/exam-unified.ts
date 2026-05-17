@@ -231,11 +231,11 @@ What is the correct answer? Reply with ONLY one letter: a, b, c, or d.`;
             const resp = await withTimeout(
                 ai.models.generateContent({
                     model: 'gemini-2.0-flash',
-                    contents: [{ role: 'user', parts: [{ text: answerPrompt }] }],
+                    contents: answerPrompt,
                 }),
                 5000
             );
-            const letter = ((resp as any).text || '').trim().toLowerCase().charAt(0);
+            const letter = (resp.text ?? '').trim().toLowerCase().charAt(0);
             q.correctAnswer = ['a', 'b', 'c', 'd'].includes(letter) ? letter : 'a';
         } catch {
             q.correctAnswer = 'a';
@@ -284,14 +284,12 @@ Keep it simple, positive, and easy for a 10th grade student to understand.`;
         const response = await withTimeout(
             ai.models.generateContent({
                 model: 'gemini-2.0-flash',
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                contents: prompt,
             }),
             8000
         );
 
-        const explanation = response.text ??
-            (response as any).candidates?.[0]?.content?.parts?.[0]?.text ??
-            'Keep practicing this concept!';
+        const explanation = response.text ?? 'Keep practicing this concept!';
         return res.status(200).json({ explanation });
     } catch (err) {
         console.error('[exam-unified] explain error:', err);
