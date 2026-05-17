@@ -120,7 +120,7 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
             vector,
             topK: 50,
             includeMetadata: true,
-            filter: { docType: { $eq: 'question-paper' }, grade: { $eq: grade } },
+            filter: { docType: { $eq: 'question-paper' }, grade: { $eq: grade }, subject: { $eq: subject } },
         }),
         8000
     );
@@ -197,6 +197,32 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
             chapter,
             fallbackUsed,
         });
+    }
+
+    // Resolve correct answers for MCQ questions via Gemini in batches of 3
+    const mcqWithOptions = questions.filter(q => q.questionType === 'MCQ' && q.options && !q.correctAnswer);
+    const BATCH = 3;
+    for (let i = 0; i < mcqWithOptions.length; i += BATCH) {
+        if (i > 0) await new Promise(r => setTimeout(r, 500));
+        await Promise.all(mcqWithOptions.slice(i, i + BATCH).map(async q => {
+            try {
+                const answerPrompt = `You are a TN Board Grade 10 ${subject} expert.
+Question: ${q.question}
+Options: (a) ${q.options!.a} (b) ${q.options!.b} (c) ${q.options!.c} (d) ${q.options!.d}
+Which option (a/b/c/d) is correct? Reply with ONLY the letter: a, b, c, or d.`;
+                const resp = await withTimeout(
+                    ai.models.generateContent({
+                        model: 'gemini-2.0-flash',
+                        contents: [{ role: 'user', parts: [{ text: answerPrompt }] }],
+                    }),
+                    5000
+                );
+                const letter = ((resp as any).text || '').trim().toLowerCase().charAt(0);
+                q.correctAnswer = ['a', 'b', 'c', 'd'].includes(letter) ? letter : 'a';
+            } catch {
+                q.correctAnswer = 'a';
+            }
+        }));
     }
 
     const mcq   = questions.filter(q => q.questionType === 'MCQ').slice(0, 7);
