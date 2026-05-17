@@ -191,6 +191,7 @@ export default function ExamMock() {
                     userAnswer: answers[q.id] || '',
                     correctAnswer: q.correctAnswer || '',
                     subject: q.subject,
+                    questionType: q.questionType,
                 }),
             });
             const data = await res.json();
@@ -514,7 +515,7 @@ export default function ExamMock() {
                                                 </div>
                                             )}
 
-                                            {!r?.correct && q.questionType === 'MCQ' && (
+                                            {((!r?.correct && q.questionType === 'MCQ') || q.questionType !== 'MCQ') && (
                                                 r?.explanation ? (
                                                     <div className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 border border-indigo-100 dark:border-indigo-800">
                                                         <p className="text-xs font-black text-indigo-600 mb-1">💡 Explanation</p>

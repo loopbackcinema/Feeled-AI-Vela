@@ -104,7 +104,7 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     const pc = new Pinecone({ apiKey: pineconeKey });
     const index = pineconeHost ? pc.index(pineconeIndex, pineconeHost) : pc.index(pineconeIndex);
 
-    const queryText = `${chapter} ${subject} TN Samacheer exam questions grade ${grade}`;
+    const queryText = `${subject} ${chapter} exam question TN Board grade ${grade}`;
     const embedRes = await withTimeout(
         ai.models.embedContent({
             model: 'gemini-embedding-001',
@@ -120,12 +120,19 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
             vector,
             topK: 50,
             includeMetadata: true,
-            filter: { docType: { $eq: 'question-paper' }, grade: { $eq: grade }, subject: { $eq: subject } },
+            filter: { docType: { $eq: 'question-paper' }, grade: { $eq: grade } },
         }),
         8000
     );
 
     let matches = queryRes.matches || [];
+
+    // Filter by subject in JS to avoid Pinecone metadata inconsistencies
+    const subjectLower = subject.toLowerCase();
+    matches = matches.filter(m =>
+        ((m.metadata?.subject as string) || '').toLowerCase().includes(subjectLower) ||
+        subjectLower.includes(((m.metadata?.subject as string) || '').toLowerCase())
+    );
     let fallbackUsed = false;
 
     const chapterLower = chapter.toLowerCase();
@@ -199,32 +206,6 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
         });
     }
 
-    // Resolve correct answers for MCQ questions via Gemini in batches of 3
-    const mcqWithOptions = questions.filter(q => q.questionType === 'MCQ' && q.options && !q.correctAnswer);
-    const BATCH = 3;
-    for (let i = 0; i < mcqWithOptions.length; i += BATCH) {
-        if (i > 0) await new Promise(r => setTimeout(r, 500));
-        await Promise.all(mcqWithOptions.slice(i, i + BATCH).map(async q => {
-            try {
-                const answerPrompt = `You are a TN Board Grade 10 ${subject} expert.
-Question: ${q.question}
-Options: (a) ${q.options!.a} (b) ${q.options!.b} (c) ${q.options!.c} (d) ${q.options!.d}
-Which option (a/b/c/d) is correct? Reply with ONLY the letter: a, b, c, or d.`;
-                const resp = await withTimeout(
-                    ai.models.generateContent({
-                        model: 'gemini-2.0-flash',
-                        contents: [{ role: 'user', parts: [{ text: answerPrompt }] }],
-                    }),
-                    5000
-                );
-                const letter = ((resp as any).text || '').trim().toLowerCase().charAt(0);
-                q.correctAnswer = ['a', 'b', 'c', 'd'].includes(letter) ? letter : 'a';
-            } catch {
-                q.correctAnswer = 'a';
-            }
-        }));
-    }
-
     const mcq   = questions.filter(q => q.questionType === 'MCQ').slice(0, 7);
     const short = questions.filter(q => q.questionType === 'Short Answer').slice(0, 2);
     const long  = questions.filter(q => q.questionType === 'Long Answer').slice(0, 1);
@@ -237,6 +218,30 @@ Which option (a/b/c/d) is correct? Reply with ONLY the letter: a, b, c, or d.`;
     }
 
     selected = selected.map((q, i) => ({ ...q, questionNumber: i + 1 }));
+
+    // Resolve correct answers for all selected MCQ questions one at a time
+    for (const q of selected) {
+        if (q.questionType !== 'MCQ' || !q.options) continue;
+        if (q !== selected[0]) await new Promise(r => setTimeout(r, 300));
+        try {
+            const answerPrompt = `This is a TN Board Grade 10 ${subject} exam question.
+Question: ${q.question}
+(a) ${q.options.a} (b) ${q.options.b} (c) ${q.options.c} (d) ${q.options.d}
+What is the correct answer? Reply with ONLY one letter: a, b, c, or d.`;
+            const resp = await withTimeout(
+                ai.models.generateContent({
+                    model: 'gemini-2.0-flash',
+                    contents: [{ role: 'user', parts: [{ text: answerPrompt }] }],
+                }),
+                5000
+            );
+            const letter = ((resp as any).text || '').trim().toLowerCase().charAt(0);
+            q.correctAnswer = ['a', 'b', 'c', 'd'].includes(letter) ? letter : 'a';
+        } catch {
+            q.correctAnswer = 'a';
+        }
+    }
+
     const totalMarks = selected.reduce((sum, q) => sum + q.marks, 0);
 
     return res.status(200).json({ questions: selected, totalMarks, timeLimit: 900, fallbackUsed });
@@ -245,13 +250,24 @@ Which option (a/b/c/d) is correct? Reply with ONLY the letter: a, b, c, or d.`;
 // ── explain ───────────────────────────────────────────────────────────────────
 
 async function handleExplain(req: VercelRequest, res: VercelResponse) {
-    const { question, userAnswer, correctAnswer, subject } = req.body || {};
+    const { question, userAnswer, correctAnswer, subject, questionType } = req.body || {};
     if (!question) return res.status(400).json({ error: 'question required' });
 
     const apiKey = process.env.API_KEY || '';
     const ai = new GoogleGenAI({ apiKey });
 
-    const prompt = `You are a helpful tutor for Grade 10 TN Samacheer students.
+    const isOpenEnded = questionType === 'Short Answer' || questionType === 'Long Answer';
+
+    const prompt = isOpenEnded
+        ? `You are a helpful tutor for Grade 10 TN Samacheer students.
+
+Question: ${question}
+Subject: ${subject || 'General'}
+Student answered: "${userAnswer || '(no answer)'}"
+
+Provide a model answer for this question in 3-5 sentences. Then in 1-2 sentences, give encouraging feedback on the student's attempt.
+Keep it clear, accurate, and easy for a 10th grade student to understand.`
+        : `You are a helpful tutor for Grade 10 TN Samacheer students.
 
 Question: ${question}
 Subject: ${subject || 'General'}
