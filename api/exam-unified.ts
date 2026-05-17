@@ -231,7 +231,7 @@ Question: ${q.question}
 (a) ${q.options.a} (b) ${q.options.b} (c) ${q.options.c} (d) ${q.options.d}
 What is the correct answer? Reply with ONLY one letter: a, b, c, or d.`;
             const resp = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: answerPrompt,
                 config: { responseMimeType: 'text/plain' },
             });
@@ -286,7 +286,7 @@ Keep it simple, positive, and easy for a 10th grade student to understand.`;
     let explanation: string;
     try {
         const result = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: { responseMimeType: 'text/plain' },
         });
