@@ -126,10 +126,10 @@ export default function ExamMock() {
         }, 1200);
 
         try {
-            const res = await fetch('/api/exam-mock', {
+            const res = await fetch('/api/exam-unified', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subject, chapter, grade: '10' }),
+                body: JSON.stringify({ action: 'mock', subject, chapter, grade: '10' }),
             });
             clearInterval(stepInterval);
 
@@ -181,10 +181,11 @@ export default function ExamMock() {
     const loadExplanation = async (q: ExamQuestion) => {
         setResults(prev => ({ ...prev, [q.id]: { ...prev[q.id], loadingExplanation: true } }));
         try {
-            const res = await fetch('/api/exam-explain', {
+            const res = await fetch('/api/exam-unified', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    action: 'explain',
                     question: q.question,
                     userAnswer: answers[q.id] || '',
                     correctAnswer: q.correctAnswer || '',

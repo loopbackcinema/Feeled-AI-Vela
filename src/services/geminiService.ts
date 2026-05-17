@@ -24,7 +24,7 @@ export const generatePractice = async (topic: string, context: StudentContext): 
 };
 
 export const generateExamPrep = async (topic: string, context: StudentContext): Promise<ExamPrep> => {
-    return post<ExamPrep>('/api/exam', { topic, context });
+    return post<ExamPrep>('/api/exam-unified', { action: 'prep', topic, context });
 };
 
 export const generateStory = async (request: StoryRequest): Promise<{ story: Story }> => {
