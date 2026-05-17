@@ -61,14 +61,15 @@ CRITICAL RULES:
 5. predictedQuestions: 3 tricky or high-value predicted questions aligned to the syllabus.
 6. Write every question and note in ${context.language} only.`;
 
-    const response = await ai.models.generateContent({
+    const result = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: { responseMimeType: 'application/json', responseSchema: prepSchema },
     });
 
-    if (!response.text) throw new Error('Empty response');
-    const data = JSON.parse(response.text.trim());
+    const text = result.text ?? '';
+    if (!text) throw new Error('Empty response');
+    const data = JSON.parse(text.trim());
     return res.status(200).json({ ...data, ragCitations: citations });
 }
 
@@ -95,12 +96,13 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     const { subject, chapter, grade = '10' } = req.body || {};
     if (!subject || !chapter) return res.status(400).json({ error: 'subject and chapter required' });
 
-    const apiKey = process.env.API_KEY || '';
+    const API_KEY = process.env.API_KEY;
+    if (!API_KEY) return res.status(500).json({ error: 'API_KEY not set' });
     const pineconeKey = process.env.PINECONE_API_KEY || '';
     const pineconeIndex = process.env.PINECONE_INDEX || '';
     const pineconeHost = process.env.PINECONE_HOST || '';
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
     const pc = new Pinecone({ apiKey: pineconeKey });
     const index = pineconeHost ? pc.index(pineconeIndex, pineconeHost) : pc.index(pineconeIndex);
 
@@ -115,7 +117,7 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     );
     const vector = (embedRes as any).embedding?.values ?? (embedRes as any).embeddings?.[0]?.values ?? [];
 
-    let queryRes = await withTimeout(
+    const queryRes = await withTimeout(
         index.query({
             vector,
             topK: 50,
@@ -228,13 +230,11 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
 Question: ${q.question}
 (a) ${q.options.a} (b) ${q.options.b} (c) ${q.options.c} (d) ${q.options.d}
 What is the correct answer? Reply with ONLY one letter: a, b, c, or d.`;
-            const resp = await withTimeout(
-                ai.models.generateContent({
-                    model: 'gemini-2.0-flash',
-                    contents: answerPrompt,
-                }),
-                5000
-            );
+            const resp = await ai.models.generateContent({
+                model: 'gemini-2.0-flash',
+                contents: answerPrompt,
+                config: { responseMimeType: 'text/plain' },
+            });
             const letter = (resp.text ?? '').trim().toLowerCase().charAt(0);
             q.correctAnswer = ['a', 'b', 'c', 'd'].includes(letter) ? letter : 'a';
         } catch {
@@ -285,11 +285,12 @@ Keep it simple, positive, and easy for a 10th grade student to understand.`;
 
     let explanation: string;
     try {
-        const response = await ai.models.generateContent({
+        const result = await ai.models.generateContent({
             model: 'gemini-2.0-flash',
             contents: prompt,
+            config: { responseMimeType: 'text/plain' },
         });
-        explanation = response.text ?? 'Keep practicing this concept!';
+        explanation = result.text ?? 'Keep practicing this concept!';
     } catch (geminiErr: any) {
         console.error('[exam-explain] Gemini error:', geminiErr?.message, geminiErr?.status);
         return res.status(500).json({ error: 'Failed to generate explanation', details: geminiErr?.message });
