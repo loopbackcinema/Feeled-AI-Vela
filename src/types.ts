@@ -31,7 +31,7 @@ export interface ChatMessage {
     text: string;
 }
 
-export type Page = 'home' | 'chat' | 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'game' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard' | 'answer' | 'practice' | 'exam';
+export type Page = 'home' | 'chat' | 'generator' | 'story' | 'about' | 'founder' | 'research' | 'contact' | 'privacy' | 'pilot' | 'game' | 'exam-mock' | 'teachers' | 'parents' | 'my-stories' | 'student-dashboard' | 'admin-dashboard' | 'answer' | 'practice' | 'exam';
 
 export interface RagCitation {
     subject:    string;

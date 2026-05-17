@@ -19,6 +19,7 @@ import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 import MyStories from './components/MyStories';
 import GameMode from './pages/GameMode';
+import ExamMock from './pages/ExamMock';
 import StudentDashboard from './components/StudentDashboard';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
@@ -45,6 +46,7 @@ const PAGE_TO_PATH: Record<Page, string> = {
     founder: '/founder',
     privacy: '/privacy',
     'game': '/game',
+'exam-mock': '/exam-mock',
     'admin-dashboard': '/admin',
 };
 
@@ -258,6 +260,7 @@ const App: React.FC = () => {
             <Route path="/privacy"    element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
             <Route path="/inclusive"  element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
             <Route path="/game" element={<GameMode />} />
+            <Route path="/exam-mock" element={<ExamMock />} />
             <Route path="/admin"      element={
                 <PageShell showNav>
                     <div className="p-8 text-center">
