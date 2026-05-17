@@ -94,6 +94,9 @@ function detectPart(text: string): { part: string; questionType: string; marks: 
 
 async function handleMock(req: VercelRequest, res: VercelResponse) {
     const { subject, chapter, grade = '10' } = req.body || {};
+    console.log('[exam-unified] handleMock called with:', { subject, chapter, grade });
+    console.log('[exam-unified] API_KEY exists:', !!process.env.API_KEY);
+    console.log('[exam-unified] PINECONE_KEY exists:', !!process.env.PINECONE_API_KEY);
     if (!subject || !chapter) return res.status(400).json({ error: 'subject and chapter required' });
 
     const API_KEY = process.env.API_KEY;
@@ -317,8 +320,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (action === 'prep')    return await handlePrep(req, res);
         if (action === 'mock')    return await handleMock(req, res);
         if (action === 'explain') return await handleExplain(req, res);
-    } catch (error) {
-        console.error(`[exam-unified] action=${action} error:`, error);
-        return res.status(500).json({ error: 'Internal server error' });
+    } catch (err: any) {
+        console.error('[exam-unified] Error:', err?.message, err?.status, JSON.stringify(err));
+        return res.status(500).json({ error: err.message || 'Internal server error' });
     }
 }
