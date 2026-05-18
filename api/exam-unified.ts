@@ -132,22 +132,39 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
 
     let matches = queryRes.matches || [];
 
-    // Filter by subject in JS to avoid Pinecone metadata inconsistencies
+    let fallbackUsed = false;
+
+    const chapterLower = chapter.toLowerCase().trim();
+    let chapterMatches = matches.filter(m => {
+        const metaChapter = ((m.metadata?.chapter as string) || '').toLowerCase().trim();
+        const metaText = ((m.metadata?.text as string) || '').toLowerCase();
+
+        // Exact chapter metadata match (from tag-and-reingest)
+        if (metaChapter && (
+            metaChapter === chapterLower ||
+            metaChapter.includes(chapterLower) ||
+            chapterLower.includes(metaChapter)
+        )) return true;
+
+        // Fallback: text contains chapter keyword
+        if (metaText.includes(chapterLower)) return true;
+
+        return false;
+    });
+
+    // Subject filter
     const subjectLower = subject.toLowerCase();
-    matches = matches.filter(m =>
+    chapterMatches = chapterMatches.filter(m =>
         ((m.metadata?.subject as string) || '').toLowerCase().includes(subjectLower) ||
         subjectLower.includes(((m.metadata?.subject as string) || '').toLowerCase())
     );
-    let fallbackUsed = false;
 
-    const chapterLower = chapter.toLowerCase();
-    let chapterMatches = matches.filter(m =>
-        (m.metadata?.text as string || '').toLowerCase().includes(chapterLower)
-    );
-
-    if (chapterMatches.length < 10) {
+    // Fallback if < 5 matches
+    if (chapterMatches.length < 5) {
         fallbackUsed = true;
-        chapterMatches = matches;
+        chapterMatches = matches.filter(m =>
+            ((m.metadata?.subject as string) || '').toLowerCase().includes(subjectLower)
+        );
     }
 
     const seen = new Set<string>();
