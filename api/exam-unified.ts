@@ -220,7 +220,7 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
             questionType: options ? 'MCQ' : partInfo.questionType,
             marks: options ? 1 : partInfo.marks,
             question: questionText,
-            ...(options ? { options, correctAnswer: '' } : {}),
+            ...(options ? { options } : {}),
             sourceYear: (m.metadata?.year as string) || '',
             subject: (m.metadata?.subject as string) || subject,
             chapter,
@@ -233,10 +233,16 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     const long  = questions.filter(q => q.questionType === 'Long Answer').slice(0, 1);
 
     let selected = [...mcq, ...short, ...long];
+
+    // Fill gaps to reach target of 10 (7 MCQ + 2 Short + 1 Long = 16 marks)
     if (selected.length < 10) {
         const usedIds = new Set(selected.map(q => q.id));
         const remaining = questions.filter(q => !usedIds.has(q.id));
-        selected = [...selected, ...remaining.slice(0, 10 - selected.length)];
+        // Prefer MCQ to fill gaps (keeps mark total predictable)
+        const extraMcq   = remaining.filter(q => q.questionType === 'MCQ');
+        const extraOther = remaining.filter(q => q.questionType !== 'MCQ');
+        const fillPool   = [...extraMcq, ...extraOther];
+        selected = [...selected, ...fillPool.slice(0, 10 - selected.length)];
     }
 
     selected = selected.map((q, i) => ({ ...q, questionNumber: i + 1 }));
@@ -246,19 +252,30 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
         if (q.questionType !== 'MCQ' || !q.options) continue;
         if (q !== selected[0]) await new Promise(r => setTimeout(r, 300));
         try {
-            const answerPrompt = `This is a TN Board Grade 10 ${subject} exam question.
+            const answerPrompt = `You are a TN Board Grade 10 ${subject} expert teacher.
+
 Question: ${q.question}
-(a) ${q.options.a} (b) ${q.options.b} (c) ${q.options.c} (d) ${q.options.d}
-What is the correct answer? Reply with ONLY one letter: a, b, c, or d.`;
-            const resp = await ai.models.generateContent({
+(a) ${q.options.a}
+(b) ${q.options.b}
+(c) ${q.options.c}
+(d) ${q.options.d}
+
+Based on TN Samacheer Grade 10 ${subject} syllabus, which option is correct?
+Think carefully and reply with ONLY one letter: a, b, c, or d
+Do not explain. Just the letter.`;
+            const result = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
                 contents: answerPrompt,
                 config: { responseMimeType: 'text/plain' },
             });
-            const letter = (resp.text ?? '').trim().toLowerCase().charAt(0);
-            q.correctAnswer = ['a', 'b', 'c', 'd'].includes(letter) ? letter : 'a';
+            const raw = result.text?.trim().toLowerCase() || '';
+            const letter = raw.match(/^[abcd]/)?.[0] || '';
+            if (['a', 'b', 'c', 'd'].includes(letter)) {
+                q.correctAnswer = letter;
+            }
+            // If no valid letter, leave correctAnswer undefined ("See textbook")
         } catch {
-            q.correctAnswer = 'a';
+            // Leave correctAnswer undefined on failure
         }
     }
 
