@@ -94,6 +94,7 @@ function detectPart(text: string): { part: string; questionType: string; marks: 
 
 async function handleMock(req: VercelRequest, res: VercelResponse) {
     const { subject, chapter, grade = '10' } = req.body || {};
+    console.log('[debug] handleMock called:', { subject, chapter, grade });
     console.log('[exam-unified] handleMock called with:', { subject, chapter, grade });
     console.log('[exam-unified] API_KEY exists:', !!process.env.API_KEY);
     console.log('[exam-unified] PINECONE_KEY exists:', !!process.env.PINECONE_API_KEY);
@@ -235,6 +236,11 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
         });
     }
 
+    console.log('[debug] questions built:', questions.length);
+    console.log('[debug] MCQ:', questions.filter((q: any) => q.questionType === 'MCQ').length);
+    console.log('[debug] Short:', questions.filter((q: any) => q.questionType === 'Short Answer').length);
+    console.log('[debug] Long:', questions.filter((q: any) => q.questionType === 'Long Answer').length);
+
     // Get all available questions by type
     const allMCQ   = questions.filter(q => q.questionType === 'MCQ');
     const allShort = questions.filter(q => q.questionType === 'Short Answer');
@@ -275,7 +281,8 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     // Cap at 10
     selected = selected.slice(0, 10);
 
-    console.log('[debug] final selected:', selected.length, 'MCQ:', selected.filter(q => q.questionType === 'MCQ').length);
+    console.log('[debug] final selected:', selected.length);
+    console.log('[debug] final MCQ:', selected.filter((q: any) => q.questionType === 'MCQ').length);
 
     selected = selected.map((q, i) => ({ ...q, questionNumber: i + 1 }));
 
