@@ -189,7 +189,7 @@ async function tagAndReingest(opts: {
     console.log('\n  Tagging chapters with Gemini...');
     const chapters: string[] = [];
     for (let i = 0; i < questions.length; i++) {
-        if (i > 0) await new Promise(r => setTimeout(r, 1000));
+        if (i > 0) await new Promise(r => setTimeout(r, 3000));
         const chapter = await tagChapter(ai, subject, questions[i].text);
         chapters.push(chapter);
         console.log(`  Question ${i + 1}/${questions.length}: "${chapter}"`);

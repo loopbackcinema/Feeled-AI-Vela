@@ -273,7 +273,7 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     const remaining2 = 10 - selected.length;
     const usedIds2 = new Set(selected.map(q => q.id));
     const availableLong = allLong.filter(q => !usedIds2.has(q.id));
-    selected.push(...availableLong.slice(0, Math.min(remaining2, 2)));
+    selected.push(...availableLong.slice(0, Math.min(remaining2, 1)));
 
     // If still < 10, fill with any remaining
     const remaining3 = 10 - selected.length;
