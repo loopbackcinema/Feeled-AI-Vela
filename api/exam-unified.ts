@@ -260,28 +260,28 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     // Select target amounts
     let selected: QuestionItem[] = [];
 
-    // Add up to 7 MCQ
+    // Take available MCQ (up to 7)
     selected.push(...allMCQ.slice(0, 7));
 
-    // Fill MCQ gap with Short if needed
-    const mcqGap = 7 - selected.length;
-    if (mcqGap > 0) {
-        selected.push(...allShort.slice(0, mcqGap));
+    // Fill remaining slots with Short Answer first
+    const remaining1 = 10 - selected.length;
+    const usedIds1 = new Set(selected.map(q => q.id));
+    const availableShort = allShort.filter(q => !usedIds1.has(q.id));
+    selected.push(...availableShort.slice(0, Math.min(remaining1, 3)));
+
+    // Fill remaining slots with Long Answer
+    const remaining2 = 10 - selected.length;
+    const usedIds2 = new Set(selected.map(q => q.id));
+    const availableLong = allLong.filter(q => !usedIds2.has(q.id));
+    selected.push(...availableLong.slice(0, Math.min(remaining2, 2)));
+
+    // If still < 10, fill with any remaining
+    const remaining3 = 10 - selected.length;
+    if (remaining3 > 0) {
+        const usedIds3 = new Set(selected.map(q => q.id));
+        const rest = questions.filter(q => !usedIds3.has(q.id));
+        selected.push(...rest.slice(0, remaining3));
     }
-
-    // Add 2 Short Answer (not already selected)
-    const usedIds = new Set(selected.map(q => q.id));
-    const remainingShort = allShort.filter(q => !usedIds.has(q.id));
-    selected.push(...remainingShort.slice(0, 2));
-
-    // Add 1 Long Answer
-    const remainingLong = allLong.filter(q => !usedIds.has(q.id));
-    selected.push(...remainingLong.slice(0, 1));
-
-    // If still < 10, fill from any remaining
-    const allUsedIds = new Set(selected.map(q => q.id));
-    const remaining = questions.filter(q => !allUsedIds.has(q.id));
-    selected.push(...remaining.slice(0, 10 - selected.length));
 
     // Cap at 10
     selected = selected.slice(0, 10);
