@@ -182,9 +182,10 @@ export default function ExamMock() {
         setResults(newResults);
         setPhase('results');
 
+        console.log('[exam] user:', user?.uid, 'questions:', questions.length);
         if (user) {
-            try {
-                const mcqQuestions = questions.filter(q => q.questionType === 'MCQ');
+        try {
+            const mcqQuestions = questions.filter(q => q.questionType === 'MCQ');
                 const mcqCorrect = mcqQuestions.filter(q => newResults[q.id]?.correct).length;
                 await addDoc(collection(db, 'practice_scores'), {
                     userId: user.uid,
