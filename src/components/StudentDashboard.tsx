@@ -30,6 +30,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [scores, setScores] = useState<PracticeScore[]>([]);
     const [storiesCount, setStoriesCount] = useState(0);
     const [chatSessionsCount, setChatSessionsCount] = useState(0);
+    const [mockTestCount, setMockTestCount] = useState(0);
     const [isLoadingData, setIsLoadingData] = useState(true);
     
     // Profile form state
@@ -89,6 +90,11 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                 const chatsSnap = await getDocs(chatsQ);
                 setChatSessionsCount(chatsSnap.size);
 
+                // Count mock tests
+                const mockTestQ = query(collection(db, 'practice_scores'), where('userId', '==', user.uid), where('examType', '==', 'mock-test'));
+                const mockTestSnap = await getDocs(mockTestQ);
+                setMockTestCount(mockTestSnap.size);
+
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
             } finally {
@@ -141,7 +147,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
             </div>
 
             {/* Stats Overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
                     <div className="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-xl text-blue-600 dark:text-blue-400 flex-shrink-0">
                         <BookOpen className="w-6 h-6" />
@@ -180,6 +186,15 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                                 ? Math.round((scores.reduce((acc, curr) => acc + (curr.score / curr.total), 0) / scores.length) * 100) + '%'
                                 : 'N/A'}
                         </p>
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="bg-orange-100 dark:bg-orange-900/50 p-3 rounded-xl text-orange-600 dark:text-orange-400 flex-shrink-0">
+                        <Target className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Mock Tests</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">{isLoadingData ? '…' : mockTestCount}</p>
                     </div>
                 </div>
             </div>
