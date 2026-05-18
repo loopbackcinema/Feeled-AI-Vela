@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface QuestionOption {
     a: string;
@@ -44,6 +47,7 @@ const SESSION_KEY = 'feeled_exam_session';
 
 export default function ExamMock() {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     // Setup state
     const [subject, setSubject] = useState('Mathematics');
@@ -177,6 +181,32 @@ export default function ExamMock() {
         }
         setResults(newResults);
         setPhase('results');
+
+        if (user) {
+            try {
+                const mcqQuestions = questions.filter(q => q.questionType === 'MCQ');
+                const mcqCorrect = mcqQuestions.filter(q => newResults[q.id]?.correct).length;
+                await addDoc(collection(db, 'practice_scores'), {
+                    userId: user.uid,
+                    topic: chapter,
+                    subject,
+                    score: mcqCorrect,
+                    total: mcqQuestions.length,
+                    examType: 'mock-test',
+                    grade: '10',
+                    createdAt: serverTimestamp(),
+                });
+                await addDoc(collection(db, 'study_activity'), {
+                    userId: user.uid,
+                    type: 'exam',
+                    topic: chapter,
+                    subject,
+                    createdAt: serverTimestamp(),
+                });
+            } catch (err) {
+                console.error('Failed to save exam score:', err);
+            }
+        }
     };
 
     const loadExplanation = async (q: ExamQuestion) => {
