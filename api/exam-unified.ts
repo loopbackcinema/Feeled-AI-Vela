@@ -175,6 +175,10 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
         return true;
     });
 
+    console.log('[debug] total matches from Pinecone:', matches.length);
+    console.log('[debug] after chapter filter:', chapterMatches.length);
+    console.log('[debug] after dedup:', unique.length);
+
     console.log('[exam-mock] chapterMatches:', chapterMatches.length);
     console.log('[exam-mock] MCQ available:', chapterMatches.filter(m => (m.metadata?.questionType as string) === 'MCQ' || (m.metadata?.part as string) === 'PART I').length);
 
@@ -236,6 +240,10 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     const allShort = questions.filter(q => q.questionType === 'Short Answer');
     const allLong  = questions.filter(q => q.questionType === 'Long Answer');
 
+    console.log('[debug] questions built:', questions.length);
+    console.log('[debug] MCQ count:', allMCQ.length);
+    console.log('[debug] Short count:', allShort.length);
+    console.log('[debug] Long count:', allLong.length);
     console.log('[exam-mock] Parsed - MCQ:', allMCQ.length, 'Short:', allShort.length, 'Long:', allLong.length);
 
     // Select target amounts
@@ -266,6 +274,8 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
 
     // Cap at 10
     selected = selected.slice(0, 10);
+
+    console.log('[debug] final selected:', selected.length, 'MCQ:', selected.filter(q => q.questionType === 'MCQ').length);
 
     selected = selected.map((q, i) => ({ ...q, questionNumber: i + 1 }));
 
