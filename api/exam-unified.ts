@@ -175,6 +175,9 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
         return true;
     });
 
+    console.log('[exam-mock] chapterMatches:', chapterMatches.length);
+    console.log('[exam-mock] MCQ available:', chapterMatches.filter(m => (m.metadata?.questionType as string) === 'MCQ' || (m.metadata?.part as string) === 'PART I').length);
+
     interface QuestionItem {
         id: string;
         questionNumber: number;
@@ -228,22 +231,41 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
         });
     }
 
-    const mcq   = questions.filter(q => q.questionType === 'MCQ').slice(0, 7);
-    const short = questions.filter(q => q.questionType === 'Short Answer').slice(0, 2);
-    const long  = questions.filter(q => q.questionType === 'Long Answer').slice(0, 1);
+    // Get all available questions by type
+    const allMCQ   = questions.filter(q => q.questionType === 'MCQ');
+    const allShort = questions.filter(q => q.questionType === 'Short Answer');
+    const allLong  = questions.filter(q => q.questionType === 'Long Answer');
 
-    let selected = [...mcq, ...short, ...long];
+    console.log('[exam-mock] Parsed - MCQ:', allMCQ.length, 'Short:', allShort.length, 'Long:', allLong.length);
 
-    // Fill gaps to reach target of 10 (7 MCQ + 2 Short + 1 Long = 16 marks)
-    if (selected.length < 10) {
-        const usedIds = new Set(selected.map(q => q.id));
-        const remaining = questions.filter(q => !usedIds.has(q.id));
-        // Prefer MCQ to fill gaps (keeps mark total predictable)
-        const extraMcq   = remaining.filter(q => q.questionType === 'MCQ');
-        const extraOther = remaining.filter(q => q.questionType !== 'MCQ');
-        const fillPool   = [...extraMcq, ...extraOther];
-        selected = [...selected, ...fillPool.slice(0, 10 - selected.length)];
+    // Select target amounts
+    let selected: QuestionItem[] = [];
+
+    // Add up to 7 MCQ
+    selected.push(...allMCQ.slice(0, 7));
+
+    // Fill MCQ gap with Short if needed
+    const mcqGap = 7 - selected.length;
+    if (mcqGap > 0) {
+        selected.push(...allShort.slice(0, mcqGap));
     }
+
+    // Add 2 Short Answer (not already selected)
+    const usedIds = new Set(selected.map(q => q.id));
+    const remainingShort = allShort.filter(q => !usedIds.has(q.id));
+    selected.push(...remainingShort.slice(0, 2));
+
+    // Add 1 Long Answer
+    const remainingLong = allLong.filter(q => !usedIds.has(q.id));
+    selected.push(...remainingLong.slice(0, 1));
+
+    // If still < 10, fill from any remaining
+    const allUsedIds = new Set(selected.map(q => q.id));
+    const remaining = questions.filter(q => !allUsedIds.has(q.id));
+    selected.push(...remaining.slice(0, 10 - selected.length));
+
+    // Cap at 10
+    selected = selected.slice(0, 10);
 
     selected = selected.map((q, i) => ({ ...q, questionNumber: i + 1 }));
 
