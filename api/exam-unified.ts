@@ -275,11 +275,15 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     const availableLong = allLong.filter(q => !usedIds2.has(q.id));
     selected.push(...availableLong.slice(0, Math.min(remaining2, 1)));
 
-    // If still < 10, fill with any remaining
+    // If still < 10, fill with Short Answer only (not Long)
     const remaining3 = 10 - selected.length;
     if (remaining3 > 0) {
         const usedIds3 = new Set(selected.map(q => q.id));
-        const rest = questions.filter(q => !usedIds3.has(q.id));
+        const rest = questions.filter(q => 
+            !usedIds3.has(q.id) && 
+            q.questionType !== 'Long Answer' && 
+            q.questionType !== 'Very Long Answer'
+        );
         selected.push(...rest.slice(0, remaining3));
     }
 
