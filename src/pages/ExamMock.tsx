@@ -211,7 +211,7 @@ export default function ExamMock() {
         const correct = Object.values(results).filter(r => r.correct).length;
         const mcqCorrect = questions.filter(q => q.questionType === 'MCQ' && results[q.id]?.correct).length;
         const marksEarned = questions
-            .filter(q => q.questionType === 'MCQ' && results[q.id]?.correct)
+            .filter(q => results[q.id]?.correct)
             .reduce((s, q) => s + q.marks, 0);
         return { correct, mcqCorrect, marksEarned };
     };

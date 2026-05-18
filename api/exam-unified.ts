@@ -212,6 +212,9 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
             ? { part: partMeta, questionType: typeMeta || 'MCQ', marks: marksMeta }
             : detectPart(text);
 
+        let normalizedMarks = partInfo.marks;
+        if (normalizedMarks > 5) normalizedMarks = 5;
+
         const lines = text.split('\n').filter(Boolean);
         const questionText = lines.filter(l =>
             !l.startsWith('Question ') && !l.includes('mark(s)') && l.trim().length > 5
@@ -226,7 +229,7 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
             questionNumber: qNum++,
             part: partInfo.part,
             questionType: options ? 'MCQ' : partInfo.questionType,
-            marks: options ? 1 : partInfo.marks,
+            marks: options ? 1 : normalizedMarks,
             question: questionText,
             ...(options ? { options } : {}),
             sourceYear: (m.metadata?.year as string) || '',
@@ -244,7 +247,9 @@ async function handleMock(req: VercelRequest, res: VercelResponse) {
     // Get all available questions by type
     const allMCQ   = questions.filter(q => q.questionType === 'MCQ');
     const allShort = questions.filter(q => q.questionType === 'Short Answer');
-    const allLong  = questions.filter(q => q.questionType === 'Long Answer');
+    const allLong  = questions.filter(q =>
+        q.questionType === 'Long Answer' || q.questionType === 'Very Long Answer'
+    );
 
     console.log('[debug] questions built:', questions.length);
     console.log('[debug] MCQ count:', allMCQ.length);
