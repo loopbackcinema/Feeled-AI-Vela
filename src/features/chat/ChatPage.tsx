@@ -770,7 +770,7 @@ const callAPI = useCallback(async (
                                         {msg.role === 'user' ? (
                                             <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                                         ) : (
-                                            <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert prose-slate max-w-none">
+                                            <div className="text-sm leading-relaxed">
                                                 {i === lastAiIndex
                                                     ? <TypewriterMarkdown text={msg.text} />
                                                     : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
