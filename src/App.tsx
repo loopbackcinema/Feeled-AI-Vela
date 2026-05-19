@@ -214,6 +214,7 @@ const App: React.FC = () => {
     }
 
     return (
+        <>
         <Routes>
             {/* Homepage IS the chat */}
             <Route path="/" element={<ChatPage />} />
@@ -273,6 +274,7 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/" />} />
         </Routes>
         <PWAInstallBanner />
+        </>
     );
 };
 
