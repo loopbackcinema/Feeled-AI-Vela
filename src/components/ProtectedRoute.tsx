@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
                     <div className="text-center">
                         <h1 className="text-3xl font-black text-white tracking-tight">FeelEd AI</h1>
                         <p className="text-slate-400 text-sm mt-1 font-medium">
-                            Emotion-adaptive learning for Tamil Nadu students
+                            Emotion-Adaptive Learning Engine for India's 250M School Students
                         </p>
                     </div>
                 </div>
