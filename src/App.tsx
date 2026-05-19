@@ -21,6 +21,7 @@ import MyStories from './components/MyStories';
 import GameMode from './pages/GameMode';
 import ExamMock from './pages/ExamMock';
 import StudentDashboard from './components/StudentDashboard';
+import PWAInstallBanner from './components/PWAInstallBanner';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -271,6 +272,7 @@ const App: React.FC = () => {
             } />
             <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        <PWAInstallBanner />
     );
 };
 

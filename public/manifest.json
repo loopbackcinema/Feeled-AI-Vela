@@ -1,0 +1,51 @@
+{
+  "name": "FeelEd AI",
+  "short_name": "FeelEd",
+  "description": "Emotion-adaptive learning platform for Tamil Nadu students",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D0D0D",
+  "theme_color": "#4F46E5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education"],
+  "lang": "ta",
+  "dir": "ltr",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Chat Mode",
+      "url": "/",
+      "description": "Start learning with AI tutor"
+    },
+    {
+      "name": "Story Mode",
+      "url": "/generator",
+      "description": "Learn through stories"
+    },
+    {
+      "name": "Exam Mode",
+      "url": "/exam-mock",
+      "description": "Practice with real exam questions"
+    }
+  ]
+}
