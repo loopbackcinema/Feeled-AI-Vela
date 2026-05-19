@@ -166,7 +166,7 @@ export default function ExamMock() {
         setVisited(prev => new Set([...prev, idx]));
     };
 
-    const handleSubmit = (auto = false) => {
+    const handleSubmit = async (auto = false) => {
         clearInterval(timerRef.current!);
         localStorage.removeItem(SESSION_KEY);
 

@@ -22,6 +22,7 @@ import GameMode from './pages/GameMode';
 import ExamMock from './pages/ExamMock';
 import StudentDashboard from './components/StudentDashboard';
 import PWAInstallBanner from './components/PWAInstallBanner';
+import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -78,7 +79,7 @@ const PageShell: React.FC<{ children: React.ReactNode; showNav?: boolean }> = ({
 };
 
 const App: React.FC = () => {
-    const { user, loading } = useAuth();
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     const { board, standard, subject, language, learningMode, goal, setContext } = useStudentStore();
@@ -202,77 +203,88 @@ const App: React.FC = () => {
         finally { setIsLoading(false); }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
-                <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-slate-500 font-medium animate-pulse">Loading...</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <Routes>
-            {/* Homepage IS the chat */}
-            <Route path="/" element={<ChatPage />} />
-            <Route path="/chat" element={<Navigate to="/" replace />} />
+        <>
+            <Routes>
+                {/* ── Protected core app routes ── */}
+                <Route path="/" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                <Route path="/chat" element={<Navigate to="/" replace />} />
 
-            {/* Learning flow */}
-            <Route path="/answer" element={
-                conceptData
-                    ? <PageShell><AnswerScreen concept={conceptData} question={currentQuestion} context={studentContext} onBack={() => navigate('/')} onPractice={handleStartPractice} onStory={() => navigate('/generator')} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} /></PageShell>
-                    : <Navigate to="/" />
-            } />
-            <Route path="/story" element={
-                generatedStory
-                    ? <PageShell><StoryDisplay story={generatedStory} language={lastLanguage} base64Audio={base64Audio} isAudioLoading={isAudioLoading} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} onTryAnother={handleTryAnother} /></PageShell>
-                    : <Navigate to="/generator" />
-            } />
-            <Route path="/generator" element={
-                <PageShell>
-                    <div className="container mx-auto px-4 py-8 md:py-16 max-w-7xl">
-                        <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
-                    </div>
-                </PageShell>
-            } />
-            <Route path="/exam" element={
-                examData
-                    ? <PageShell><ExamModeScreen examPrep={examData} topic={studentContext.subject} context={studentContext} onBack={() => navigate('/')} /></PageShell>
-                    : <Navigate to="/" />
-            } />
-            <Route path="/practice" element={
-                practiceData
-                    ? <PageShell><PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/answer')} /></PageShell>
-                    : <Navigate to="/" />
-            } />
+                <Route path="/answer" element={
+                    <ProtectedRoute>
+                        {conceptData
+                            ? <PageShell><AnswerScreen concept={conceptData} question={currentQuestion} context={studentContext} onBack={() => navigate('/')} onPractice={handleStartPractice} onStory={() => navigate('/generator')} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} /></PageShell>
+                            : <Navigate to="/" />}
+                    </ProtectedRoute>
+                } />
+                <Route path="/story" element={
+                    <ProtectedRoute>
+                        {generatedStory
+                            ? <PageShell><StoryDisplay story={generatedStory} language={lastLanguage} base64Audio={base64Audio} isAudioLoading={isAudioLoading} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} onTryAnother={handleTryAnother} /></PageShell>
+                            : <Navigate to="/generator" />}
+                    </ProtectedRoute>
+                } />
+                <Route path="/generator" element={
+                    <ProtectedRoute>
+                        <PageShell>
+                            <div className="container mx-auto px-4 py-8 md:py-16 max-w-7xl">
+                                <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
+                            </div>
+                        </PageShell>
+                    </ProtectedRoute>
+                } />
+                <Route path="/exam" element={
+                    <ProtectedRoute>
+                        {examData
+                            ? <PageShell><ExamModeScreen examPrep={examData} topic={studentContext.subject} context={studentContext} onBack={() => navigate('/')} /></PageShell>
+                            : <Navigate to="/" />}
+                    </ProtectedRoute>
+                } />
+                <Route path="/practice" element={
+                    <ProtectedRoute>
+                        {practiceData
+                            ? <PageShell><PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/answer')} /></PageShell>
+                            : <Navigate to="/" />}
+                    </ProtectedRoute>
+                } />
+                <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                        <PageShell showNav><div className="container mx-auto px-4 py-8 max-w-7xl"><StudentDashboard onNavigate={navigateTo} /></div></PageShell>
+                    </ProtectedRoute>
+                } />
+                <Route path="/my-stories" element={
+                    <ProtectedRoute>
+                        <PageShell showNav><div className="container mx-auto px-4 py-8 max-w-7xl"><MyStories onNavigate={navigateTo} /></div></PageShell>
+                    </ProtectedRoute>
+                } />
+                <Route path="/game"      element={<ProtectedRoute><GameMode /></ProtectedRoute>} />
+                <Route path="/exam-mock" element={<ProtectedRoute><ExamMock /></ProtectedRoute>} />
+                <Route path="/admin"     element={
+                    <ProtectedRoute>
+                        <PageShell showNav>
+                            <div className="p-8 text-center">
+                                <h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2>
+                                <p>Coming soon: Student analytics and story review.</p>
+                            </div>
+                        </PageShell>
+                    </ProtectedRoute>
+                } />
 
-            {/* Secondary pages */}
-            <Route path="/dashboard"  element={<PageShell showNav><div className="container mx-auto px-4 py-8 max-w-7xl"><StudentDashboard onNavigate={navigateTo} /></div></PageShell>} />
-            <Route path="/my-stories" element={<PageShell showNav><div className="container mx-auto px-4 py-8 max-w-7xl"><MyStories onNavigate={navigateTo} /></div></PageShell>} />
-            <Route path="/about"      element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/teachers"   element={<PageShell showNav><Teachers onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/parents"    element={<PageShell showNav><Parents onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/research"   element={<PageShell showNav><Research onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/pilot"      element={<PageShell showNav><PilotProgram onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/contact"    element={<PageShell showNav><Contact onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/founder"    element={<PageShell showNav><Founder onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/privacy"    element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/inclusive"  element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
-            <Route path="/game" element={<GameMode />} />
-            <Route path="/exam-mock" element={<ExamMock />} />
-            <Route path="/admin"      element={
-                <PageShell showNav>
-                    <div className="p-8 text-center">
-                        <h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2>
-                        <p>Coming soon: Student analytics and story review.</p>
-                    </div>
-                </PageShell>
-            } />
-            <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-        <PWAInstallBanner />
+                {/* ── Public informational pages (no login required) ── */}
+                <Route path="/about"     element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/teachers"  element={<PageShell showNav><Teachers onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/parents"   element={<PageShell showNav><Parents onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/research"  element={<PageShell showNav><Research onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/pilot"     element={<PageShell showNav><PilotProgram onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/contact"   element={<PageShell showNav><Contact onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/founder"   element={<PageShell showNav><Founder onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/privacy"   element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/inclusive" element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
+
+                <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+            <PWAInstallBanner />
+        </>
     );
 };
 
