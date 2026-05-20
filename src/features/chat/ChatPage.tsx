@@ -747,7 +747,7 @@ const callAPI = useCallback(async (
 
             {/* Content */}
             {!hasMessages ? (
-                <div className="flex-1 flex flex-col items-center justify-center px-6" style={{ paddingBottom: '4vh' }}>
+                <div className="flex-1 flex flex-col items-center justify-center" style={{ paddingBottom: '4vh' }}>
                     <img src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" alt="FeelEd AI" className="w-14 h-14 object-contain mx-auto mb-4 opacity-70" referrerPolicy="no-referrer" />
                     <h1 className="text-3xl md:text-[2.6rem] font-bold text-gray-900 dark:text-white text-center leading-tight tracking-tight">
                         What are you learning today?
