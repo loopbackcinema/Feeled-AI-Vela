@@ -9,9 +9,9 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/feeled-logo-new.png",
+      "src": "/feeled-logo.webp",
       "sizes": "any",
-      "type": "image/png",
+      "type": "image/webp",
       "purpose": "any maskable"
     },
     {

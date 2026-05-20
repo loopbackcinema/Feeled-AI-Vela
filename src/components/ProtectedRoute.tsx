@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
             <div className="w-full max-w-sm flex flex-col items-center gap-8">
                 {/* Logo */}
                 <div className="flex flex-col items-center gap-4">
-                    <img src="/feeled-logo-new.png" alt="FeelEd AI" className="w-20 h-20 rounded-2xl" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-20 h-20 rounded-2xl" />
                     <div className="text-center">
                         <h1 className="text-3xl font-black text-white tracking-tight">FeelEd AI</h1>
                         <p className="text-slate-400 text-sm mt-1 font-medium">
@@ -94,7 +94,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
                 <div className="text-center">
-                    <img src="/feeled-logo-new.png" alt="FeelEd AI" className="w-16 h-16 mx-auto mb-6 rounded-2xl opacity-90" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-16 h-16 mx-auto mb-6 rounded-2xl opacity-90" />
                     <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-slate-500 font-medium animate-pulse">Loading…</p>
                 </div>
