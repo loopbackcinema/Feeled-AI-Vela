@@ -21,6 +21,50 @@ interface PracticeScore {
     createdAt: any;
 }
 
+function computeStreak(allActivities: ActivityLog[]): number {
+    const activityDays = new Set<string>();
+    allActivities.forEach(a => {
+        const ms = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+        if (ms) activityDays.add(new Date(ms).toISOString().slice(0, 10));
+    });
+    const today = new Date();
+    const todayKey = today.toISOString().slice(0, 10);
+    const startOffset = activityDays.has(todayKey) ? 0 : 1;
+    let streak = 0;
+    for (let i = startOffset; i < 365; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        if (activityDays.has(d.toISOString().slice(0, 10))) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    return streak;
+}
+
+function findImprovingSubject(allScores: PracticeScore[]): string | null {
+    const bySubject: Record<string, PracticeScore[]> = {};
+    allScores.forEach(s => {
+        if (!s.subject) return;
+        if (!bySubject[s.subject]) bySubject[s.subject] = [];
+        bySubject[s.subject].push(s);
+    });
+    for (const subject of Object.keys(bySubject)) {
+        const sorted = bySubject[subject].sort((a, b) => {
+            const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+            const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+            return tb - ta;
+        });
+        if (sorted.length >= 2) {
+            const latest = sorted[0].score / sorted[0].total;
+            const prev   = sorted[1].score / sorted[1].total;
+            if (latest > prev) return subject;
+        }
+    }
+    return null;
+}
+
 const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNavigate }) => {
     const { user, userProfile } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
@@ -31,6 +75,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [storiesCount, setStoriesCount] = useState(0);
     const [chatSessionsCount, setChatSessionsCount] = useState(0);
     const [mockTestCount, setMockTestCount] = useState(0);
+    const [streak, setStreak] = useState(0);
+    const [improvingSubject, setImprovingSubject] = useState<string | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(true);
     
     // Profile form state
@@ -66,6 +112,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
                     return timeB - timeA;
                 });
+                setStreak(computeStreak(fetchedActivities));
                 setActivities(fetchedActivities.slice(0, 5));
 
                 // Fetch recent scores
@@ -78,6 +125,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
                     return timeB - timeA;
                 });
+                setImprovingSubject(findImprovingSubject(fetchedScores));
                 setScores(fetchedScores.slice(0, 5));
 
                 // Count stories
@@ -138,13 +186,30 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                         <p className="text-slate-500 dark:text-slate-400 mt-1">Track your progress and manage your profile</p>
                     </div>
                 </div>
-                <button 
+                <button
                     onClick={() => onNavigate('home')}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-full font-bold transition-colors shadow-lg"
                 >
-                    Start Studying
+                    Continue Learning →
                 </button>
             </div>
+
+            {/* Streak + Improvement Banner */}
+            {!isLoadingData && (
+                <div className="flex flex-wrap items-center gap-3 mb-6">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800">
+                        <span className="text-lg">{streak > 0 ? '🔥' : '🌱'}</span>
+                        <span className="font-black text-orange-700 dark:text-orange-300 text-sm">
+                            {streak > 0 ? `${streak} day learning streak` : 'Start your streak today!'}
+                        </span>
+                    </div>
+                    {improvingSubject && (
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                            <span className="font-bold text-green-700 dark:text-green-400 text-sm">📈 You're improving in {improvingSubject}!</span>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Stats Overview */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
@@ -181,11 +246,20 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     </div>
                     <div>
                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Avg. Score</p>
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">
-                            {isLoadingData ? '…' : scores.length > 0
-                                ? Math.round((scores.reduce((acc, curr) => acc + (curr.score / curr.total), 0) / scores.length) * 100) + '%'
-                                : 'N/A'}
-                        </p>
+                        {isLoadingData ? (
+                            <p className="text-2xl font-black text-slate-900 dark:text-white">…</p>
+                        ) : scores.length > 0 ? (() => {
+                            const pct = Math.round((scores.reduce((acc, curr) => acc + (curr.score / curr.total), 0) / scores.length) * 100);
+                            const label = pct >= 70 ? '🎯 Great!' : pct >= 40 ? '📈 Improving!' : '💪 Keep going!';
+                            return (
+                                <>
+                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{pct}%</p>
+                                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{label}</p>
+                                </>
+                            );
+                        })() : (
+                            <p className="text-2xl font-black text-slate-900 dark:text-white">N/A</p>
+                        )}
                     </div>
                 </div>
                 <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
@@ -198,6 +272,11 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     </div>
                 </div>
             </div>
+
+            {/* Motivational footer */}
+            <p className="text-center text-sm text-slate-400 dark:text-slate-500 font-medium mb-8 -mt-2">
+                Every question brings you closer to mastery ✨
+            </p>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
