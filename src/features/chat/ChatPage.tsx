@@ -766,28 +766,251 @@ const callAPI = useCallback(async (
 
             {/* Content */}
             {!hasMessages ? (
-                <div className="flex-1 flex flex-col items-center justify-center px-6" style={{ paddingBottom: '4vh' }}>
-                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-14 h-14 object-contain mx-auto mb-4 opacity-70" />
-                    <h1 className="text-3xl md:text-[2.6rem] font-bold text-gray-900 dark:text-white text-center leading-tight tracking-tight">
-                        What are you learning today?
-                    </h1>
-                    <p className="text-gray-400 dark:text-[#555] text-sm md:text-base text-center mt-3 max-w-sm">
-                        Ask me anything about your Samacheer syllabus! 🎓
-                    </p>
-                    {/* Topic suggestion chips */}
-                    <div className="flex gap-2 mt-6 w-full -mx-6 overflow-x-auto pb-1 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-                        <span className="flex-shrink-0 w-4" />
-                        {suggestionChips.map(chip => (
-                            <button
-                                key={chip.label}
-                                onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-gray-600 dark:text-[#999] text-xs font-medium whitespace-nowrap flex-shrink-0 hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all"
-                            >
-                                <span>{chip.emoji}</span>
-                                <span>{chip.label}</span>
-                            </button>
-                        ))}
-                        <span className="flex-shrink-0 w-4" />
+                <div className="flex-1 overflow-y-auto relative" style={{ background: '#060610' }}>
+                    {/* Keyframe animations + helper classes */}
+                    <style dangerouslySetInnerHTML={{ __html: `
+                        @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+                        @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+                        @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+                        @keyframes breatheGlow{0%,100%{box-shadow:0 0 10px #4f46e530,inset 0 0 0 0.5px #252540}50%{box-shadow:0 0 24px #4f46e565,inset 0 0 0 0.5px #4f46e540}}
+                        @keyframes scanline{0%{top:-5%;opacity:0}40%{opacity:0.1}100%{top:110%;opacity:0}}
+                        @keyframes shimmerPulse{0%,100%{opacity:0.5}50%{opacity:1}}
+                        @keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+                        .fs-card{transition:transform 0.2s ease,box-shadow 0.2s ease}
+                        .fs-card:hover{transform:translateY(-3px) scale(1.015)!important}
+                        .fs-chip{transition:border-color 0.15s,background 0.15s}
+                        .fs-chip:hover{border-color:#4f46e5!important;background:#14143a!important}
+                        .fs-sug{transition:border-color 0.15s,background 0.15s}
+                        .fs-sug:hover{border-color:#4f46e560!important;background:#0f0f28!important}
+                        .fs-noscroll{scrollbar-width:none}
+                        .fs-noscroll::-webkit-scrollbar{display:none}
+                    ` }} />
+
+                    {/* Grid texture */}
+                    <div style={{ position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:'linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px)',backgroundSize:'28px 28px' }} />
+                    {/* Ambient blobs */}
+                    <div style={{ position:'absolute',top:-80,left:'20%',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,#3730a322,transparent 70%)',pointerEvents:'none',zIndex:0 }} />
+                    <div style={{ position:'absolute',top:200,right:'5%',width:300,height:300,borderRadius:'50%',background:'radial-gradient(circle,#0f3d2818,transparent 70%)',pointerEvents:'none',zIndex:0 }} />
+                    <div style={{ position:'absolute',bottom:100,left:'10%',width:200,height:200,borderRadius:'50%',background:'radial-gradient(circle,#7c2d1215,transparent 70%)',pointerEvents:'none',zIndex:0 }} />
+
+                    <div style={{ position:'relative',zIndex:1 }}>
+
+                        {/* ── MOBILE ── */}
+                        <div className="md:hidden">
+                            {/* Hero */}
+                            <div style={{ textAlign:'center',padding:'20px 16px 12px' }}>
+                                <div style={{ display:'inline-flex',alignItems:'center',gap:6,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'4px 12px',marginBottom:10 }}>
+                                    <span style={{ width:6,height:6,borderRadius:'50%',background:'#22c55e',display:'inline-block',animation:'shimmerPulse 2s ease-in-out infinite' }} />
+                                    <span style={{ color:'#4a4a7a',fontSize:9,fontWeight:600,letterSpacing:'0.05em' }}>AI Tutor • Stories • Exams</span>
+                                </div>
+                                <h1 style={{ fontSize:20,fontWeight:700,color:'#eeeef8',letterSpacing:'-0.5px',lineHeight:1.25,marginBottom:7 }}>
+                                    What would you like to <span style={{ color:'#818cf8' }}>learn</span> today?
+                                </h1>
+                                <p style={{ color:'#3a3a5a',fontSize:12,lineHeight:1.5 }}>
+                                    Your personal Samacheer tutor — learn, practise, and master every subject
+                                </p>
+                            </div>
+
+                            {/* Mode cards */}
+                            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:9,padding:'0 13px' }}>
+                                <div className="fs-card" onClick={() => navigate('/story')} style={{ cursor:'pointer',background:'#0b0720',border:'0.5px solid #33267a',borderRadius:18,padding:13,animation:'floatA 4s ease-in-out infinite',boxShadow:'0 4px 20px #3b2d8a18',position:'relative',overflow:'hidden' }}>
+                                    <div style={{ position:'absolute',top:0,right:0,width:60,height:60,background:'radial-gradient(circle at top right,#4c3a9930,transparent 70%)',pointerEvents:'none' }} />
+                                    <div style={{ fontSize:20,marginBottom:7 }}>✨</div>
+                                    <div style={{ color:'#c4b5fd',fontSize:12,fontWeight:700,marginBottom:4 }}>Story Mode</div>
+                                    <div style={{ color:'#6b5aaa',fontSize:10,lineHeight:1.5 }}>Turn any lesson into an emotion-driven story</div>
+                                    <div style={{ marginTop:8,display:'flex',alignItems:'center',gap:5 }}>
+                                        <span style={{ background:'#1e1040',border:'0.5px solid #33267a',borderRadius:4,color:'#a78bfa',fontSize:8,fontWeight:700,padding:'2px 5px' }}>✦ POPULAR</span>
+                                        <span style={{ color:'#4a3a8a',fontSize:9 }}>Tamil • English</span>
+                                    </div>
+                                </div>
+                                <div className="fs-card" onClick={() => navigate('/game')} style={{ cursor:'pointer',background:'#030e09',border:'0.5px solid #10472a',borderRadius:18,padding:13,animation:'floatB 4.8s ease-in-out infinite',boxShadow:'0 4px 20px #1a6b4518',position:'relative',overflow:'hidden' }}>
+                                    <div style={{ fontSize:20,marginBottom:7 }}>🎮</div>
+                                    <div style={{ color:'#6ee7b7',fontSize:12,fontWeight:700,marginBottom:4 }}>Game Mode</div>
+                                    <div style={{ color:'#1d5c3a',fontSize:10,lineHeight:1.5 }}>Practice through interactive games</div>
+                                    <div style={{ marginTop:8,display:'flex',alignItems:'center',gap:5 }}>
+                                        <span style={{ background:'#071a0e',border:'0.5px solid #10472a',borderRadius:4,color:'#34d399',fontSize:8,fontWeight:700,padding:'2px 5px' }}>🔥 FUN</span>
+                                        <span style={{ color:'#1d5c3a',fontSize:9 }}>Math • Logic</span>
+                                    </div>
+                                </div>
+                                <div className="fs-card" onClick={() => navigate('/exam-mock')} style={{ cursor:'pointer',gridColumn:'1 / -1',background:'#0b0804',border:'0.5px solid #5a3d08',borderRadius:18,padding:13,animation:'floatC 3.9s ease-in-out infinite',boxShadow:'0 4px 24px #78450a18',position:'relative',overflow:'hidden' }}>
+                                    <div style={{ position:'absolute',height:1.5,left:0,right:0,background:'linear-gradient(90deg,transparent 10%,#f59e0b50 50%,transparent 90%)',animation:'scanline 5s ease-in-out infinite' }} />
+                                    <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start' }}>
+                                        <div>
+                                            <div style={{ fontSize:20,marginBottom:7 }}>📝</div>
+                                            <div style={{ color:'#fcd34d',fontSize:12,fontWeight:700,marginBottom:4 }}>Exam Mode</div>
+                                            <div style={{ color:'#6b4a18',fontSize:10,lineHeight:1.5,maxWidth:180 }}>Real exam questions with AI explanations</div>
+                                        </div>
+                                        <div style={{ width:44,height:44,background:'#150e02',border:'0.5px solid #5a3d08',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 14px #78450a30',fontSize:20 }}>🎯</div>
+                                    </div>
+                                    <div style={{ marginTop:8,display:'flex',gap:5 }}>
+                                        {['2021–2026','⏱ 15 MIN','AI EXPLAIN'].map(tag => (
+                                            <span key={tag} style={{ background:'#1a1004',border:'0.5px solid #5a3d08',borderRadius:5,color:'#d97706',fontSize:9,padding:'2px 6px',fontWeight:600 }}>{tag}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Chips */}
+                            <div className="fs-noscroll" style={{ display:'flex',gap:6,padding:'10px 0 4px',overflowX:'auto' }}>
+                                <span style={{ flexShrink:0,width:13 }} />
+                                {suggestionChips.map(chip => (
+                                    <button key={chip.label} className="fs-chip" onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
+                                        style={{ flexShrink:0,display:'flex',alignItems:'center',gap:4,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'5px 11px',color:'#9090b8',fontSize:11,fontWeight:500,whiteSpace:'nowrap',cursor:'pointer' }}>
+                                        <span>{chip.emoji}</span><span>{chip.label}</span>
+                                    </button>
+                                ))}
+                                <span style={{ flexShrink:0,width:13 }} />
+                            </div>
+
+                            {/* AI Suggestions (2 on mobile) */}
+                            <div style={{ margin:'8px 13px',background:'#0a0a18',border:'1px solid #1a1a30',borderRadius:14,padding:'10px 12px',animation:'fadeSlide 0.6s 0.2s ease-out both' }}>
+                                <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:7 }}>✦ Suggested for you</div>
+                                {[{ e:'✨',t:'Create a Gravity Story' },{ e:'📝',t:'Practice Algebra Mock Test' }].map(s => (
+                                    <button key={s.t} className="fs-sug" onClick={() => { setInput(s.t); inputRef.current?.focus(); }}
+                                        style={{ width:'100%',display:'flex',alignItems:'center',gap:7,background:'#0d0d22',border:'1px solid #1e1e40',borderRadius:9,padding:'6px 9px',marginBottom:5,cursor:'pointer',textAlign:'left' }}>
+                                        <span style={{ fontSize:13 }}>{s.e}</span>
+                                        <span style={{ color:'#8080b0',fontSize:10,flex:1 }}>{s.t}</span>
+                                        <span style={{ color:'#2a2a4a',fontSize:11 }}>›</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Continue Learning */}
+                            <div style={{ margin:'0 13px 8px',background:'#0a0a18',border:'1px solid #1e1e35',borderRadius:14,padding:'10px 12px',animation:'fadeSlide 0.6s 0.3s ease-out both' }}>
+                                <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:7 }}>Continue where you left off</div>
+                                <div style={{ display:'flex',alignItems:'center',gap:8 }}>
+                                    <div style={{ width:34,height:34,background:'#110d2a',border:'0.5px solid #3b2d8a',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,boxShadow:'0 0 10px #4f46e530',flexShrink:0 }}>📝</div>
+                                    <div style={{ flex:1,minWidth:0 }}>
+                                        <div style={{ color:'#9090b8',fontSize:11,fontWeight:600,marginBottom:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis' }}>Gravity · Mock Test</div>
+                                        <div style={{ height:4,background:'#151528',borderRadius:99 }}>
+                                            <div style={{ height:'100%',width:'65%',background:'linear-gradient(90deg,#4f46e5,#818cf8)',borderRadius:99 }} />
+                                        </div>
+                                        <div style={{ color:'#2a2a4a',fontSize:9,marginTop:3 }}>Resume progress</div>
+                                    </div>
+                                    <div style={{ color:'#6366f1',fontSize:13,fontWeight:700,flexShrink:0 }}>65%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ── DESKTOP ── */}
+                        <div className="hidden md:block" style={{ padding:'28px 32px',maxWidth:900 }}>
+                            {/* Header */}
+                            <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20 }}>
+                                <div>
+                                    <div style={{ display:'inline-flex',alignItems:'center',gap:6,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'4px 12px',marginBottom:10 }}>
+                                        <span style={{ width:6,height:6,borderRadius:'50%',background:'#22c55e',display:'inline-block',animation:'shimmerPulse 2s ease-in-out infinite' }} />
+                                        <span style={{ color:'#4a4a7a',fontSize:9,fontWeight:600,letterSpacing:'0.05em' }}>AI Tutor • Stories • Exams</span>
+                                    </div>
+                                    <h1 style={{ fontSize:26,fontWeight:700,color:'#eeeef8',letterSpacing:'-0.6px',lineHeight:1.25,marginBottom:6 }}>
+                                        What would you like to <span style={{ color:'#818cf8' }}>learn</span> today?
+                                    </h1>
+                                    <p style={{ color:'#3a3a5a',fontSize:13 }}>
+                                        Your personal Samacheer tutor — learn, practise, and master every subject
+                                    </p>
+                                </div>
+                                <div style={{ flexShrink:0,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:10,padding:'6px 12px',display:'flex',alignItems:'center',gap:5,marginLeft:20 }}>
+                                    <span style={{ fontSize:14 }}>🔥</span>
+                                    <span style={{ color:'#f59e0b',fontSize:11,fontWeight:700 }}>0 day streak</span>
+                                </div>
+                            </div>
+
+                            {/* Mode cards 3-col */}
+                            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr 1.4fr',gap:12,marginBottom:20 }}>
+                                {/* Story */}
+                                <div className="fs-card" onClick={() => navigate('/story')} style={{ cursor:'pointer',background:'#0b0720',border:'0.5px solid #33267a',borderRadius:18,padding:18,animation:'floatA 4s ease-in-out infinite',boxShadow:'0 4px 20px #3b2d8a18',position:'relative',overflow:'hidden' }}>
+                                    <div style={{ position:'absolute',top:0,right:0,width:80,height:80,background:'radial-gradient(circle at top right,#4c3a9930,transparent 70%)',pointerEvents:'none' }} />
+                                    <div style={{ fontSize:24,marginBottom:10 }}>✨</div>
+                                    <div style={{ color:'#c4b5fd',fontSize:14,fontWeight:700,marginBottom:6 }}>Story Mode</div>
+                                    <div style={{ color:'#6b5aaa',fontSize:11,lineHeight:1.5 }}>Turn any lesson into an emotion-driven story in Tamil or English</div>
+                                    <div style={{ marginTop:10,display:'flex',alignItems:'center',gap:6 }}>
+                                        <span style={{ background:'#1e1040',border:'0.5px solid #33267a',borderRadius:4,color:'#a78bfa',fontSize:8,fontWeight:700,padding:'2px 6px' }}>✦ POPULAR</span>
+                                        <span style={{ color:'#4a3a8a',fontSize:10 }}>Tamil • English</span>
+                                    </div>
+                                </div>
+
+                                {/* Game */}
+                                <div className="fs-card" onClick={() => navigate('/game')} style={{ cursor:'pointer',background:'#030e09',border:'0.5px solid #10472a',borderRadius:18,padding:18,animation:'floatB 4.8s ease-in-out infinite',boxShadow:'0 4px 20px #1a6b4518',position:'relative',overflow:'hidden' }}>
+                                    <div style={{ fontSize:24,marginBottom:10 }}>🎮</div>
+                                    <div style={{ color:'#6ee7b7',fontSize:14,fontWeight:700,marginBottom:6 }}>Game Mode</div>
+                                    <div style={{ color:'#1d5c3a',fontSize:11,lineHeight:1.5 }}>Practice Maths and Science through interactive games</div>
+                                    <div style={{ marginTop:10,display:'flex',alignItems:'center',gap:6 }}>
+                                        <span style={{ background:'#071a0e',border:'0.5px solid #10472a',borderRadius:4,color:'#34d399',fontSize:8,fontWeight:700,padding:'2px 6px' }}>🔥 FUN</span>
+                                        <span style={{ color:'#1d5c3a',fontSize:10 }}>Math • Logic</span>
+                                    </div>
+                                </div>
+
+                                {/* Exam */}
+                                <div className="fs-card" onClick={() => navigate('/exam-mock')} style={{ cursor:'pointer',background:'#0b0804',border:'0.5px solid #5a3d08',borderRadius:18,padding:18,animation:'floatC 3.9s ease-in-out infinite',boxShadow:'0 4px 24px #78450a18',position:'relative',overflow:'hidden' }}>
+                                    <div style={{ position:'absolute',height:1.5,left:0,right:0,background:'linear-gradient(90deg,transparent 10%,#f59e0b50 50%,transparent 90%)',animation:'scanline 5s ease-in-out infinite' }} />
+                                    <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start' }}>
+                                        <div style={{ flex:1 }}>
+                                            <div style={{ fontSize:24,marginBottom:10 }}>📝</div>
+                                            <div style={{ color:'#fcd34d',fontSize:14,fontWeight:700,marginBottom:6 }}>Exam Mode</div>
+                                            <div style={{ color:'#6b4a18',fontSize:11,lineHeight:1.5 }}>Real Samacheer exam questions with AI explanations</div>
+                                        </div>
+                                        <div style={{ width:50,height:50,background:'#150e02',border:'0.5px solid #5a3d08',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 14px #78450a30',fontSize:22,flexShrink:0,marginLeft:10 }}>🎯</div>
+                                    </div>
+                                    <div style={{ marginTop:10,display:'flex',gap:5,flexWrap:'wrap' }}>
+                                        {['2021–2026','⏱ 15 MIN','AI EXPLAIN'].map(tag => (
+                                            <span key={tag} style={{ background:'#1a1004',border:'0.5px solid #5a3d08',borderRadius:5,color:'#d97706',fontSize:9,padding:'2px 6px',fontWeight:600 }}>{tag}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Bottom 2-col */}
+                            <div style={{ display:'grid',gridTemplateColumns:'1fr 280px',gap:14 }}>
+                                {/* Left: chips + mode pills */}
+                                <div>
+                                    <div style={{ display:'flex',flexWrap:'wrap',gap:7,marginBottom:14 }}>
+                                        {suggestionChips.map(chip => (
+                                            <button key={chip.label} className="fs-chip" onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
+                                                style={{ display:'flex',alignItems:'center',gap:5,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'6px 13px',color:'#9090b8',fontSize:11,fontWeight:500,cursor:'pointer' }}>
+                                                <span>{chip.emoji}</span><span>{chip.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div style={{ display:'flex',gap:7,flexWrap:'wrap' }}>
+                                        {[{ e:'✨',l:'Story Mode',p:'/story' },{ e:'🎮',l:'Game Mode',p:'/game' },{ e:'📝',l:'Exam Mode',p:'/exam-mock' }].map(m => (
+                                            <button key={m.l} className="fs-chip" onClick={() => navigate(m.p)}
+                                                style={{ display:'flex',alignItems:'center',gap:5,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'6px 13px',color:'#9090b8',fontSize:11,fontWeight:500,cursor:'pointer' }}>
+                                                <span>{m.e}</span><span>{m.l}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Right: AI suggestions + Continue Learning */}
+                                <div style={{ display:'flex',flexDirection:'column',gap:10 }}>
+                                    <div style={{ background:'#0a0a18',border:'1px solid #1a1a30',borderRadius:14,padding:'12px 13px',animation:'fadeSlide 0.6s 0.2s ease-out both' }}>
+                                        <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8 }}>✦ Suggested for you</div>
+                                        {[{ e:'✨',t:'Create a Gravity Story' },{ e:'📝',t:'Practice Algebra Mock Test' },{ e:'🎮',t:'Play Fractions Game' }].map(s => (
+                                            <button key={s.t} className="fs-sug" onClick={() => { setInput(s.t); inputRef.current?.focus(); }}
+                                                style={{ width:'100%',display:'flex',alignItems:'center',gap:7,background:'#0d0d22',border:'1px solid #1e1e40',borderRadius:9,padding:'7px 9px',marginBottom:5,cursor:'pointer',textAlign:'left' }}>
+                                                <span style={{ fontSize:14 }}>{s.e}</span>
+                                                <span style={{ color:'#8080b0',fontSize:10,flex:1 }}>{s.t}</span>
+                                                <span style={{ color:'#2a2a4a',fontSize:12 }}>›</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div style={{ background:'#0a0a18',border:'1px solid #1e1e35',borderRadius:14,padding:'12px 13px',animation:'fadeSlide 0.6s 0.3s ease-out both' }}>
+                                        <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8 }}>Continue where you left off</div>
+                                        <div style={{ display:'flex',alignItems:'center',gap:8 }}>
+                                            <div style={{ width:38,height:38,background:'#110d2a',border:'0.5px solid #3b2d8a',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,boxShadow:'0 0 10px #4f46e530',flexShrink:0 }}>📝</div>
+                                            <div style={{ flex:1,minWidth:0 }}>
+                                                <div style={{ color:'#9090b8',fontSize:11,fontWeight:600,marginBottom:5 }}>Gravity · Mock Test</div>
+                                                <div style={{ height:4,background:'#151528',borderRadius:99 }}>
+                                                    <div style={{ height:'100%',width:'65%',background:'linear-gradient(90deg,#4f46e5,#818cf8)',borderRadius:99 }} />
+                                                </div>
+                                                <div style={{ color:'#2a2a4a',fontSize:9,marginTop:3 }}>Resume progress</div>
+                                            </div>
+                                            <div style={{ color:'#6366f1',fontSize:14,fontWeight:700,flexShrink:0 }}>65%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             ) : (
