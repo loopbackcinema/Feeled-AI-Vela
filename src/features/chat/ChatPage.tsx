@@ -31,15 +31,6 @@ const CONTEXT_QUESTION =
     'Which grade and subject are you studying? 🎓\n\nநீங்கள் எந்த வகுப்பு படிக்கிறீர்கள்? எந்த பாடம்?';
 const HISTORY_PAGE_SIZE = 15;
 
-const TOPIC_CHIPS = [
-    { icon: '⚡', label: 'Electricity' },
-    { icon: '🌍', label: 'Geography' },
-    { icon: '➗', label: 'Algebra' },
-    { icon: '🧪', label: 'Acids & Bases' },
-    { icon: '🧬', label: 'Cell Biology' },
-    { icon: '🏛️', label: 'History' },
-];
-
 function getSubjectsForGrade(grade: string): string[] {
     const n = parseInt(grade);
     if (n <= 7)  return ['Maths', 'English', 'Tamil', 'EVS', 'General Knowledge'];
@@ -371,6 +362,15 @@ const ChatPage: React.FC = () => {
     const contextReady = !!(standard && subject && board);
     const hasMessages  = chatMessages.length > 0;
     const lastAiIndex  = chatMessages.reduceRight((acc, m, i) => (acc === -1 && m.role === 'model' ? i : acc), -1);
+
+    const suggestionChips = [
+        { emoji: '⚡', label: 'Electricity' },
+        { emoji: '🌍', label: 'Geography' },
+        { emoji: '➗', label: 'Algebra' },
+        { emoji: '🧪', label: 'Acids & Bases' },
+        { emoji: '🧬', label: 'Cell Biology' },
+        { emoji: '🏛️', label: 'History' },
+    ];
 
     // Responsive theme: dark on mobile, light on desktop
     useEffect(() => {
@@ -757,13 +757,13 @@ const callAPI = useCallback(async (
                     </p>
                     {/* Topic suggestion chips */}
                     <div className="flex gap-2 mt-6 w-full max-w-lg overflow-x-auto pb-1 justify-start sm:justify-center scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-                        {TOPIC_CHIPS.map(chip => (
+                        {suggestionChips.map(chip => (
                             <button
                                 key={chip.label}
                                 onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-gray-600 dark:text-[#999] text-xs font-medium whitespace-nowrap flex-shrink-0 hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all"
                             >
-                                <span>{chip.icon}</span>
+                                <span>{chip.emoji}</span>
                                 <span>{chip.label}</span>
                             </button>
                         ))}
