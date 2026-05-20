@@ -267,7 +267,7 @@ const PlusMenu: React.FC<PlusMenuProps> = ({ board, setBoard, grade, setGrade, s
     return (
         <div className="absolute bottom-full left-0 mb-3 w-80 bg-white dark:bg-[#161616] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl shadow-2xl overflow-hidden z-50">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-[#222]">
-                <span className="text-gray-900 dark:text-white font-bold text-sm">Context & Upload</span>
+                <span className="text-gray-900 dark:text-white font-bold text-sm">Personalise Your Learning</span>
                 <button onClick={onClose} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"><X className="w-4 h-4" /></button>
             </div>
             <button onClick={onImageClick} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-[#1E1E1E] transition-colors border-b border-gray-100 dark:border-[#222]">
@@ -282,10 +282,10 @@ const PlusMenu: React.FC<PlusMenuProps> = ({ board, setBoard, grade, setGrade, s
             <div className="px-4 py-3 space-y-3">
                 <div className="flex items-center gap-2 mb-1">
                     <Settings2 className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-gray-500 dark:text-[#888] text-[11px] font-bold uppercase tracking-widest">Set Context</span>
+                    <span className="text-gray-500 dark:text-[#888] text-[11px] font-bold uppercase tracking-widest">Choose Your Learning Context</span>
                 </div>
                 <div>
-                    <label className="text-gray-400 dark:text-[#666] text-[10px] uppercase tracking-wider mb-1 block">Board</label>
+                    <label className="text-gray-400 dark:text-[#666] text-[10px] uppercase tracking-wider mb-1 block">Curriculum</label>
                     <select value={board} onChange={e => setBoard(e.target.value)} className="w-full bg-gray-50 dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg px-3 py-2 text-gray-900 dark:text-white text-xs focus:outline-none focus:border-indigo-500">
                         {ALL_BOARDS.map(b => <option key={b} value={b}>{b === 'Tamil Nadu State Board (Samacheer)' ? 'TN Samacheer' : b}</option>)}
                     </select>
@@ -310,7 +310,7 @@ const PlusMenu: React.FC<PlusMenuProps> = ({ board, setBoard, grade, setGrade, s
                         {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                 </div>
-                <button onClick={onApply} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 rounded-lg transition-colors">Apply Context</button>
+                <button onClick={onApply} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold py-2 rounded-lg transition-colors">Apply & Start Learning</button>
             </div>
         </div>
     );
