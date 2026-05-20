@@ -94,6 +94,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
                 <div className="text-center">
+                    <img src="/logo.svg" alt="FeelEd AI" className="w-16 h-16 mx-auto mb-6 rounded-2xl opacity-90" />
                     <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-slate-500 font-medium animate-pulse">Loading…</p>
                 </div>

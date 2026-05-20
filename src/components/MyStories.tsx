@@ -105,7 +105,7 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
                         <BookOpen className="w-10 h-10 text-slate-400" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">No stories yet</h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-6">Start your pedagogical journey by creating your first story!</p>
+                    <p className="text-slate-500 dark:text-slate-400 mb-6">Generate your first story! 📖</p>
                     <button 
                         onClick={() => onNavigate('generator')}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"

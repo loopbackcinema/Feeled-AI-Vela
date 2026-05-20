@@ -283,15 +283,25 @@ export default function ExamMock() {
                     <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-8 shadow-xl shadow-slate-200/30 dark:shadow-none space-y-6">
 
                         {phase === 'loading' ? (
-                            <div className="py-8 space-y-6">
-                                {LOADING_STEPS.map((step, i) => (
-                                    <div key={i} className={`flex items-center gap-4 transition-all duration-500 ${i <= loadingStep ? 'opacity-100' : 'opacity-30'}`}>
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0 ${i < loadingStep ? 'bg-green-100 dark:bg-green-900/30' : i === loadingStep ? 'bg-indigo-100 dark:bg-indigo-900/30 animate-pulse' : 'bg-slate-100 dark:bg-slate-800'}`}>
-                                            {i < loadingStep ? '✅' : i === loadingStep ? '⏳' : (i + 1)}
+                            <div className="py-4 space-y-4">
+                                <p className="text-center text-sm font-black text-indigo-600 dark:text-indigo-400 animate-pulse mb-2">
+                                    {LOADING_STEPS[Math.min(loadingStep, LOADING_STEPS.length - 1)]}
+                                </p>
+                                {[0, 1, 2].map(i => (
+                                    <div key={i} className="animate-pulse space-y-3 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700">
+                                        <div className="flex gap-2 mb-1">
+                                            <div className="h-5 w-16 rounded-full bg-slate-200 dark:bg-slate-700" />
+                                            <div className="h-5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />
                                         </div>
-                                        <p className={`font-bold text-sm ${i === loadingStep ? 'text-indigo-700 dark:text-indigo-300' : i < loadingStep ? 'text-slate-400 line-through' : 'text-slate-400'}`}>
-                                            {step}
-                                        </p>
+                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-full" />
+                                        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-4/5" />
+                                        {i === 0 && (
+                                            <div className="grid grid-cols-2 gap-2 pt-1">
+                                                {[0, 1, 2, 3].map(j => (
+                                                    <div key={j} className="h-10 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

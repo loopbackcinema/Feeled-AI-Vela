@@ -753,7 +753,7 @@ const callAPI = useCallback(async (
                         What are you learning today?
                     </h1>
                     <p className="text-gray-400 dark:text-[#555] text-sm md:text-base text-center mt-3 max-w-sm">
-                        Your personal Samacheer tutor — learn, practise, and master every subject
+                        Ask me anything about your Samacheer syllabus! 🎓
                     </p>
                     {/* Topic suggestion chips */}
                     <div className="flex gap-2 mt-6 w-full overflow-x-auto pb-1 scrollbar-none justify-center flex-wrap" style={{ scrollbarWidth: 'none' }}>
