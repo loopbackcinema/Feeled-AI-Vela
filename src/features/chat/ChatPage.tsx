@@ -116,9 +116,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     return (
         <>
             {open && (
-                <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm" onClick={onClose} />
+                <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm md:hidden" onClick={onClose} />
             )}
-            <div className={`fixed top-0 left-0 h-full w-72 bg-white dark:bg-[#111111] z-50 flex flex-col border-r border-gray-200 dark:border-[#222] transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : '-translate-x-full'}`}>
+            <div className={`fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : 'md:translate-x-0 -translate-x-full'}`} style={{ background: '#07070f', borderColor: '#12122a' }}>
 
                 {/* Logo row */}
                 <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-200 dark:border-[#222]">
@@ -391,18 +391,10 @@ const ChatPage: React.FC = () => {
         { emoji: '🏛️', label: 'History' },
     ];
 
-    // Responsive theme: dark on mobile, light on desktop
+    // Always use dark theme — ChatPage is a full-screen dark app
     useEffect(() => {
-        const applyTheme = () => {
-            if (window.innerWidth < 768) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        };
-        applyTheme();
-        window.addEventListener('resize', applyTheme);
-        return () => window.removeEventListener('resize', applyTheme);
+        document.documentElement.classList.add('dark');
+        return () => document.documentElement.classList.remove('dark');
     }, []);
 
     // Handle pre-filled messages from navigation state (e.g. from ExamMode chip on AnswerScreen)
@@ -736,7 +728,7 @@ const callAPI = useCallback(async (
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
-        <div className="fixed inset-0 bg-white dark:bg-[#0D0D0D] text-gray-900 dark:text-white flex flex-col overflow-hidden">
+        <div className="fixed inset-0 flex flex-col overflow-hidden md:pl-[288px]" style={{ background: '#060610', color: '#eeeef8' }}>
 
             {/* Sidebar */}
             <Sidebar
@@ -754,19 +746,23 @@ const callAPI = useCallback(async (
             />
 
             {/* Top bar */}
-            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 dark:border-[#1A1A1A]">
-                <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors" aria-label="Open sidebar">
+            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: '1px solid #1a1a30', background: '#060610' }}>
+                <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 rounded-xl transition-colors" style={{ color: '#6060a0' }} aria-label="Open sidebar">
                     <Menu className="w-5 h-5" />
                 </button>
-                <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight">FeelEd AI</span>
-                <button onClick={handleNewChat} className="p-2 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors" aria-label="New chat">
+                <span className="font-bold text-sm tracking-tight" style={{ color: '#9090b8' }}>FeelEd AI</span>
+                <button onClick={handleNewChat} className="p-2 rounded-xl transition-colors" style={{ color: '#6060a0' }} aria-label="New chat">
                     <SquarePen className="w-5 h-5" />
                 </button>
             </div>
 
             {/* Content */}
             {!hasMessages ? (
-                <div className="flex-1 overflow-y-auto relative" style={{ background: '#060610' }}>
+                <div className="flex-1 overflow-y-auto relative" style={{
+                    background: '#060610',
+                    backgroundImage: 'linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px)',
+                    backgroundSize: '28px 28px',
+                }}>
                     {/* Keyframe animations + helper classes */}
                     <style dangerouslySetInnerHTML={{ __html: `
                         @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
@@ -786,12 +782,12 @@ const callAPI = useCallback(async (
                         .fs-noscroll::-webkit-scrollbar{display:none}
                     ` }} />
 
-                    {/* Grid texture */}
-                    <div style={{ position:'absolute',inset:0,pointerEvents:'none',zIndex:0,backgroundImage:'linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px)',backgroundSize:'28px 28px' }} />
-                    {/* Ambient blobs */}
-                    <div style={{ position:'absolute',top:-80,left:'20%',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,#3730a322,transparent 70%)',pointerEvents:'none',zIndex:0 }} />
-                    <div style={{ position:'absolute',top:200,right:'5%',width:300,height:300,borderRadius:'50%',background:'radial-gradient(circle,#0f3d2818,transparent 70%)',pointerEvents:'none',zIndex:0 }} />
-                    <div style={{ position:'absolute',bottom:100,left:'10%',width:200,height:200,borderRadius:'50%',background:'radial-gradient(circle,#7c2d1215,transparent 70%)',pointerEvents:'none',zIndex:0 }} />
+                    {/* Ambient blobs — fixed so they're viewport-relative and never clipped */}
+                    <div style={{ position:'fixed',top:0,left:0,right:0,bottom:0,pointerEvents:'none',zIndex:0,overflow:'hidden' }}>
+                        <div style={{ position:'absolute',top:-80,left:'20%',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,#3730a340,transparent 70%)' }} />
+                        <div style={{ position:'absolute',top:200,right:'5%',width:300,height:300,borderRadius:'50%',background:'radial-gradient(circle,#0f3d2830,transparent 70%)' }} />
+                        <div style={{ position:'absolute',bottom:100,left:'10%',width:200,height:200,borderRadius:'50%',background:'radial-gradient(circle,#7c2d1225,transparent 70%)' }} />
+                    </div>
 
                     <div style={{ position:'relative',zIndex:1 }}>
 
@@ -1109,7 +1105,7 @@ const callAPI = useCallback(async (
             )}
 
             {/* Bottom area — fixed at bottom, safe-area aware */}
-            <div className="flex-shrink-0 px-4 pt-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)' }}>
+            <div className="flex-shrink-0 px-4 pt-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)', background: '#060610', borderTop: '1px solid #1a1a30' }}>
                 {/* Uploaded image preview */}
                 {uploadedImage && (
                     <div className="max-w-3xl mx-auto mb-2 flex items-center gap-3 px-1">
