@@ -26,10 +26,9 @@ const Footer: React.FC = () => {
                     <div className="space-y-6">
                         <button onClick={() => go('home')} className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
                             <img
-                                src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png"
+                                src="/feeled-logo-new.png"
                                 alt="FeelEd AI Logo"
                                 className="w-10 h-10 object-contain"
-                                referrerPolicy="no-referrer"
                             />
                             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">FeelEd AI</h2>
                         </button>
