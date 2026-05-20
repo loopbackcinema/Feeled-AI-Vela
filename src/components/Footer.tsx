@@ -26,7 +26,7 @@ const Footer: React.FC = () => {
                     <div className="space-y-6">
                         <button onClick={() => go('home')} className="flex items-center gap-3 transition-transform hover:scale-[1.02]">
                             <img
-                                src="/feeled-logo-new.png"
+                                src="/feeled-logo.webp"
                                 alt="FeelEd AI Logo"
                                 className="w-10 h-10 object-contain"
                             />

@@ -78,7 +78,7 @@ const Header: React.FC = () => {
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                 <button onClick={() => handleLinkClick('home')} className="flex items-center gap-3 transition-opacity hover:opacity-80">
                     <img
-                        src="/feeled-logo-new.png"
+                        src="/feeled-logo.webp"
                         alt="FeelEd AI Logo"
                         className="w-12 h-12 object-contain"
                     />

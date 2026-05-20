@@ -18,7 +18,7 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
             <div className="text-center mb-12 relative z-10">
                 <div className="inline-block mb-4">
                     <img 
-                        src="/feeled-logo-new.png"
+                        src="/feeled-logo.webp"
                         alt="FeelEd AI Logo" 
                         className="w-24 h-24 md:w-32 md:h-32 mx-auto drop-shadow-xl hover:scale-110 transition-transform duration-300"
                     />
