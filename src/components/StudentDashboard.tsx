@@ -417,8 +417,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                             </div>
                         ) : (
                             <div className="text-center py-8 text-slate-500">
-                                <p>No practice tests taken yet.</p>
-                                <button onClick={() => onNavigate('home')} className="text-indigo-600 font-bold mt-2 hover:underline">Start a practice test</button>
+                                <p className="font-medium">Take your first mock test! 🎯</p>
+                                <button onClick={() => onNavigate('exam-mock')} className="text-indigo-600 font-bold mt-2 hover:underline">Start a mock test</button>
                             </div>
                         )}
                     </div>
@@ -447,8 +447,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                             </div>
                         ) : (
                             <div className="text-center py-8 text-slate-500">
-                                <p>No topics studied yet.</p>
-                                <button onClick={() => onNavigate('home')} className="text-indigo-600 font-bold mt-2 hover:underline">Ask a question</button>
+                                <p className="font-medium">Ask me anything about your Samacheer syllabus! 🎓</p>
+                                <button onClick={() => onNavigate('home')} className="text-indigo-600 font-bold mt-2 hover:underline">Start learning</button>
                             </div>
                         )}
                     </div>
