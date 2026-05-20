@@ -756,7 +756,7 @@ const callAPI = useCallback(async (
                         Your personal Samacheer tutor — learn, practise, and master every subject
                     </p>
                     {/* Topic suggestion chips */}
-                    <div className="flex gap-2 mt-6 w-full max-w-lg overflow-x-auto pb-1 justify-start sm:justify-center scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+                    <div className="flex gap-2 mt-6 w-full max-w-lg overflow-x-auto pb-1 justify-start sm:justify-center scrollbar-none" style={{ scrollbarWidth: 'none', paddingLeft: '16px', paddingRight: '16px' }}>
                         {suggestionChips.map(chip => (
                             <button
                                 key={chip.label}
