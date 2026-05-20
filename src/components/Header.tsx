@@ -78,10 +78,9 @@ const Header: React.FC = () => {
             <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
                 <button onClick={() => handleLinkClick('home')} className="flex items-center gap-3 transition-opacity hover:opacity-80">
                     <img
-                        src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png"
+                        src="/feeled-logo.webp"
                         alt="FeelEd AI Logo"
                         className="w-12 h-12 object-contain"
-                        referrerPolicy="no-referrer"
                     />
                     <div className="text-left">
                         <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none">FeelEd AI</h1>

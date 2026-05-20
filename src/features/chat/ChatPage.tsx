@@ -127,7 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <button onClick={onClose} className="p-1 rounded-md text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                         <X className="w-5 h-5" />
                     </button>
-                    <img src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" alt="FeelEd AI" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-8 h-8 object-contain" />
                     <span className="font-black text-gray-900 dark:text-white text-base tracking-tight">FeelEd AI</span>
                 </div>
 
@@ -748,7 +748,7 @@ const callAPI = useCallback(async (
             {/* Content */}
             {!hasMessages ? (
                 <div className="flex-1 flex flex-col items-center justify-center px-6" style={{ paddingBottom: '4vh' }}>
-                    <img src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" alt="FeelEd AI" className="w-14 h-14 object-contain mx-auto mb-4 opacity-70" referrerPolicy="no-referrer" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-14 h-14 object-contain mx-auto mb-4 opacity-70" />
                     <h1 className="text-3xl md:text-[2.6rem] font-bold text-gray-900 dark:text-white text-center leading-tight tracking-tight">
                         What are you learning today?
                     </h1>

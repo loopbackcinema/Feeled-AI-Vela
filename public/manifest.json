@@ -1,5 +1,4 @@
 {
-  "id": "https://feeledai.com/",
   "name": "FeelEd AI",
   "short_name": "FeelEd",
   "description": "Emotion-adaptive learning platform for Tamil Nadu students",
@@ -9,6 +8,12 @@
   "theme_color": "#4F46E5",
   "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "/feeled-logo.webp",
+      "sizes": "any",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
