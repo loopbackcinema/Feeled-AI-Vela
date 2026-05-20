@@ -363,6 +363,15 @@ const ChatPage: React.FC = () => {
     const hasMessages  = chatMessages.length > 0;
     const lastAiIndex  = chatMessages.reduceRight((acc, m, i) => (acc === -1 && m.role === 'model' ? i : acc), -1);
 
+    const suggestionChips = [
+        { emoji: '⚡', label: 'Electricity' },
+        { emoji: '🌍', label: 'Geography' },
+        { emoji: '➗', label: 'Algebra' },
+        { emoji: '🧪', label: 'Acids & Bases' },
+        { emoji: '🧬', label: 'Cell Biology' },
+        { emoji: '🏛️', label: 'History' },
+    ];
+
     // Responsive theme: dark on mobile, light on desktop
     useEffect(() => {
         const applyTheme = () => {
@@ -738,14 +747,27 @@ const callAPI = useCallback(async (
 
             {/* Content */}
             {!hasMessages ? (
-                <div className="flex-1 flex flex-col items-center justify-center px-6" style={{ paddingBottom: '10vh' }}>
-                    <img src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" alt="FeelEd AI" className="w-16 h-16 object-contain mx-auto mb-5 opacity-70" referrerPolicy="no-referrer" />
+                <div className="flex-1 flex flex-col items-center justify-center px-6" style={{ paddingBottom: '4vh' }}>
+                    <img src="https://i.postimg.cc/g0tRDD6q/A-logo-for-Feel-Ed-AI-is-displayed-on-a-transparent-(1).png" alt="FeelEd AI" className="w-14 h-14 object-contain mx-auto mb-4 opacity-70" referrerPolicy="no-referrer" />
                     <h1 className="text-3xl md:text-[2.6rem] font-bold text-gray-900 dark:text-white text-center leading-tight tracking-tight">
                         What are you learning today?
                     </h1>
                     <p className="text-gray-400 dark:text-[#555] text-sm md:text-base text-center mt-3 max-w-sm">
                         Your personal Samacheer tutor — learn, practise, and master every subject
                     </p>
+                    {/* Topic suggestion chips */}
+                    <div className="flex gap-2 mt-6 w-full max-w-lg overflow-x-auto pb-1 justify-start sm:justify-center scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+                        {suggestionChips.map(chip => (
+                            <button
+                                key={chip.label}
+                                onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-gray-600 dark:text-[#999] text-xs font-medium whitespace-nowrap flex-shrink-0 hover:border-indigo-400 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all"
+                            >
+                                <span>{chip.emoji}</span>
+                                <span>{chip.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             ) : (
                 <div className="flex-1 overflow-y-auto px-4 py-6" style={{ minHeight: 0 }}>
