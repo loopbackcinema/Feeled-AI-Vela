@@ -8,7 +8,7 @@ interface ContactProps {
 
 const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-4xl mx-auto px-6 py-10 text-gray-900 dark:text-gray-100">
+        <div className="w-full max-w-5xl mx-auto px-6 md:px-8 py-10 text-gray-900 dark:text-gray-100">
 
             {/* Hero */}
             <div className="mb-10">
@@ -22,36 +22,36 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
 
                 {/* Left: General Enquiries */}
-                <div>
+                <div className="pb-8 lg:pb-0">
                     <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">General Enquiries</h2>
                     <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-5">
                         For product questions, feedback, collaborations, media enquiries, or general support, you can contact the FeelEd AI team directly.
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
                         <a href="mailto:admin@feeledai.com"
-                            className="flex items-start gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors group">
-                            <span className="text-xl flex-shrink-0">📧</span>
+                            className="flex flex-col h-full gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors group">
+                            <span className="text-xl">📧</span>
                             <div>
                                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-1">Email</p>
                                 <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 group-hover:underline break-all">admin@feeledai.com</p>
                             </div>
                         </a>
-                        <div className="flex items-start gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
-                            <span className="text-xl flex-shrink-0">📱</span>
+                        <div className="flex flex-col h-full gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
+                            <span className="text-xl">📱</span>
                             <div>
                                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-1">Phone</p>
-                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">+91 90924 50286</p>
+                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 whitespace-nowrap">+91 90924 50286</p>
                             </div>
                         </div>
-                        <div className="flex items-start gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
-                            <span className="text-xl flex-shrink-0">📍</span>
+                        <div className="flex flex-col h-full gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
+                            <span className="text-xl">📍</span>
                             <div>
                                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-1">Location</p>
                                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Chennai, Tamil Nadu, India</p>
                             </div>
                         </div>
-                        <div className="flex items-start gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
-                            <span className="text-xl flex-shrink-0">🕒</span>
+                        <div className="flex flex-col h-full gap-3 border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
+                            <span className="text-xl">🕒</span>
                             <div>
                                 <p className="text-xs font-semibold text-gray-500 dark:text-gray-500 uppercase tracking-wide mb-1">Support Hours</p>
                                 <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Mon – Fri, 9:00 AM – 6:00 PM IST</p>
@@ -61,7 +61,7 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* Right: Partnerships + Technical Support */}
-                <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-6">
 
                     {/* Partnerships */}
                     <div>
