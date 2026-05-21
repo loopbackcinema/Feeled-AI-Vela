@@ -867,6 +867,7 @@ const callAPI = useCallback(async (
                         @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
                         @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
                         @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+                        @keyframes logoFloat{0%,100%{transform:translateY(0px);filter:drop-shadow(0 0 15px #4f46e540)}50%{transform:translateY(-8px);filter:drop-shadow(0 0 25px #4f46e570)}}
                         .fc-card{transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer}
                         .fc-card:hover{transform:translateY(-2px) scale(1.04)!important}
                         .fc-chip{transition:border-color 0.15s,background 0.15s;cursor:pointer}
@@ -875,6 +876,15 @@ const callAPI = useCallback(async (
                     ` }} />
 
                     <div style={{ maxWidth: 680, margin: '0 auto', padding: '15vh 20px 40px', textAlign: 'center' }}>
+                        {/* Animated logo */}
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+                            <img
+                                src="/feeled-logo.webp"
+                                alt="FeelEd AI"
+                                style={{ width: 80, height: 80, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
+                            />
+                        </div>
+
                         {/* Hero */}
                         <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.6rem)', fontWeight: 700, letterSpacing: '-0.5px', lineHeight: 1.2, marginBottom: 10, color: isDarkMode ? '#eeeef8' : '#111111' }}>
                             {t('home.title')}
