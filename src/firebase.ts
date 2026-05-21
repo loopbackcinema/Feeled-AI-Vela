@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getMessaging, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -66,6 +67,13 @@ export const signInWithGoogle = async () => {
   }
 };
 export const logOut = () => signOut(auth);
+
+// Firebase Cloud Messaging — only available in secure contexts with SW support
+export const getMessagingInstance = async () => {
+  const supported = await isSupported();
+  if (!supported) return null;
+  return getMessaging(app);
+};
 
 // Connection Test
 async function testConnection() {

@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
+import PushNotificationSetup from '../../components/PushNotificationSetup';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -779,6 +780,9 @@ const callAPI = useCallback(async (
     return (
         <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[200px]' : ''}`}
             style={{ background: isDarkMode ? '#060610' : '#ffffff', color: isDarkMode ? '#eeeef8' : '#111111' }}>
+
+            {/* Push notification subscription (renders nothing) */}
+            <PushNotificationSetup />
 
             {/* Offline banner */}
             {isOffline && (
