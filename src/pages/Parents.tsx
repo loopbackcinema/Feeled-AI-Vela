@@ -1,160 +1,229 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Page } from '../types';
 
 interface ParentsProps {
     onNavigate: (page: Page) => void;
 }
 
+const faqs = [
+    {
+        q: 'Does FeelEd AI replace teachers?',
+        a: 'No. FeelEd AI is a supplemental learning tool designed to support students alongside their teachers and schools.',
+    },
+    {
+        q: 'Does it work in Tamil?',
+        a: 'Yes. FeelEd AI supports both Tamil and English learning experiences.',
+    },
+    {
+        q: 'Does it store biometric data?',
+        a: 'No. We do not collect facial recognition, biometric, or emotional scoring data.',
+    },
+    {
+        q: 'Is it suitable for all grade levels?',
+        a: 'Currently optimized for Grade 10 TN Samacheer students, with expansion planned for other grades.',
+    },
+];
+
 const Parents: React.FC<ParentsProps> = ({ onNavigate }) => {
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+
     return (
-        <div className="w-full max-w-5xl mx-auto space-y-24 animate-fade-in py-12 px-6 transition-colors duration-300">
-            {/* Header Section */}
-            <div className="text-center space-y-8">
-                <div className="inline-flex items-center gap-4 px-8 py-2.5 rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400 text-[10px] font-black uppercase tracking-[0.4em] border border-rose-100 dark:border-rose-800 shadow-sm">
-                    A Partnership in Understanding
-                </div>
-                <h1 className="text-6xl md:text-8xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">
-                    👨‍👩‍👧 For <span className="shimmer-indigo">Parents</span>
-                </h1>
-                <p className="text-2xl text-slate-500 dark:text-slate-400 font-bold max-w-4xl mx-auto leading-relaxed">
-                    Learning That Understands Children — Not Just Content
+        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 text-gray-900 dark:text-gray-100">
+
+            {/* Hero */}
+            <div className="mb-10">
+                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">For Parents</h1>
+                <p className="text-base text-gray-500 dark:text-gray-400">
+                    Learning experiences designed to feel more supportive, engaging, and accessible for students.
                 </p>
             </div>
 
-            {/* A Note to Parents */}
-            <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-12 md:p-20 rounded-[4rem] shadow-2xl space-y-12 relative overflow-hidden transition-colors">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-rose-500/10 rounded-full blur-[120px] -mr-40 -mt-40"></div>
-                <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">A Note to Parents</h2>
-                <div className="space-y-8 text-2xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                    <p>
-                        Every child learns differently. Some learn fast. Some learn slowly. Some carry emotions that classrooms cannot always see.
-                    </p>
-                    <div className="p-10 bg-rose-600 dark:bg-rose-700 text-white rounded-[3rem] font-bold shadow-3xl border-b-[12px] border-rose-900/40">
-                        "FeelEd AI was created with one simple belief: Learning works best when a child feels understood."
-                    </div>
-                    <p>
-                        This page exists to explain what FeelEd AI is, what it is not, and how your child’s safety and dignity are protected.
-                    </p>
-                </div>
-            </div>
+            <div className="space-y-10">
 
-            {/* What is FeelEd AI / Why emotion matters */}
-            <div className="grid lg:grid-cols-2 gap-12">
-                <div className="bg-slate-900 dark:bg-slate-950 text-white p-16 rounded-[4rem] shadow-4xl space-y-10 relative overflow-hidden transition-colors">
-                    <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
-                    <h3 className="text-3xl font-black relative z-10">What Is FeelEd AI?</h3>
-                    <p className="text-xl text-slate-300 font-bold relative z-10 leading-relaxed">
-                        FeelEd AI is an emotion-aware learning system that adapts stories and lessons based on how a child is engaging — gently, respectfully, and without judgment.
+                {/* Section 1 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">A Note to Parents</h2>
+                    <div className="space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-400">
+                        <p>
+                            Every child learns differently. Some students learn quickly through explanations. Others learn better through stories, repetition, interaction, or practice. Many students also experience stress, hesitation, or loss of confidence while learning.
+                        </p>
+                        <p>
+                            FeelEd AI was created to explore how AI-powered learning experiences can feel more engaging, approachable, and emotionally supportive for students — especially in multilingual and mobile-first environments.
+                        </p>
+                    </div>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 2 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">What Is FeelEd AI?</h2>
+                    <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-4">
+                        FeelEd AI is a multilingual educational platform that combines conversational tutoring, storytelling, interactive learning, and exam practice into one learning experience.
                     </p>
-                    <ul className="space-y-6 relative z-10 font-black text-indigo-200 dark:text-indigo-300">
-                        <li className="flex items-center gap-4"><span className="text-2xl">✨</span> It does not label children.</li>
-                        <li className="flex items-center gap-4"><span className="text-2xl">✨</span> It does not score emotions.</li>
-                        <li className="flex items-center gap-4"><span className="text-2xl">✨</span> It does not replace teachers.</li>
+                    <p className="text-base text-gray-600 dark:text-gray-400 mb-2">The platform is designed to help students:</p>
+                    <ul className="space-y-1.5 mb-6">
+                        {[
+                            'Understand concepts more comfortably',
+                            'Practice with less pressure',
+                            'Stay engaged through stories and interaction',
+                            'Learn in Tamil and English',
+                        ].map(item => (
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                                {item}
+                            </li>
+                        ))}
                     </ul>
-                    <div className="p-8 bg-white/10 rounded-3xl border border-white/20 relative z-10">
-                        <p className="text-slate-400 dark:text-slate-500 font-bold italic">"It supports learning by adjusting how a lesson is presented, not who your child is."</p>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-900 p-16 rounded-[4rem] border-2 border-slate-100 dark:border-slate-800 shadow-sm space-y-10 flex flex-col justify-center transition-colors">
-                    <h3 className="text-3xl font-black text-slate-900 dark:text-white">Why Emotion Matters</h3>
-                    <p className="text-lg font-bold text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Children don’t enter classrooms as empty minds. They bring:
-                    </p>
-                    <div className="flex flex-wrap gap-4">
-                        {["Anxiety", "Curiosity", "Fear of failure", "Confidence", "Fatigue", "Excitement"].map(tag => (
-                            <span key={tag} className="px-6 py-2 bg-slate-50 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 font-black text-sm rounded-full border border-slate-100 dark:border-slate-700 transition-colors">{tag}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {[
+                            { icon: '📘', title: 'AI Tutor', desc: 'Ask questions and receive conversational explanations.' },
+                            { icon: '✨', title: 'Story Mode', desc: 'Turn lessons into engaging educational stories.' },
+                            { icon: '🎮', title: 'Game Mode', desc: 'Practice concepts through interactive activities.' },
+                            { icon: '📝', title: 'Exam Mode', desc: 'Prepare using chapter-wise mock tests and revision tools.' },
+                        ].map(card => (
+                            <div key={card.title} className="border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
+                                <div className="text-2xl mb-2">{card.icon}</div>
+                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">{card.title}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">{card.desc}</p>
+                            </div>
                         ))}
                     </div>
-                    <p className="text-slate-400 dark:text-slate-500 font-bold leading-relaxed pt-6">Traditional systems often ignore these realities. FeelEd AI explores whether learning can slow down when a child feels overwhelmed or encourage gently when confidence is low.</p>
-                </div>
-            </div>
+                </section>
 
-            {/* DO NOT DO section */}
-            <div className="bg-emerald-50 dark:bg-emerald-950/20 border-4 border-white dark:border-slate-800 p-12 md:p-24 rounded-[4rem] shadow-2xl space-y-12 transition-colors">
-                <h3 className="text-4xl font-black text-emerald-900 dark:text-emerald-400 text-center">Clarity Builds Trust</h3>
-                <div className="grid md:grid-cols-2 gap-12 text-xl font-bold text-emerald-800/80 dark:text-emerald-300/80 text-center">
-                    <ul className="space-y-6">
-                        <li>❌ No mental health diagnosis</li>
-                        <li>❌ No emotional grading or ranking</li>
-                        <li>❌ No facial recording or videos</li>
-                    </ul>
-                    <ul className="space-y-6">
-                        <li>❌ No biometric data tracking</li>
-                        <li>❌ No replacement for human care</li>
-                        <li>❌ No forced emotional performance</li>
-                    </ul>
-                </div>
-                <div className="p-8 bg-white dark:bg-slate-900 rounded-[3rem] border border-emerald-100 dark:border-emerald-800 text-center transition-colors">
-                    <p className="text-2xl font-black text-emerald-900 dark:text-emerald-400 uppercase tracking-widest italic">Your child is never reduced to data.</p>
-                </div>
-            </div>
+                <hr className="border-gray-200 dark:border-gray-800" />
 
-            {/* Protection Principles */}
-            <div className="bg-white dark:bg-slate-900 p-12 md:p-20 rounded-[4rem] border border-slate-200 dark:border-slate-800 shadow-sm space-y-12 transition-colors">
-                <h3 className="text-3xl font-black text-slate-900 dark:text-white">How Your Child Is Protected</h3>
-                <div className="grid md:grid-cols-2 gap-16 items-center">
-                    <div className="space-y-8">
-                        <p className="text-lg font-bold text-slate-500 dark:text-slate-400 leading-relaxed uppercase tracking-widest text-[10px]">Strict Principles</p>
-                        <ul className="space-y-4 font-black text-slate-700 dark:text-slate-300">
-                            <li className="flex items-center gap-4"><span className="w-2 h-2 bg-rose-500 rounded-full"></span> No biometric/facial data collection</li>
-                            <li className="flex items-center gap-4"><span className="w-2 h-2 bg-rose-500 rounded-full"></span> No emotional labels stored on children</li>
-                            <li className="flex items-center gap-4"><span className="w-2 h-2 bg-rose-500 rounded-full"></span> No profiling or permanent records</li>
-                            <li className="flex items-center gap-4"><span className="w-2 h-2 bg-rose-500 rounded-full"></span> No selling or sharing of child data</li>
+                {/* Section 3 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Our Approach to Learning</h2>
+                    <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-3">
+                        FeelEd AI explores how learning experiences can become more adaptive and less intimidating for students. Instead of focusing only on information delivery, the platform also considers:
+                    </p>
+                    <ul className="space-y-1.5">
+                        {['Engagement', 'Pacing', 'Storytelling', 'Repetition', 'Student comfort during learning'].map(item => (
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-600 flex-shrink-0" />
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 4 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Safety & Privacy</h2>
+                    <p className="text-base text-gray-600 dark:text-gray-400 mb-4">Student privacy and dignity are important to us.</p>
+                    <ul className="space-y-2">
+                        {[
+                            'No biometric or facial recognition data collection',
+                            'No emotional scoring or ranking of children',
+                            'No selling of student data to advertisers',
+                            'No profiling of students for marketing purposes',
+                            'Teacher-guided and educationally focused interactions',
+                        ].map(item => (
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                                <span className="mt-1 text-green-600 dark:text-green-500 font-bold flex-shrink-0">✓</span>
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 5 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Who FeelEd AI Is Designed For</h2>
+                    <ul className="space-y-2">
+                        {[
+                            'Students needing extra revision support',
+                            'Mobile-first learners',
+                            'Multilingual learners',
+                            'Students who learn better through stories or interaction',
+                            'Classroom and home learning support',
+                        ].map(item => (
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                                <span className="mt-0.5 text-green-600 dark:text-green-500 font-bold flex-shrink-0">✓</span>
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 6 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Important Clarifications</h2>
+                    <div className="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">FeelEd AI is an educational technology platform.</p>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">It is not:</p>
+                        <ul className="space-y-1">
+                            {[
+                                'A medical service',
+                                'A mental health system',
+                                'A psychological diagnostic tool',
+                                'A replacement for teachers, parents, or schools',
+                            ].map(item => (
+                                <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                                    {item}
+                                </li>
+                            ))}
                         </ul>
                     </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-12 rounded-[4rem] border border-slate-100 dark:border-slate-800 space-y-4 text-center transition-colors">
-                        <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Interactions are:</p>
-                        <div className="grid grid-cols-2 gap-4">
-                            {["Temporary", "Contextual", "Teacher-guided", "Child-first"].map(val => (
-                                <div key={val} className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm font-black text-slate-800 dark:text-slate-200 border border-slate-100 dark:border-slate-800 transition-colors">{val}</div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
+                </section>
 
-            {/* Who is it for? */}
-            <div className="grid lg:grid-cols-2 gap-8">
-                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-16 rounded-[4rem] border-2 border-indigo-100 dark:border-indigo-800 shadow-sm space-y-10 transition-colors">
-                    <h3 className="text-3xl font-black text-indigo-900 dark:text-indigo-400">Who Is This Designed For?</h3>
-                    <div className="grid grid-cols-1 gap-4 font-black text-indigo-700 dark:text-indigo-300">
-                        {["Slow learners", "Sensitive children", "Confidence builders", "Attention-focused learners", "Inclusive classrooms"].map(item => (
-                            <div key={item} className="flex items-center gap-4"><span className="text-xl">✅</span> {item}</div>
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 7: FAQ */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Common Questions</h2>
+                    <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                        {faqs.map((faq, i) => (
+                            <div key={i} className="py-4">
+                                <button
+                                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                    className="w-full flex items-center justify-between text-left gap-4"
+                                >
+                                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{faq.q}</span>
+                                    <span className="text-gray-400 dark:text-gray-600 flex-shrink-0 text-lg leading-none">
+                                        {openFaq === i ? '−' : '+'}
+                                    </span>
+                                </button>
+                                {openFaq === i && (
+                                    <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{faq.a}</p>
+                                )}
+                            </div>
                         ))}
                     </div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 p-16 rounded-[4rem] border border-slate-100 dark:border-slate-800 shadow-sm space-y-10 flex flex-col justify-center text-center transition-colors">
-                    <p className="text-2xl font-black text-slate-500 dark:text-slate-400 italic leading-relaxed">
-                        "It is not about making children 'better than others'. It is about helping each child feel capable."
-                    </p>
-                </div>
-            </div>
+                </section>
 
-            {/* Final CTA */}
-            <div className="text-center space-y-12">
-                <div className="space-y-6">
-                    <h3 className="text-4xl font-black text-slate-900 dark:text-white">A Final Word to Parents</h3>
-                    <p className="text-2xl text-slate-500 dark:text-slate-400 font-bold max-w-3xl mx-auto">
-                        Your child does not need to be fixed. They need to be understood. FeelEd AI is an exploration — not a promise, not a shortcut, not a replacement for care.
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 8: Closing */}
+                <section className="text-center">
+                    <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+                        We believe technology should make learning feel more approachable, inclusive, and engaging — especially for students who may feel overlooked by traditional learning systems.
                     </p>
-                </div>
-                <div className="flex flex-col md:flex-row justify-center gap-8">
-                    <a 
-                        href="mailto:admin@feeledai.com?subject=Parent Inquiry" 
-                        className="bg-rose-600 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-rose-700 dark:hover:bg-rose-500 transition-all border-b-[12px] border-rose-900 dark:border-rose-950 active:border-b-0"
-                    >
-                        Contact FeelEd AI
-                    </a>
-                    <button onClick={() => onNavigate('pilot')} className="border-4 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 px-16 py-8 rounded-full font-black text-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                        Learn about Pilots
-                    </button>
-                </div>
-                <div className="pt-24 space-y-12 border-t border-slate-100 dark:border-slate-800 max-w-3xl mx-auto">
-                    <p className="text-slate-400 dark:text-slate-500 font-bold italic text-xl">
-                        "If this approach resonates with your values, we welcome your questions and dialogue."
-                    </p>
-                </div>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button
+                            onClick={() => onNavigate('home')}
+                            className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+                        >
+                            Explore FeelEd AI →
+                        </button>
+                        <button
+                            onClick={() => onNavigate('pilot')}
+                            className="inline-flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+                        >
+                            Learn About Pilot Programs →
+                        </button>
+                    </div>
+                </section>
+
             </div>
         </div>
     );
