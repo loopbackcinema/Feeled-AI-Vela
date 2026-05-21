@@ -277,7 +277,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                 {/* Footer */}
                 <div className="px-4 py-3 border-t border-gray-200 dark:border-[#222]">
-                    <p className="text-gray-400 dark:text-[#444] text-xs text-center">Powered by Sarvam</p>
+                    <p className="text-gray-400 dark:text-[#444] text-xs text-center">© 2026 FeelEd AI · Alteridea Web Services Pvt. Ltd.</p>
                 </div>
             </div>
         </>
@@ -1044,7 +1044,7 @@ const callAPI = useCallback(async (
 
                 {!hasMessages && (
                     <p className="text-center text-xs mt-3" style={{ color: isDarkMode ? '#888888' : '#9ca3af' }}>
-                        Powered by Sarvam • © 2026 FeelEd AI
+                        © 2026 FeelEd AI · Alteridea Web Services Pvt. Ltd.
                     </p>
                 )}
             </div>

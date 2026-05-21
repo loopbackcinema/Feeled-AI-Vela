@@ -94,6 +94,20 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
 
             <hr className="border-gray-200 dark:border-gray-800 mb-10" />
 
+            {/* Ecosystem */}
+            <div className="mb-10">
+                <p className="text-[11px] uppercase tracking-widest text-gray-400 dark:text-gray-600 text-center mb-3">Ecosystem &amp; Startup Programs</p>
+                <div className="flex flex-wrap justify-center gap-3">
+                    {['NVIDIA Inception Program', 'Sarvam AI Startup Program'].map(label => (
+                        <span key={label} className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-400 font-medium">
+                            {label}
+                        </span>
+                    ))}
+                </div>
+            </div>
+
+            <hr className="border-gray-200 dark:border-gray-800 mb-10" />
+
             {/* CTA */}
             <div className="mb-10 text-center">
                 <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Start Learning with FeelEd AI</h2>
