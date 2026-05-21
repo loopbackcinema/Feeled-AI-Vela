@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { useSessionStore } from '../stores/sessionStore';
+import { useStudentStore } from '../stores/studentStore';
 
 interface AuthContextType {
   user: User | null;
@@ -16,12 +18,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const resetSession = useSessionStore(state => state.reset);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
+        const previousUser = user;
         setUser(firebaseUser);
-        
+
+        if (!firebaseUser && previousUser) {
+          resetSession();
+          useStudentStore.setState({
+            board: 'Tamil Nadu State Board (Samacheer)',
+            standard: '10th',
+            subject: 'Science',
+            language: 'English',
+            learningMode: 'Senior',
+            goal: 'Exam',
+          });
+        }
+
         if (firebaseUser) {
           // Check/Create user profile in Firestore
           const userRef = doc(db, 'users', firebaseUser.uid);

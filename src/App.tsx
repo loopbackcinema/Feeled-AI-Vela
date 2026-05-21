@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ChatPage from './features/chat/ChatPage';
 import AnswerScreen from './components/AnswerScreen';
@@ -8,23 +8,25 @@ import { generateStory, generateVoice, generateImage, generateConcept, generateP
 import { StoryRequest, Page, StudentContext } from './types';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
-import AboutUs from './pages/AboutUs';
-import Contact from './pages/Contact';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfUse from './pages/TermsOfUse';
-import Founder from './pages/Founder';
-import Research from './pages/Research';
-import PilotProgram from './pages/PilotProgram';
-import InclusiveResearch from './pages/InclusiveResearch';
-import FAQ from './pages/FAQ';
-import Teachers from './pages/Teachers';
-import Parents from './pages/Parents';
-import MyStories from './components/MyStories';
-import GameMode from './pages/GameMode';
-import ExamMock from './pages/ExamMock';
-import StudentDashboard from './components/StudentDashboard';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Lazy-loaded pages — only fetched when the route is first visited
+const AboutUs          = lazy(() => import('./pages/AboutUs'));
+const Contact          = lazy(() => import('./pages/Contact'));
+const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfUse       = lazy(() => import('./pages/TermsOfUse'));
+const Founder          = lazy(() => import('./pages/Founder'));
+const Research         = lazy(() => import('./pages/Research'));
+const PilotProgram     = lazy(() => import('./pages/PilotProgram'));
+const InclusiveResearch = lazy(() => import('./pages/InclusiveResearch'));
+const FAQ              = lazy(() => import('./pages/FAQ'));
+const Teachers         = lazy(() => import('./pages/Teachers'));
+const Parents          = lazy(() => import('./pages/Parents'));
+const MyStories        = lazy(() => import('./components/MyStories'));
+const GameMode         = lazy(() => import('./pages/GameMode'));
+const ExamMock         = lazy(() => import('./pages/ExamMock'));
+const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -205,8 +207,15 @@ const App: React.FC = () => {
         finally { setIsLoading(false); }
     };
 
+    const PageLoader = () => (
+        <div className="min-h-screen flex items-center justify-center" style={{ background: '#060610' }}>
+            <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+    );
+
     return (
         <>
+            <Suspense fallback={<PageLoader />}>
             <Routes>
                 {/* ── Protected core app routes ── */}
                 <Route path="/" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
@@ -287,6 +296,7 @@ const App: React.FC = () => {
 
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
+            </Suspense>
             <PWAInstallBanner />
         </>
     );

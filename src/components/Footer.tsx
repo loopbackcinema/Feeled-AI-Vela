@@ -6,6 +6,17 @@ const PATH_MAP: Record<string, string> = {
     'student-dashboard': '/dashboard',
     'my-stories': '/my-stories',
     'admin-dashboard': '/admin',
+    teachers: '/teachers',
+    parents: '/parents',
+    research: '/research',
+    inclusive: '/inclusive',
+    about: '/about',
+    privacy: '/privacy',
+    contact: '/contact',
+    founder: '/founder',
+    faq: '/faq',
+    terms: '/terms',
+    pilot: '/pilot',
 };
 
 const toPath = (id: string) => PATH_MAP[id] ?? `/${id}`;
@@ -33,7 +44,7 @@ const Footer: React.FC = () => {
                             <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">FeelEd AI</h2>
                         </button>
                         <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed text-sm">
-                            Restoring empathy in education through emotion-adaptive storytelling and research-backed pedagogical intelligence.
+                            AI-powered learning for Indian students — conversational tutoring, storytelling, exam preparation, and interactive educational experiences.
                         </p>
                     </div>
 
@@ -80,19 +91,23 @@ const Footer: React.FC = () => {
 
                     {/* Resources */}
                     <div className="space-y-6">
-                        <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Foundation</h3>
+                        <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em]">Company</h3>
                         <ul className="space-y-3">
+                            <li><button onClick={() => go('about')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">About FeelEd AI</button></li>
+                            <li><button onClick={() => go('founder')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Founder</button></li>
                             <li><button onClick={() => go('research')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Scientific Portfolio</button></li>
-                            <li><button onClick={() => go('inclusive')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">♿ Inclusive Learning</button></li>
-                            <li><button onClick={() => go('about')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Our Philosophy</button></li>
-                            <li><button onClick={() => go('privacy')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Data Policy</button></li>
-                            <li><button onClick={() => go('contact')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Contact Office</button></li>
+                            <li><button onClick={() => go('inclusive')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Inclusive Learning</button></li>
+                            <li><button onClick={() => go('pilot')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Pilot Program</button></li>
+                            <li><button onClick={() => go('faq')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">FAQ</button></li>
+                            <li><button onClick={() => go('contact')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Contact</button></li>
+                            <li><button onClick={() => go('privacy')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Privacy Policy</button></li>
+                            <li><button onClick={() => go('terms')} className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">Terms of Use</button></li>
                         </ul>
                     </div>
                 </div>
 
                 <div className="pt-12 border-t border-slate-100 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-8">
-                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">&copy; 2025 FeelEd AI. All rights reserved.</p>
+                    <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">&copy; 2026 FeelEd AI · Alteridea Web Services Pvt. Ltd.</p>
                 </div>
             </div>
         </footer>

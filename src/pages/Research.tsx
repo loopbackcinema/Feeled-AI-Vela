@@ -63,7 +63,7 @@ const researchData: Achievement[] = [
         badge: "🎯 Research Pitch",
         description: "Selected for Track 5: Sustainability Education, Training & Capacity Building (Doctoral Colloquium).",
         link: "https://fos.tsm.ac.in/",
-        status: 'UPCOMING'
+        status: 'COMPLETED'
     },
 ];
 

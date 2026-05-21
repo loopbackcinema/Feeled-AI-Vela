@@ -17,14 +17,18 @@ const Header: React.FC = () => {
     const { user, isAdmin } = useAuth();
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        try { return localStorage.getItem('feeled-theme') === 'dark'; } catch { return false; }
+    });
     const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     useEffect(() => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
+            localStorage.setItem('feeled-theme', 'dark');
         } else {
             document.documentElement.classList.remove('dark');
+            localStorage.setItem('feeled-theme', 'light');
         }
     }, [isDarkMode]);
 
