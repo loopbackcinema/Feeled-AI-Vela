@@ -11,6 +11,7 @@ import StoryDisplay from './components/StoryDisplay';
 import AboutUs from './pages/AboutUs';
 import Contact from './pages/Contact';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfUse from './pages/TermsOfUse';
 import Founder from './pages/Founder';
 import Research from './pages/Research';
 import PilotProgram from './pages/PilotProgram';
@@ -279,6 +280,7 @@ const App: React.FC = () => {
                 <Route path="/contact"   element={<PageShell showNav><Contact onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/founder"   element={<PageShell showNav><Founder onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/privacy"   element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/terms"    element={<PageShell showNav><TermsOfUse onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/inclusive" element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
 
                 <Route path="*" element={<Navigate to="/" />} />
