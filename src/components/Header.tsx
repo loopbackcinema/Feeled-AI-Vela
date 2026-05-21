@@ -84,7 +84,7 @@ const Header: React.FC = () => {
                     <img
                         src="/feeled-logo.webp"
                         alt="FeelEd AI Logo"
-                        className="w-12 h-12 object-contain"
+                        className="w-16 h-16 object-contain"
                     />
                     <div className="text-left">
                         <h1 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none">FeelEd AI</h1>

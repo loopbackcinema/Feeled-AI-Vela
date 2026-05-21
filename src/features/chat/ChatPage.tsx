@@ -134,7 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <button onClick={onClose} className="md:hidden p-1 rounded-md transition-colors" style={{ color: '#3a3a5a' }}>
                         <X className="w-5 h-5" />
                     </button>
-                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-7 h-7 object-contain" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-10 h-10 object-contain" />
                     <span className="font-black text-base tracking-tight flex-1" style={{ color: '#9090b8' }}>FeelEd AI</span>
                     {/* Desktop collapse toggle */}
                     <button

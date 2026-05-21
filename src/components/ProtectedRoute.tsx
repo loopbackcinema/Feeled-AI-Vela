@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
                     <div className="hidden md:flex flex-col flex-1 min-w-0 gap-6">
                         {/* Logo */}
                         <div className="flex items-center gap-3">
-                            <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-10 h-10 rounded-xl" />
+                            <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-14 h-14 rounded-xl" />
                             <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>
                                 FeelEd <span style={{ color: '#818cf8' }}>AI</span>
                             </span>
@@ -127,7 +127,7 @@ const LoginPage: React.FC = () => {
                     >
                         {/* Logo (mobile only) */}
                         <div className="flex md:hidden flex-col items-center gap-2 mb-6">
-                            <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-12 h-12 rounded-xl" />
+                            <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-16 h-16 rounded-xl" />
                             <span style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>
                                 FeelEd <span style={{ color: '#818cf8' }}>AI</span>
                             </span>
@@ -194,7 +194,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#0D0D0D]">
                 <div className="text-center">
-                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-16 h-16 mx-auto mb-6 rounded-2xl opacity-90" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-24 h-24 mx-auto mb-6 rounded-2xl opacity-90" />
                     <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                     <p className="text-slate-500 font-medium animate-pulse">Loading…</p>
                 </div>
