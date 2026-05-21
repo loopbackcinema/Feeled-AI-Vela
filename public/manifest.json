@@ -1,11 +1,11 @@
 {
   "name": "FeelEd AI",
   "short_name": "FeelEd",
-  "description": "Emotion-adaptive learning platform for Tamil Nadu students",
+  "description": "AI-powered multilingual learning platform for Indian students",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0D0D0D",
-  "theme_color": "#4F46E5",
+  "background_color": "#060610",
+  "theme_color": "#4f46e5",
   "orientation": "portrait-primary",
   "icons": [
     {

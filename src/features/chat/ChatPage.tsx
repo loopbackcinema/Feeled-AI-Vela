@@ -415,8 +415,19 @@ const ChatPage: React.FC = () => {
         'Help me learn fractions...',
     ];
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
+    const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
 
-    // Sync dark mode preference with document class + localStorage
+    // Offline/online detection
+    useEffect(() => {
+        const handleOffline = () => setIsOffline(true);
+        const handleOnline  = () => setIsOffline(false);
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('online',  handleOnline);
+        return () => {
+            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('online',  handleOnline);
+        };
+    }, []);
     useEffect(() => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
@@ -768,6 +779,13 @@ const callAPI = useCallback(async (
     return (
         <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[200px]' : ''}`}
             style={{ background: isDarkMode ? '#060610' : '#ffffff', color: isDarkMode ? '#eeeef8' : '#111111' }}>
+
+            {/* Offline banner */}
+            {isOffline && (
+                <div style={{ background: '#7c2d12', color: '#fed7aa', textAlign: 'center', padding: '8px', fontSize: '12px', fontWeight: 500, flexShrink: 0, zIndex: 60 }}>
+                    📡 You're offline — AI features unavailable. Check your connection.
+                </div>
+            )}
 
             {/* Sidebar */}
             <Sidebar
