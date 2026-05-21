@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Menu, X, Plus, Mic, Send, Loader2, BookOpen, Volume2,
     LogIn, LogOut, SquarePen, Image as ImageIcon, Settings2, ChevronRight, ChevronLeft,
-    LayoutDashboard, BookMarked, FlaskConical, User, Lock, Globe, ArrowLeft,
+    LayoutDashboard, BookMarked, FlaskConical, User, Lock, Globe, ArrowLeft, Sun, Moon,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -121,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm md:hidden" onClick={onClose} />
             )}
             <div
-                className={`fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r transition-all duration-300 ease-in-out
+                className={`dark fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r transition-all duration-300 ease-in-out
                     ${open ? 'translate-x-0' : '-translate-x-full'}
                     ${desktopOpen ? 'md:translate-x-0' : 'md:-translate-x-full'}`}
                 style={{ background: '#07070f', borderColor: '#12122a' }}
@@ -367,6 +367,7 @@ const ChatPage: React.FC = () => {
     const [isLoading, setIsLoading]       = useState(false);
     const [sidebarOpen, setSidebarOpen]   = useState(false);
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+    const [isDarkMode, setIsDarkMode]     = useState(() => localStorage.getItem('feeled-theme') === 'dark');
     const [plusOpen, setPlusOpen]         = useState(false);
     const [isListening, setIsListening]   = useState(false);
     const [isSttLoading, setIsSttLoading] = useState(false);
@@ -407,11 +408,32 @@ const ChatPage: React.FC = () => {
         { emoji: '🏛️', label: 'History' },
     ];
 
-    // Always use dark theme — ChatPage is a full-screen dark app
+    const PLACEHOLDERS = [
+        'Explain photosynthesis simply...',
+        'Create a story about gravity...',
+        'Start a Science mock test...',
+        'Help me learn fractions...',
+    ];
+    const [placeholderIdx, setPlaceholderIdx] = useState(0);
+
+    // Sync dark mode preference with document class + localStorage
     useEffect(() => {
-        document.documentElement.classList.add('dark');
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('feeled-theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('feeled-theme', 'light');
+        }
         return () => document.documentElement.classList.remove('dark');
-    }, []);
+    }, [isDarkMode]);
+
+    // Rotate placeholder text when empty state is showing
+    useEffect(() => {
+        if (hasMessages) return;
+        const id = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDERS.length), 3000);
+        return () => clearInterval(id);
+    }, [hasMessages]);
 
     // Handle pre-filled messages from navigation state (e.g. from ExamMode chip on AnswerScreen)
     useEffect(() => {
@@ -744,7 +766,8 @@ const callAPI = useCallback(async (
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
-        <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[288px]' : ''}`} style={{ background: '#060610', color: '#eeeef8' }}>
+        <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[288px]' : ''}`}
+            style={{ background: isDarkMode ? '#060610' : '#ffffff', color: isDarkMode ? '#eeeef8' : '#111111' }}>
 
             {/* Sidebar */}
             <Sidebar
@@ -776,267 +799,91 @@ const callAPI = useCallback(async (
             )}
 
             {/* Top bar */}
-            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: '1px solid #1a1a30', background: '#060610' }}>
-                <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 rounded-xl transition-colors" style={{ color: '#6060a0' }} aria-label="Open sidebar">
+            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3"
+                style={{ borderBottom: `1px solid ${isDarkMode ? '#1a1a30' : '#e5e7eb'}`, background: isDarkMode ? '#060610' : '#ffffff' }}>
+                <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 rounded-xl transition-colors"
+                    style={{ color: isDarkMode ? '#6060a0' : '#6b7280' }} aria-label="Open sidebar">
                     <Menu className="w-5 h-5" />
                 </button>
-                <span className="font-bold text-sm tracking-tight" style={{ color: '#9090b8' }}>FeelEd AI</span>
-                <button onClick={handleNewChat} className="p-2 rounded-xl transition-colors" style={{ color: '#6060a0' }} aria-label="New chat">
-                    <SquarePen className="w-5 h-5" />
-                </button>
+                <span className="font-bold text-sm tracking-tight" style={{ color: isDarkMode ? '#9090b8' : '#374151' }}>FeelEd AI</span>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setIsDarkMode(d => !d)}
+                        className="p-2 rounded-xl transition-colors"
+                        style={{ color: isDarkMode ? '#6060a0' : '#6b7280', background: isDarkMode ? '#12122a' : '#f3f4f6' }}
+                        aria-label="Toggle theme"
+                    >
+                        {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    </button>
+                    <button onClick={handleNewChat} className="p-2 rounded-xl transition-colors"
+                        style={{ color: isDarkMode ? '#6060a0' : '#6b7280' }} aria-label="New chat">
+                        <SquarePen className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
 
             {/* Content */}
             {!hasMessages ? (
-                <div className="flex-1 overflow-y-auto relative" style={{
-                    background: '#060610',
-                    backgroundImage: 'linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px)',
-                    backgroundSize: '28px 28px',
-                }}>
-                    {/* Keyframe animations + helper classes */}
+                <div className="flex-1 overflow-y-auto" style={{ background: isDarkMode ? '#060610' : '#ffffff' }}>
                     <style dangerouslySetInnerHTML={{ __html: `
-                        @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-                        @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-                        @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-                        @keyframes breatheGlow{0%,100%{box-shadow:0 0 10px #4f46e530,inset 0 0 0 0.5px #252540}50%{box-shadow:0 0 24px #4f46e565,inset 0 0 0 0.5px #4f46e540}}
-                        @keyframes scanline{0%{top:-5%;opacity:0}40%{opacity:0.1}100%{top:110%;opacity:0}}
-                        @keyframes shimmerPulse{0%,100%{opacity:0.5}50%{opacity:1}}
-                        @keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-                        .fs-card{transition:transform 0.2s ease,box-shadow 0.2s ease}
-                        .fs-card:hover{transform:translateY(-3px) scale(1.015)!important}
-                        .fs-chip{transition:border-color 0.15s,background 0.15s}
-                        .fs-chip:hover{border-color:#4f46e5!important;background:#14143a!important}
-                        .fs-sug{transition:border-color 0.15s,background 0.15s}
-                        .fs-sug:hover{border-color:#4f46e560!important;background:#0f0f28!important}
+                        @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+                        @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+                        @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+                        .fc-card{transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer}
+                        .fc-card:hover{transform:translateY(-2px) scale(1.04)!important}
+                        .fc-chip{transition:border-color 0.15s,background 0.15s;cursor:pointer}
                         .fs-noscroll{scrollbar-width:none}
                         .fs-noscroll::-webkit-scrollbar{display:none}
                     ` }} />
 
-                    {/* Ambient blobs — fixed so they're viewport-relative and never clipped */}
-                    <div style={{ position:'fixed',top:0,left:0,right:0,bottom:0,pointerEvents:'none',zIndex:0,overflow:'hidden' }}>
-                        <div style={{ position:'absolute',top:-80,left:'20%',width:400,height:400,borderRadius:'50%',background:'radial-gradient(circle,#3730a340,transparent 70%)' }} />
-                        <div style={{ position:'absolute',top:200,right:'5%',width:300,height:300,borderRadius:'50%',background:'radial-gradient(circle,#0f3d2830,transparent 70%)' }} />
-                        <div style={{ position:'absolute',bottom:100,left:'10%',width:200,height:200,borderRadius:'50%',background:'radial-gradient(circle,#7c2d1225,transparent 70%)' }} />
-                    </div>
+                    <div style={{ maxWidth: 680, margin: '0 auto', padding: '15vh 20px 40px', textAlign: 'center' }}>
+                        {/* Hero */}
+                        <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.6rem)', fontWeight: 700, letterSpacing: '-0.5px', lineHeight: 1.2, marginBottom: 10, color: isDarkMode ? '#eeeef8' : '#111111' }}>
+                            What would you like to learn today?
+                        </h1>
+                        <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 36 }}>
+                            Your personal Samacheer tutor
+                        </p>
 
-                    <div style={{ position:'relative',zIndex:1 }}>
-
-                        {/* ── MOBILE ── */}
-                        <div className="md:hidden">
-                            {/* Hero */}
-                            <div style={{ textAlign:'center',padding:'20px 16px 12px' }}>
-                                <div style={{ display:'inline-flex',alignItems:'center',gap:6,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'4px 12px',marginBottom:10 }}>
-                                    <span style={{ width:6,height:6,borderRadius:'50%',background:'#22c55e',display:'inline-block',animation:'shimmerPulse 2s ease-in-out infinite' }} />
-                                    <span style={{ color:'#4a4a7a',fontSize:9,fontWeight:600,letterSpacing:'0.05em' }}>AI Tutor • Stories • Exams</span>
-                                </div>
-                                <h1 style={{ fontSize:20,fontWeight:700,color:'#eeeef8',letterSpacing:'-0.5px',lineHeight:1.25,marginBottom:7 }}>
-                                    What would you like to <span style={{ color:'#818cf8' }}>learn</span> today?
-                                </h1>
-                                <p style={{ color:'#3a3a5a',fontSize:12,lineHeight:1.5 }}>
-                                    Your personal Samacheer tutor — learn, practise, and master every subject
-                                </p>
+                        {/* 3 Mode Cards */}
+                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+                            <div className="fc-card" onClick={() => navigate('/story')}
+                                style={{ width: 160, background: 'linear-gradient(135deg, #1a0b40, #2d1b69)', border: '1px solid #4c3a99', borderRadius: 16, padding: 16, animation: 'floatA 4s ease-in-out infinite', textAlign: 'left' }}>
+                                <div style={{ fontSize: 22, marginBottom: 8 }}>✨</div>
+                                <div style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Story Mode</div>
+                                <div style={{ color: '#7c6aad', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Turn lessons into stories</div>
+                                <span style={{ background: '#2d1b69', borderRadius: 4, color: '#a78bfa', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>✦ POPULAR</span>
                             </div>
-
-                            {/* Mode cards */}
-                            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:9,padding:'0 13px' }}>
-                                <div className="fs-card" onClick={() => navigate('/story')} style={{ cursor:'pointer',background:'#0b0720',border:'0.5px solid #33267a',borderRadius:18,padding:13,animation:'floatA 4s ease-in-out infinite',boxShadow:'0 4px 20px #3b2d8a18',position:'relative',overflow:'hidden' }}>
-                                    <div style={{ position:'absolute',top:0,right:0,width:60,height:60,background:'radial-gradient(circle at top right,#4c3a9930,transparent 70%)',pointerEvents:'none' }} />
-                                    <div style={{ fontSize:20,marginBottom:7 }}>✨</div>
-                                    <div style={{ color:'#c4b5fd',fontSize:12,fontWeight:700,marginBottom:4 }}>Story Mode</div>
-                                    <div style={{ color:'#6b5aaa',fontSize:10,lineHeight:1.5 }}>Turn any lesson into an emotion-driven story</div>
-                                    <div style={{ marginTop:8,display:'flex',alignItems:'center',gap:5 }}>
-                                        <span style={{ background:'#1e1040',border:'0.5px solid #33267a',borderRadius:4,color:'#a78bfa',fontSize:8,fontWeight:700,padding:'2px 5px' }}>✦ POPULAR</span>
-                                        <span style={{ color:'#4a3a8a',fontSize:9 }}>Tamil • English</span>
-                                    </div>
-                                </div>
-                                <div className="fs-card" onClick={() => navigate('/game')} style={{ cursor:'pointer',background:'#030e09',border:'0.5px solid #10472a',borderRadius:18,padding:13,animation:'floatB 4.8s ease-in-out infinite',boxShadow:'0 4px 20px #1a6b4518',position:'relative',overflow:'hidden' }}>
-                                    <div style={{ fontSize:20,marginBottom:7 }}>🎮</div>
-                                    <div style={{ color:'#6ee7b7',fontSize:12,fontWeight:700,marginBottom:4 }}>Game Mode</div>
-                                    <div style={{ color:'#1d5c3a',fontSize:10,lineHeight:1.5 }}>Practice through interactive games</div>
-                                    <div style={{ marginTop:8,display:'flex',alignItems:'center',gap:5 }}>
-                                        <span style={{ background:'#071a0e',border:'0.5px solid #10472a',borderRadius:4,color:'#34d399',fontSize:8,fontWeight:700,padding:'2px 5px' }}>🔥 FUN</span>
-                                        <span style={{ color:'#1d5c3a',fontSize:9 }}>Math • Logic</span>
-                                    </div>
-                                </div>
-                                <div className="fs-card" onClick={() => navigate('/exam-mock')} style={{ cursor:'pointer',gridColumn:'1 / -1',background:'#0b0804',border:'0.5px solid #5a3d08',borderRadius:18,padding:13,animation:'floatC 3.9s ease-in-out infinite',boxShadow:'0 4px 24px #78450a18',position:'relative',overflow:'hidden' }}>
-                                    <div style={{ position:'absolute',height:1.5,left:0,right:0,background:'linear-gradient(90deg,transparent 10%,#f59e0b50 50%,transparent 90%)',animation:'scanline 5s ease-in-out infinite' }} />
-                                    <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start' }}>
-                                        <div>
-                                            <div style={{ fontSize:20,marginBottom:7 }}>📝</div>
-                                            <div style={{ color:'#fcd34d',fontSize:12,fontWeight:700,marginBottom:4 }}>Exam Mode</div>
-                                            <div style={{ color:'#6b4a18',fontSize:10,lineHeight:1.5,maxWidth:180 }}>Real exam questions with AI explanations</div>
-                                        </div>
-                                        <div style={{ width:44,height:44,background:'#150e02',border:'0.5px solid #5a3d08',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 14px #78450a30',fontSize:20 }}>🎯</div>
-                                    </div>
-                                    <div style={{ marginTop:8,display:'flex',gap:5 }}>
-                                        {['2021–2026','⏱ 15 MIN','AI EXPLAIN'].map(tag => (
-                                            <span key={tag} style={{ background:'#1a1004',border:'0.5px solid #5a3d08',borderRadius:5,color:'#d97706',fontSize:9,padding:'2px 6px',fontWeight:600 }}>{tag}</span>
-                                        ))}
-                                    </div>
-                                </div>
+                            <div className="fc-card" onClick={() => navigate('/game')}
+                                style={{ width: 160, background: 'linear-gradient(135deg, #052010, #0a3520)', border: '1px solid #1a6b45', borderRadius: 16, padding: 16, animation: 'floatB 4.8s ease-in-out infinite', textAlign: 'left' }}>
+                                <div style={{ fontSize: 22, marginBottom: 8 }}>🎮</div>
+                                <div style={{ color: '#6ee7b7', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Game Mode</div>
+                                <div style={{ color: '#2d7a56', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Practice through play</div>
+                                <span style={{ background: '#0a3520', borderRadius: 4, color: '#34d399', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🔥 FUN</span>
                             </div>
-
-                            {/* Chips */}
-                            <div className="fs-noscroll" style={{ display:'flex',gap:6,padding:'10px 0 4px',overflowX:'auto' }}>
-                                <span style={{ flexShrink:0,width:13 }} />
-                                {suggestionChips.map(chip => (
-                                    <button key={chip.label} className="fs-chip" onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
-                                        style={{ flexShrink:0,display:'flex',alignItems:'center',gap:4,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'5px 11px',color:'#9090b8',fontSize:11,fontWeight:500,whiteSpace:'nowrap',cursor:'pointer' }}>
-                                        <span>{chip.emoji}</span><span>{chip.label}</span>
-                                    </button>
-                                ))}
-                                <span style={{ flexShrink:0,width:13 }} />
-                            </div>
-
-                            {/* AI Suggestions (2 on mobile) */}
-                            <div style={{ margin:'8px 13px',background:'#0a0a18',border:'1px solid #1a1a30',borderRadius:14,padding:'10px 12px',animation:'fadeSlide 0.6s 0.2s ease-out both' }}>
-                                <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:7 }}>✦ Suggested for you</div>
-                                {[{ e:'✨',t:'Create a Gravity Story' },{ e:'📝',t:'Practice Algebra Mock Test' }].map(s => (
-                                    <button key={s.t} className="fs-sug" onClick={() => { setInput(s.t); inputRef.current?.focus(); }}
-                                        style={{ width:'100%',display:'flex',alignItems:'center',gap:7,background:'#0d0d22',border:'1px solid #1e1e40',borderRadius:9,padding:'6px 9px',marginBottom:5,cursor:'pointer',textAlign:'left' }}>
-                                        <span style={{ fontSize:13 }}>{s.e}</span>
-                                        <span style={{ color:'#8080b0',fontSize:10,flex:1 }}>{s.t}</span>
-                                        <span style={{ color:'#2a2a4a',fontSize:11 }}>›</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Continue Learning */}
-                            <div style={{ margin:'0 13px 8px',background:'#0a0a18',border:'1px solid #1e1e35',borderRadius:14,padding:'10px 12px',animation:'fadeSlide 0.6s 0.3s ease-out both' }}>
-                                <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:7 }}>Continue where you left off</div>
-                                <div style={{ display:'flex',alignItems:'center',gap:8 }}>
-                                    <div style={{ width:34,height:34,background:'#110d2a',border:'0.5px solid #3b2d8a',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,boxShadow:'0 0 10px #4f46e530',flexShrink:0 }}>📝</div>
-                                    <div style={{ flex:1,minWidth:0 }}>
-                                        <div style={{ color:'#9090b8',fontSize:11,fontWeight:600,marginBottom:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis' }}>Gravity · Mock Test</div>
-                                        <div style={{ height:4,background:'#151528',borderRadius:99 }}>
-                                            <div style={{ height:'100%',width:'65%',background:'linear-gradient(90deg,#4f46e5,#818cf8)',borderRadius:99 }} />
-                                        </div>
-                                        <div style={{ color:'#2a2a4a',fontSize:9,marginTop:3 }}>Resume progress</div>
-                                    </div>
-                                    <div style={{ color:'#6366f1',fontSize:13,fontWeight:700,flexShrink:0 }}>65%</div>
-                                </div>
+                            <div className="fc-card" onClick={() => navigate('/exam-mock')}
+                                style={{ width: 160, background: 'linear-gradient(135deg, #1c0e04, #3d2010)', border: '1px solid #7a4a1a', borderRadius: 16, padding: 16, animation: 'floatC 3.8s ease-in-out infinite', textAlign: 'left' }}>
+                                <div style={{ fontSize: 22, marginBottom: 8 }}>📝</div>
+                                <div style={{ color: '#fcd34d', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Exam Mode</div>
+                                <div style={{ color: '#a07030', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Mock tests & revision</div>
+                                <span style={{ background: '#3d2010', borderRadius: 4, color: '#f59e0b', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🎯 REAL PAPERS</span>
                             </div>
                         </div>
 
-                        {/* ── DESKTOP ── */}
-                        <div className="hidden md:block" style={{ padding:'28px 32px',maxWidth:900 }}>
-                            {/* Header */}
-                            <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20 }}>
-                                <div>
-                                    <div style={{ display:'inline-flex',alignItems:'center',gap:6,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'4px 12px',marginBottom:10 }}>
-                                        <span style={{ width:6,height:6,borderRadius:'50%',background:'#22c55e',display:'inline-block',animation:'shimmerPulse 2s ease-in-out infinite' }} />
-                                        <span style={{ color:'#4a4a7a',fontSize:9,fontWeight:600,letterSpacing:'0.05em' }}>AI Tutor • Stories • Exams</span>
-                                    </div>
-                                    <h1 style={{ fontSize:26,fontWeight:700,color:'#eeeef8',letterSpacing:'-0.6px',lineHeight:1.25,marginBottom:6 }}>
-                                        What would you like to <span style={{ color:'#818cf8' }}>learn</span> today?
-                                    </h1>
-                                    <p style={{ color:'#3a3a5a',fontSize:13 }}>
-                                        Your personal Samacheer tutor — learn, practise, and master every subject
-                                    </p>
-                                </div>
-                                <div style={{ flexShrink:0,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:10,padding:'6px 12px',display:'flex',alignItems:'center',gap:5,marginLeft:20 }}>
-                                    <span style={{ fontSize:14 }}>🔥</span>
-                                    <span style={{ color:'#f59e0b',fontSize:11,fontWeight:700 }}>0 day streak</span>
-                                </div>
-                            </div>
-
-                            {/* Mode cards 3-col */}
-                            <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr 1.4fr',gap:12,marginBottom:20 }}>
-                                {/* Story */}
-                                <div className="fs-card" onClick={() => navigate('/story')} style={{ cursor:'pointer',background:'#0b0720',border:'0.5px solid #33267a',borderRadius:18,padding:18,animation:'floatA 4s ease-in-out infinite',boxShadow:'0 4px 20px #3b2d8a18',position:'relative',overflow:'hidden' }}>
-                                    <div style={{ position:'absolute',top:0,right:0,width:80,height:80,background:'radial-gradient(circle at top right,#4c3a9930,transparent 70%)',pointerEvents:'none' }} />
-                                    <div style={{ fontSize:24,marginBottom:10 }}>✨</div>
-                                    <div style={{ color:'#c4b5fd',fontSize:14,fontWeight:700,marginBottom:6 }}>Story Mode</div>
-                                    <div style={{ color:'#6b5aaa',fontSize:11,lineHeight:1.5 }}>Turn any lesson into an emotion-driven story in Tamil or English</div>
-                                    <div style={{ marginTop:10,display:'flex',alignItems:'center',gap:6 }}>
-                                        <span style={{ background:'#1e1040',border:'0.5px solid #33267a',borderRadius:4,color:'#a78bfa',fontSize:8,fontWeight:700,padding:'2px 6px' }}>✦ POPULAR</span>
-                                        <span style={{ color:'#4a3a8a',fontSize:10 }}>Tamil • English</span>
-                                    </div>
-                                </div>
-
-                                {/* Game */}
-                                <div className="fs-card" onClick={() => navigate('/game')} style={{ cursor:'pointer',background:'#030e09',border:'0.5px solid #10472a',borderRadius:18,padding:18,animation:'floatB 4.8s ease-in-out infinite',boxShadow:'0 4px 20px #1a6b4518',position:'relative',overflow:'hidden' }}>
-                                    <div style={{ fontSize:24,marginBottom:10 }}>🎮</div>
-                                    <div style={{ color:'#6ee7b7',fontSize:14,fontWeight:700,marginBottom:6 }}>Game Mode</div>
-                                    <div style={{ color:'#1d5c3a',fontSize:11,lineHeight:1.5 }}>Practice Maths and Science through interactive games</div>
-                                    <div style={{ marginTop:10,display:'flex',alignItems:'center',gap:6 }}>
-                                        <span style={{ background:'#071a0e',border:'0.5px solid #10472a',borderRadius:4,color:'#34d399',fontSize:8,fontWeight:700,padding:'2px 6px' }}>🔥 FUN</span>
-                                        <span style={{ color:'#1d5c3a',fontSize:10 }}>Math • Logic</span>
-                                    </div>
-                                </div>
-
-                                {/* Exam */}
-                                <div className="fs-card" onClick={() => navigate('/exam-mock')} style={{ cursor:'pointer',background:'#0b0804',border:'0.5px solid #5a3d08',borderRadius:18,padding:18,animation:'floatC 3.9s ease-in-out infinite',boxShadow:'0 4px 24px #78450a18',position:'relative',overflow:'hidden' }}>
-                                    <div style={{ position:'absolute',height:1.5,left:0,right:0,background:'linear-gradient(90deg,transparent 10%,#f59e0b50 50%,transparent 90%)',animation:'scanline 5s ease-in-out infinite' }} />
-                                    <div style={{ display:'flex',justifyContent:'space-between',alignItems:'flex-start' }}>
-                                        <div style={{ flex:1 }}>
-                                            <div style={{ fontSize:24,marginBottom:10 }}>📝</div>
-                                            <div style={{ color:'#fcd34d',fontSize:14,fontWeight:700,marginBottom:6 }}>Exam Mode</div>
-                                            <div style={{ color:'#6b4a18',fontSize:11,lineHeight:1.5 }}>Real Samacheer exam questions with AI explanations</div>
-                                        </div>
-                                        <div style={{ width:50,height:50,background:'#150e02',border:'0.5px solid #5a3d08',borderRadius:13,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 0 14px #78450a30',fontSize:22,flexShrink:0,marginLeft:10 }}>🎯</div>
-                                    </div>
-                                    <div style={{ marginTop:10,display:'flex',gap:5,flexWrap:'wrap' }}>
-                                        {['2021–2026','⏱ 15 MIN','AI EXPLAIN'].map(tag => (
-                                            <span key={tag} style={{ background:'#1a1004',border:'0.5px solid #5a3d08',borderRadius:5,color:'#d97706',fontSize:9,padding:'2px 6px',fontWeight:600 }}>{tag}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Bottom 2-col */}
-                            <div style={{ display:'grid',gridTemplateColumns:'1fr 280px',gap:14 }}>
-                                {/* Left: chips + mode pills */}
-                                <div>
-                                    <div style={{ display:'flex',flexWrap:'wrap',gap:7,marginBottom:14 }}>
-                                        {suggestionChips.map(chip => (
-                                            <button key={chip.label} className="fs-chip" onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
-                                                style={{ display:'flex',alignItems:'center',gap:5,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'6px 13px',color:'#9090b8',fontSize:11,fontWeight:500,cursor:'pointer' }}>
-                                                <span>{chip.emoji}</span><span>{chip.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div style={{ display:'flex',gap:7,flexWrap:'wrap' }}>
-                                        {[{ e:'✨',l:'Story Mode',p:'/story' },{ e:'🎮',l:'Game Mode',p:'/game' },{ e:'📝',l:'Exam Mode',p:'/exam-mock' }].map(m => (
-                                            <button key={m.l} className="fs-chip" onClick={() => navigate(m.p)}
-                                                style={{ display:'flex',alignItems:'center',gap:5,background:'#0d0d1c',border:'1px solid #1e1e35',borderRadius:20,padding:'6px 13px',color:'#9090b8',fontSize:11,fontWeight:500,cursor:'pointer' }}>
-                                                <span>{m.e}</span><span>{m.l}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Right: AI suggestions + Continue Learning */}
-                                <div style={{ display:'flex',flexDirection:'column',gap:10 }}>
-                                    <div style={{ background:'#0a0a18',border:'1px solid #1a1a30',borderRadius:14,padding:'12px 13px',animation:'fadeSlide 0.6s 0.2s ease-out both' }}>
-                                        <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8 }}>✦ Suggested for you</div>
-                                        {[{ e:'✨',t:'Create a Gravity Story' },{ e:'📝',t:'Practice Algebra Mock Test' },{ e:'🎮',t:'Play Fractions Game' }].map(s => (
-                                            <button key={s.t} className="fs-sug" onClick={() => { setInput(s.t); inputRef.current?.focus(); }}
-                                                style={{ width:'100%',display:'flex',alignItems:'center',gap:7,background:'#0d0d22',border:'1px solid #1e1e40',borderRadius:9,padding:'7px 9px',marginBottom:5,cursor:'pointer',textAlign:'left' }}>
-                                                <span style={{ fontSize:14 }}>{s.e}</span>
-                                                <span style={{ color:'#8080b0',fontSize:10,flex:1 }}>{s.t}</span>
-                                                <span style={{ color:'#2a2a4a',fontSize:12 }}>›</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <div style={{ background:'#0a0a18',border:'1px solid #1e1e35',borderRadius:14,padding:'12px 13px',animation:'fadeSlide 0.6s 0.3s ease-out both' }}>
-                                        <div style={{ color:'#333360',fontSize:9,fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8 }}>Continue where you left off</div>
-                                        <div style={{ display:'flex',alignItems:'center',gap:8 }}>
-                                            <div style={{ width:38,height:38,background:'#110d2a',border:'0.5px solid #3b2d8a',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,boxShadow:'0 0 10px #4f46e530',flexShrink:0 }}>📝</div>
-                                            <div style={{ flex:1,minWidth:0 }}>
-                                                <div style={{ color:'#9090b8',fontSize:11,fontWeight:600,marginBottom:5 }}>Gravity · Mock Test</div>
-                                                <div style={{ height:4,background:'#151528',borderRadius:99 }}>
-                                                    <div style={{ height:'100%',width:'65%',background:'linear-gradient(90deg,#4f46e5,#818cf8)',borderRadius:99 }} />
-                                                </div>
-                                                <div style={{ color:'#2a2a4a',fontSize:9,marginTop:3 }}>Resume progress</div>
-                                            </div>
-                                            <div style={{ color:'#6366f1',fontSize:14,fontWeight:700,flexShrink:0 }}>65%</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        {/* Topic Chips */}
+                        <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                            {suggestionChips.map(chip => (
+                                <button key={chip.label} className="fc-chip"
+                                    onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 5, borderRadius: 20, padding: '6px 13px', fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap',
+                                        background: isDarkMode ? '#0d0d1c' : '#f3f4f6',
+                                        border: `1px solid ${isDarkMode ? '#1e1e35' : '#e5e7eb'}`,
+                                        color: isDarkMode ? '#9090b8' : '#374151',
+                                    }}>
+                                    <span>{chip.emoji}</span><span>{chip.label}</span>
+                                </button>
+                            ))}
                         </div>
-
                     </div>
                 </div>
             ) : (
@@ -1135,13 +982,16 @@ const callAPI = useCallback(async (
             )}
 
             {/* Bottom area — fixed at bottom, safe-area aware */}
-            <div className="flex-shrink-0 px-4 pt-2" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)', background: '#060610', borderTop: '1px solid #1a1a30' }}>
+            <div className="flex-shrink-0 px-4 pt-2"
+                style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)',
+                    background: isDarkMode ? '#060610' : '#ffffff',
+                    borderTop: `1px solid ${isDarkMode ? '#1a1a30' : '#e5e7eb'}` }}>
                 {/* Uploaded image preview */}
                 {uploadedImage && (
                     <div className="max-w-3xl mx-auto mb-2 flex items-center gap-3 px-1">
-                        <img src={`data:${uploadedImage.mime};base64,${uploadedImage.base64}`} alt="Uploaded" className="w-12 h-12 rounded-xl object-cover border border-gray-200 dark:border-[#333]" />
-                        <span className="text-gray-400 dark:text-[#777] text-xs flex-1">Image queued — ask your question</span>
-                        <button onClick={() => setUploadedImage(null)} className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"><X className="w-4 h-4" /></button>
+                        <img src={`data:${uploadedImage.mime};base64,${uploadedImage.base64}`} alt="Uploaded" className="w-12 h-12 rounded-xl object-cover" style={{ border: `1px solid ${isDarkMode ? '#333' : '#e5e7eb'}` }} />
+                        <span className="text-xs flex-1" style={{ color: isDarkMode ? '#777' : '#9ca3af' }}>Image queued — ask your question</span>
+                        <button onClick={() => setUploadedImage(null)} style={{ color: isDarkMode ? '#6060a0' : '#9ca3af' }}><X className="w-4 h-4" /></button>
                     </div>
                 )}
 
@@ -1163,9 +1013,12 @@ const callAPI = useCallback(async (
                     <form
                         onSubmit={e => { e.preventDefault(); sendMessage(input); }}
                         className="flex items-center gap-1.5 rounded-2xl px-2 py-2 transition-colors"
-                        style={{ background: '#0c0c1c', border: '0.5px solid #252535' }}
+                        style={{ background: isDarkMode ? '#0c0c1c' : '#f9fafb', border: `0.5px solid ${isDarkMode ? '#252535' : '#e5e7eb'}` }}
                     >
-                        <button type="button" onClick={() => setPlusOpen(!plusOpen)} className={`flex-shrink-0 p-2 rounded-xl transition-all ${plusOpen ? 'bg-indigo-600 text-white' : 'hover:bg-[#1a1a30]'}`} style={{ color: plusOpen ? undefined : '#6060a0' }} aria-label="Upload or set context">
+                        <button type="button" onClick={() => setPlusOpen(!plusOpen)}
+                            className={`flex-shrink-0 p-2 rounded-xl transition-all ${plusOpen ? 'bg-indigo-600 text-white' : ''}`}
+                            style={{ color: plusOpen ? undefined : (isDarkMode ? '#6060a0' : '#6b7280') }}
+                            aria-label="Upload or set context">
                             <Plus className="w-5 h-5" />
                         </button>
                         <input
@@ -1173,12 +1026,14 @@ const callAPI = useCallback(async (
                             type="text"
                             value={input}
                             onChange={e => setInput(e.target.value)}
-                            placeholder="Ask anything..."
+                            placeholder={PLACEHOLDERS[placeholderIdx]}
                             disabled={isLoading}
-                            className="flex-1 bg-transparent text-sm focus:outline-none px-2 disabled:opacity-60 min-w-0 placeholder-[#2a2a4a]"
-                            style={{ color: '#eeeef8' }}
+                            className="flex-1 bg-transparent text-sm focus:outline-none px-2 disabled:opacity-60 min-w-0"
+                            style={{ color: isDarkMode ? '#eeeef8' : '#111111' }}
                         />
-                        <button type="button" onClick={handleVoice} disabled={isSttLoading} aria-label={isListening ? 'Stop' : 'Voice input'} className={`flex-shrink-0 p-2 rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : isSttLoading ? 'text-indigo-500' : 'hover:bg-[#1a1a30]'}`} style={isListening || isSttLoading ? undefined : { color: '#6060a0' }}>
+                        <button type="button" onClick={handleVoice} disabled={isSttLoading} aria-label={isListening ? 'Stop' : 'Voice input'}
+                            className={`flex-shrink-0 p-2 rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : isSttLoading ? 'text-indigo-500' : ''}`}
+                            style={isListening || isSttLoading ? undefined : { color: isDarkMode ? '#6060a0' : '#6b7280' }}>
                             {isSttLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mic className="w-5 h-5" />}
                         </button>
                         <button type="submit" disabled={isLoading || !input.trim()} aria-label="Send" className="flex-shrink-0 p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 text-white transition-all">
@@ -1187,23 +1042,8 @@ const callAPI = useCallback(async (
                     </form>
                 </div>
 
-                {/* Mode chips — below input */}
                 {!hasMessages && (
-                    <div className="flex flex-wrap gap-2 justify-center mt-3">
-                        {[
-                            { icon: '📖', label: 'Story Mode',  color: 'hover:border-indigo-400 hover:text-indigo-600 dark:hover:border-indigo-500 dark:hover:text-indigo-300', action: () => navigate('/generator') },
-                            { icon: '🎮', label: 'Game Mode',   color: 'hover:border-green-400 hover:text-green-700 dark:hover:border-green-500 dark:hover:text-green-300',   action: () => window.location.href = '/game' },
-                            { icon: '📝', label: 'Exam Mode',   color: 'hover:border-rose-400 hover:text-rose-700 dark:hover:border-rose-500 dark:hover:text-rose-300',       action: () => window.location.href = '/exam-mock' },
-                        ].map(chip => (
-                            <button key={chip.label} onClick={chip.action} className={`flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 dark:border-[#2A2A2A] bg-white dark:bg-[#141414] text-gray-600 dark:text-[#AAAAAA] text-sm transition-all ${chip.color}`}>
-                                <span>{chip.icon}</span><span>{chip.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                {!hasMessages && (
-                    <p className="text-center text-xs mt-3" style={{ color: '#888888' }}>
+                    <p className="text-center text-xs mt-3" style={{ color: isDarkMode ? '#888888' : '#9ca3af' }}>
                         Powered by Sarvam • © 2026 FeelEd AI
                     </p>
                 )}
