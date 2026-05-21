@@ -1,147 +1,243 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Page } from '../types';
 
 interface PilotProgramProps {
     onNavigate: (page: Page) => void;
 }
 
+const faqs = [
+    {
+        q: 'Is this a paid program?',
+        a: 'Pilot structure varies by collaboration. Contact us to discuss your institution\'s needs.',
+    },
+    {
+        q: 'Can schools customize usage?',
+        a: 'Yes. Pilot programs are structured around the institution\'s learning goals and classroom context.',
+    },
+    {
+        q: 'Are teachers required to change curriculum?',
+        a: 'No. FeelEd AI is a supplemental tool — teachers retain full control over curriculum and classroom decisions.',
+    },
+    {
+        q: 'Does FeelEd AI replace teachers?',
+        a: 'No. The platform is designed to support teachers, not replace them.',
+    },
+];
+
+const steps = [
+    {
+        num: '01',
+        title: 'Setup',
+        desc: 'Institution onboarding and guided setup of FeelEd AI learning modules.',
+    },
+    {
+        num: '02',
+        title: 'Classroom Usage',
+        desc: 'Teachers and students use selected learning features such as Story Mode, Exam Mode, and AI-assisted tutoring.',
+    },
+    {
+        num: '03',
+        title: 'Feedback & Observation',
+        desc: 'Participating educators share observations, classroom insights, and practical feedback.',
+    },
+    {
+        num: '04',
+        title: 'Collaborative Improvement',
+        desc: 'The FeelEd AI team refines educational workflows based on pilot findings and institutional collaboration.',
+    },
+];
+
+const participants = [
+    { icon: '🏫', label: 'Schools & Learning Centers' },
+    { icon: '👩‍🏫', label: 'Teachers & Educators' },
+    { icon: '🤝', label: 'NGOs & Educational Foundations' },
+    { icon: '🧩', label: 'Inclusive Learning Facilitators' },
+    { icon: '🔬', label: 'Educational Researchers' },
+];
+
 const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
+    const [openFaq, setOpenFaq] = useState<number | null>(null);
+
     return (
-        <div className="w-full max-w-5xl mx-auto space-y-24 animate-fade-in py-12 px-6 pb-32 transition-colors duration-300">
-            
-            {/* Hero Section */}
-            <div className="text-center space-y-8">
-                <div className="inline-flex items-center gap-4 px-8 py-2.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-[10px] font-black uppercase tracking-[0.4em] border border-indigo-100 dark:border-indigo-800 shadow-sm transition-colors">
-                    Pilot Program – Co-creating Emotion-Adaptive Learning with Real Classrooms
-                </div>
-                <h1 className="text-6xl md:text-9xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight">
-                    Pilot <span className="shimmer-indigo">Program</span>
-                </h1>
-                <p className="text-2xl text-slate-500 dark:text-slate-400 font-bold max-w-4xl mx-auto leading-relaxed">
-                    Co-creating Emotion-Adaptive Learning with Real Classrooms
+        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 text-gray-900 dark:text-gray-100">
+
+            {/* Hero */}
+            <div className="mb-10">
+                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Pilot Program</h1>
+                <p className="text-base text-gray-500 dark:text-gray-400">
+                    Collaborating with schools, educators, and learning communities to explore AI-assisted learning experiences in real classrooms.
                 </p>
             </div>
 
-            {/* Purpose Statement */}
-            <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-12 md:p-24 rounded-[4rem] shadow-2xl space-y-12 relative overflow-hidden transition-colors">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[120px] -mr-40 -mt-40"></div>
-                <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Mission & Purpose</h2>
-                <div className="space-y-8 text-2xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                    <p>
-                        The FeelEd AI Pilot Program is a collaborative research initiative designed to understand how emotion-adaptive storytelling can support diverse learners in real educational environments.
-                    </p>
-                    <div className="p-10 bg-slate-900 dark:bg-slate-950 text-white rounded-[3rem] font-bold shadow-3xl border-b-[12px] border-indigo-600/30">
-                        "This is not a finished product rollout. It is a guided pilot where teachers, students, and researchers work together to explore what emotionally responsive learning can become — ethically, responsibly, and inclusively."
-                    </div>
-                </div>
-            </div>
+            <div className="space-y-10">
 
-            {/* Core Values Section */}
-            <div className="grid lg:grid-cols-2 gap-16 items-center">
-                <div className="space-y-8">
-                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Why a Pilot Program?</h2>
-                    <p className="text-xl text-slate-500 dark:text-slate-400 font-bold leading-relaxed">
-                        Classrooms are emotionally complex spaces. Traditional systems treat learning as static, but we explore learning as a dynamic emotional process.
+                {/* Section 1 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Purpose of the Pilot Program</h2>
+                    <div className="space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-400">
+                        <p>
+                            The FeelEd AI Pilot Program is designed to help educators, schools, and learning organizations explore how AI-assisted storytelling, conversational learning, and interactive educational experiences can support student engagement and revision workflows.
+                        </p>
+                        <p>
+                            The pilot is intended as a collaborative educational initiative — allowing teachers, students, and institutions to provide practical feedback in real learning environments before wider scale adoption.
+                        </p>
+                    </div>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 2 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Why We Are Running Pilot Programs</h2>
+                    <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-5">
+                        Classrooms are diverse, multilingual, and constantly changing. Students learn through different speeds, formats, and levels of participation. Rather than building educational technology in isolation, FeelEd AI works directly with educators and institutions to understand what is genuinely useful in real classrooms.
                     </p>
-                    <div className="space-y-6">
+                    <ul className="space-y-2">
                         {[
-                            "Test experiences in real classroom conditions",
-                            "Direct feedback from teachers & students",
-                            "Validate pedagogical ideas before scaling",
-                            "Design responsibly, not speculatively"
-                        ].map((item, i) => (
-                            <div key={i} className="flex items-center gap-5 text-slate-800 dark:text-slate-200 font-black">
-                                <span className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 text-xs transition-colors">✓</span>
+                            'Test AI-assisted learning in classroom settings',
+                            'Gather practical teacher and student feedback',
+                            'Improve multilingual and mobile-first learning workflows',
+                            'Understand engagement patterns across different learners',
+                            'Refine educational tools responsibly before scaling',
+                        ].map(item => (
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                                <span className="mt-0.5 text-green-600 dark:text-green-500 font-bold flex-shrink-0">✓</span>
                                 {item}
-                            </div>
+                            </li>
                         ))}
-                    </div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 p-12 rounded-[4rem] border border-slate-200 dark:border-slate-800 shadow-xl space-y-10 transition-colors">
-                    <h3 className="text-xl font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Eligibility</h3>
-                    <div className="grid grid-cols-1 gap-4">
-                        {[
-                            { t: "Schools & Learning Centers", i: "🏫" },
-                            { t: "Special Education Facilitators", i: "🧩" },
-                            { t: "NGOs & Foundations", i: "🤝" },
-                            { t: "Inclusive Education Researchers", i: "🔬" }
-                        ].map((part, i) => (
-                            <div key={i} className="flex items-center gap-6 p-6 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 transition-colors">
-                                <span className="text-3xl">{part.i}</span>
-                                <span className="font-black text-slate-800 dark:text-slate-200">{part.t}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            {/* The Process Section */}
-            <div className="bg-slate-900 dark:bg-slate-950 text-white p-20 md:p-32 rounded-[5rem] shadow-4xl relative overflow-hidden transition-colors">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(79,70,229,0.15)_0%,transparent_70%)]"></div>
-                <div className="relative z-10 space-y-16">
-                    <h2 className="text-5xl font-black tracking-tight text-center">Pilot Methodology</h2>
-                    <div className="grid md:grid-cols-2 gap-10">
-                        {[
-                            "Guided use of FeelEd AI modules",
-                            "Emotion-adaptive story-based lessons",
-                            "Teacher observation & reflection",
-                            "Collaborative review sessions"
-                        ].map((step, i) => (
-                            <div key={i} className="flex items-center gap-8 p-10 bg-white/5 rounded-[2.5rem] border border-white/10">
-                                <span className="text-4xl font-black text-indigo-500 opacity-50">0{i+1}</span>
-                                <span className="text-xl font-bold">{step}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="p-12 bg-indigo-600/20 border border-indigo-400/30 rounded-[3rem] text-center max-w-3xl mx-auto space-y-4">
-                        <p className="text-lg font-black text-indigo-300">Strict Ethical Oversight</p>
-                        <p className="text-white/60 font-bold">There is no grading, labeling, or emotional scoring of children.</p>
-                        <p className="text-white/80 font-bold text-sm">All activities are facilitated by teachers and aligned with existing classroom practices.</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Data & Ethics Split */}
-            <div className="grid lg:grid-cols-2 gap-8">
-                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-16 rounded-[4rem] border-2 border-emerald-100 dark:border-emerald-800 shadow-sm space-y-8 transition-colors">
-                    <h3 className="text-2xl font-black text-emerald-900 dark:text-emerald-400">What We Collect</h3>
-                    <ul className="space-y-4 font-black text-emerald-700 dark:text-emerald-300">
-                        <li>• Anonymous usage patterns</li>
-                        <li>• Qualitative teacher feedback</li>
-                        <li>• Observational learning insights</li>
                     </ul>
-                </div>
-                <div className="bg-rose-50 dark:bg-rose-900/20 p-16 rounded-[4rem] border-2 border-rose-100 dark:border-rose-800 shadow-sm space-y-8 transition-colors">
-                    <h3 className="text-2xl font-black text-rose-900 dark:text-rose-400">What We DO NOT Collect</h3>
-                    <ul className="space-y-4 font-black text-rose-700 dark:text-rose-300">
-                        <li>• Biometric data or facial recordings</li>
-                        <li>• Emotional labeling of children</li>
-                        <li>• Student profiling or data sharing</li>
-                    </ul>
-                </div>
-            </div>
+                </section>
 
-            {/* Final CTA */}
-            <div className="text-center space-y-12">
-                <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">Interested in <span className="text-indigo-600 dark:text-indigo-400">Participating?</span></h2>
-                <p className="text-2xl text-slate-500 dark:text-slate-400 font-bold max-w-3xl mx-auto">
-                    Application is open to institutions aligned with our ethical framework.
-                </p>
-                <div className="flex flex-col md:flex-row justify-center gap-8">
-                    <a 
-                        href="mailto:admin@feeledai.com?subject=Pilot Program Inquiry" 
-                        className="bg-slate-900 dark:bg-indigo-600 text-white px-16 py-8 rounded-full font-black text-2xl shadow-4xl hover:bg-indigo-700 dark:hover:bg-indigo-500 transition-all border-b-[12px] border-slate-950 dark:border-indigo-950 active:border-b-0"
-                    >
-                        Apply for Pilot Program
-                    </a>
-                    <button onClick={() => onNavigate('generator')} className="border-4 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 px-16 py-8 rounded-full font-black text-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                        Back to FeelEd AI
-                    </button>
-                </div>
-                <p className="text-slate-400 dark:text-slate-500 italic font-bold max-w-2xl mx-auto pt-10">
-                    "This pilot is not about proving technology. It is about listening — to classrooms, to teachers, and to learners."
-                </p>
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 3 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Who Can Participate</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                        {participants.map(p => (
+                            <div key={p.label} className="flex flex-col items-center text-center gap-2 border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-gray-900">
+                                <span className="text-2xl">{p.icon}</span>
+                                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-snug">{p.label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 4 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-5 text-gray-900 dark:text-white">How the Pilot Works</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {steps.map(step => (
+                            <div key={step.num} className="border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
+                                <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-xs font-black mb-3">
+                                    {step.num}
+                                </div>
+                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1.5">{step.title}</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{step.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 5 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Responsible Use & Student Safety</h2>
+                    <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
+                        Student safety, privacy, and responsible educational use are important parts of the pilot program.
+                    </p>
+                    <div className="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded">
+                        <ul className="space-y-1.5">
+                            {[
+                                'No biometric or facial recognition data collection',
+                                'No emotional grading or student profiling',
+                                'No advertising-based student tracking',
+                                'Teacher-guided educational participation',
+                                'Privacy-focused learning interactions',
+                            ].map(item => (
+                                <li key={item} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
+                                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                                    {item}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 6 */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">What Participating Institutions Receive</h2>
+                    <ul className="space-y-2">
+                        {[
+                            'Early access to FeelEd AI educational features',
+                            'Pilot collaboration opportunities',
+                            'Direct product feedback channels',
+                            'Support for multilingual learning workflows',
+                            'Participation in future educational research initiatives',
+                        ].map(item => (
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 7: FAQ */}
+                <section>
+                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Common Questions</h2>
+                    <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                        {faqs.map((faq, i) => (
+                            <div key={i} className="py-4">
+                                <button
+                                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                                    className="w-full flex items-center justify-between text-left gap-4"
+                                >
+                                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{faq.q}</span>
+                                    <span className="text-gray-400 dark:text-gray-600 flex-shrink-0 text-lg leading-none">
+                                        {openFaq === i ? '−' : '+'}
+                                    </span>
+                                </button>
+                                {openFaq === i && (
+                                    <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{faq.a}</p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <hr className="border-gray-200 dark:border-gray-800" />
+
+                {/* Section 8: Apply CTA */}
+                <section className="text-center">
+                    <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">Interested in Participating?</h2>
+                    <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+                        We welcome collaboration with institutions aligned with responsible, student-focused, and inclusive educational innovation.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                        <a
+                            href="mailto:admin@feeledai.com"
+                            className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+                        >
+                            Apply for Pilot Program →
+                        </a>
+                        <button
+                            onClick={() => onNavigate('contact')}
+                            className="inline-flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+                        >
+                            Contact FeelEd AI →
+                        </button>
+                    </div>
+                </section>
+
             </div>
         </div>
     );
