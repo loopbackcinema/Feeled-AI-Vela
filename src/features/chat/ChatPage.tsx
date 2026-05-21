@@ -237,8 +237,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </button>
                         <div style={{ maxHeight: researchOpen ? '200px' : '0', overflow: 'hidden', transition: 'max-height 0.25s ease' }}>
                             <div className="space-y-0.5">
-                                <button onClick={() => onNavigate('/research')}  className={navBtn('/research')}><span>🔬</span> Research Lab</button>
-                                <button onClick={() => onNavigate('/research')}  className={navBtn('/scientific-portfolio')}><span>📋</span> Scientific Portfolio</button>
+                                <button onClick={() => onNavigate('/founder')}   className={navBtn('/founder')}><span>👤</span> Founder</button>
+                                <button onClick={() => onNavigate('/research')}  className={navBtn('/research')}><span>📋</span> Scientific Portfolio</button>
                                 <button onClick={() => onNavigate('/inclusive')} className={navBtn('/inclusive')}><span>♿</span> Accessibility Research</button>
                             </div>
                         </div>
