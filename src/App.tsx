@@ -10,6 +10,7 @@ import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-loaded pages — only fetched when the route is first visited
 const AboutUs          = lazy(() => import('./pages/AboutUs'));
@@ -114,7 +115,7 @@ const App: React.FC = () => {
     const formatError = (err: any): string => {
         if (typeof err === 'string') return err;
         if (err?.message) {
-            try { const p = JSON.parse(err.message); if (p?.error?.message) return p.error.message; } catch { /* not JSON */ }
+            try { const p = JSON.parse(err.message); if (p?.error?.message) return p.error.message; } catch (e) { console.warn('FeelEd:', e); }
             return err.message;
         }
         return 'An unexpected error occurred.';
@@ -124,7 +125,7 @@ const App: React.FC = () => {
         if (!user) return;
         try {
             await addDoc(collection(db, 'study_activity'), { userId: user.uid, type, topic, subject: subj, createdAt: serverTimestamp() });
-        } catch { /* ignore */ }
+        } catch (e) { console.warn('FeelEd:', e); }
     };
 
     const handleGenerateStory = useCallback(async (request: StoryRequest) => {
@@ -144,7 +145,7 @@ const App: React.FC = () => {
                     content: `${story.introduction}\n\n${story.concept_explanation}\n\n${story.resolution}`,
                     language: request.language, topic: request.topic, createdAt: serverTimestamp(),
                 });
-            } catch { /* ignore */ }
+            } catch (e) { console.warn('FeelEd:', e); }
             setIsAudioLoading(true);
             setIsImageLoading(true);
             generateVoice(story, request)
@@ -215,6 +216,7 @@ const App: React.FC = () => {
 
     return (
         <>
+            <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
             <Routes>
                 {/* ── Protected core app routes ── */}
@@ -270,16 +272,6 @@ const App: React.FC = () => {
                 } />
                 <Route path="/game"      element={<ProtectedRoute><GameMode /></ProtectedRoute>} />
                 <Route path="/exam-mock" element={<ProtectedRoute><ExamMock /></ProtectedRoute>} />
-                <Route path="/admin"     element={
-                    <ProtectedRoute>
-                        <PageShell showNav>
-                            <div className="p-8 text-center">
-                                <h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2>
-                                <p>Coming soon: Student analytics and story review.</p>
-                            </div>
-                        </PageShell>
-                    </ProtectedRoute>
-                } />
 
                 {/* ── Public informational pages (no login required) ── */}
                 <Route path="/about"     element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
@@ -297,6 +289,7 @@ const App: React.FC = () => {
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
             </Suspense>
+            </ErrorBoundary>
             <PWAInstallBanner />
         </>
     );
