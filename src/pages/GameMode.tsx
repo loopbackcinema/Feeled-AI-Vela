@@ -15,7 +15,7 @@ const GameMode: React.FC = () => {
                 <span className="text-white/20">|</span>
                 <span className="text-white font-black text-sm tracking-widest uppercase">🎮 Game Mode</span>
                 <span className="ml-auto px-3 py-1 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-[10px] font-black uppercase tracking-widest">
-                    Powered by MathsRecode
+                    Powered by FeelEd Learning Engine
                 </span>
             </div>
             <iframe

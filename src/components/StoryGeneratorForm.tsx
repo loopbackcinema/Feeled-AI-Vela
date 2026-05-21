@@ -13,6 +13,12 @@ interface StoryGeneratorFormProps {
     error: string | null;
 }
 
+const micIcon = (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+    </svg>
+);
+
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -23,9 +29,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [narratorVoice, setNarratorVoice] = useState(NARRATOR_VOICE_OPTIONS.English[0]);
     const [emotionTone, setEmotionTone] = useState(EMOTION_TONE_OPTIONS[0]);
     const [submittedRequest, setSubmittedRequest] = useState<StoryRequest | null>(null);
-
     const [isLoggingIn, setIsLoggingIn] = useState(false);
-    const [showAdvanced, setShowAdvanced] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,94 +46,188 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
             alert('Speech recognition is not supported in this browser.');
             return;
         }
-
         const recognition = new SpeechRecognition();
         recognition.lang = language === 'Tamil' ? 'ta-IN' : 'en-US';
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
-
         recognition.onstart = () => setIsListening(true);
         recognition.onend = () => setIsListening(false);
         recognition.onerror = () => setIsListening(false);
-
         recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setTopic(transcript);
+            setTopic(event.results[0][0].transcript);
         };
-
         recognition.start();
     };
 
     if (isLoading && submittedRequest) return <LoadingIndicator request={submittedRequest} />;
 
     return (
-        <div className="w-full max-w-5xl mx-auto space-y-12 animate-fade-in py-12">
-            <div className="flex items-center justify-start mb-2">
-                <button
-                    onClick={() => navigate('/')}
-                    className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-semibold text-sm transition-colors border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 hover:border-indigo-400 bg-white dark:bg-slate-900"
-                >
-                    🏠 Home
-                </button>
-            </div>
-            <div className="text-center space-y-4">
-                <span className="px-4 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase tracking-[0.3em] border border-blue-100 dark:border-blue-800">
-                    ✨ Story Mode
-                </span>
-                <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white tracking-tight">
-                    Professional <span className="shimmer-text">Story Mode</span>
-                </h1>
-                <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-                    Learn any concept through emotion-driven stories — in Tamil or English.
-                </p>
-            </div>
+        <>
+            <style>{`
+                @keyframes buttonGlow {
+                    0%, 100% { box-shadow: 0 4px 20px #4f46e540; }
+                    50% { box-shadow: 0 4px 35px #4f46e570, 0 0 60px #7c3aed30; }
+                }
+                @keyframes floatA {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-12px); }
+                }
+                @keyframes floatB {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-8px); }
+                }
+                .story-glow-btn {
+                    animation: buttonGlow 2s ease-in-out infinite;
+                    transition: transform 0.2s ease, filter 0.2s ease;
+                }
+                .story-glow-btn:hover {
+                    transform: translateY(-2px) scale(1.01);
+                }
+                .particle-a { animation: floatA 7s ease-in-out infinite; }
+                .particle-b { animation: floatB 5s ease-in-out infinite; }
+            `}</style>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden transition-colors duration-300">
-                <div className="p-8 md:p-12 space-y-10">
+            <div
+                className="w-full min-h-screen"
+                style={{
+                    background: '#07070e',
+                    backgroundImage: 'linear-gradient(#ffffff05 1px, transparent 1px), linear-gradient(90deg, #ffffff05 1px, transparent 1px)',
+                    backgroundSize: '24px 24px',
+                    position: 'relative',
+                    overflow: 'hidden',
+                }}
+            >
+                {/* Ambient blobs */}
+                <div className="particle-a" style={{ position: 'absolute', top: -80, left: '50%', transform: 'translateX(-50%)', width: 400, height: 300, background: 'radial-gradient(ellipse at center, #4c3a9925 0%, transparent 70%)', pointerEvents: 'none' }} />
+                <div className="particle-b" style={{ position: 'absolute', bottom: 60, right: -60, width: 280, height: 280, background: 'radial-gradient(ellipse at center, #1a6b4520 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+                <div className="relative z-10 w-full max-w-2xl mx-auto px-4 py-10">
+
+                    {/* Back home */}
+                    <div className="mb-6">
+                        <button
+                            onClick={() => navigate('/')}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#4a4a6a', fontSize: 13, fontWeight: 600, background: 'none', border: '0.5px solid #2a2a4a', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}
+                        >
+                            ← Home
+                        </button>
+                    </div>
+
+                    {/* Title area */}
+                    <div style={{ textAlign: 'center', marginBottom: 32 }}>
+                        <span style={{ display: 'inline-block', background: '#1e1258', border: '0.5px solid #4c3a99', color: '#a78bfa', borderRadius: 999, padding: '4px 16px', fontSize: 13, marginBottom: 14 }}>
+                            ✨ Story Mode
+                        </span>
+                        <h1 style={{ color: '#eeeef8', fontSize: 28, fontWeight: 700, margin: 0, letterSpacing: '-0.3px' }}>
+                            Professional Story Mode
+                        </h1>
+                        <p style={{ color: '#5a5a8a', fontSize: 14, marginTop: 8 }}>
+                            Turn any concept into an emotion-driven story
+                        </p>
+                    </div>
+
+                    {/* Error */}
                     {error && (
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-xl text-sm font-bold flex items-center gap-3">
-                            <span className="text-xl">⚠️</span> {error}
+                        <div style={{ background: '#2d0a0a', border: '0.5px solid #7f1d1d', color: '#fca5a5', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span>⚠️</span> {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* ── Topic input (always visible) ─────────────────── */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Academic Topic</label>
-                            <div className="relative">
+                    <form onSubmit={handleSubmit}>
+
+                        {/* Topic input card */}
+                        <div style={{ background: '#0d0d1c', border: '0.5px solid #1e1e35', borderRadius: 16, padding: '20px', marginBottom: 12 }}>
+                            <label style={{ display: 'block', color: '#9090b8', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>
+                                📚 Academic Topic
+                            </label>
+                            <div style={{ position: 'relative' }}>
                                 <input
                                     type="text"
                                     value={topic}
-                                    onChange={(e) => setTopic(e.target.value)}
-                                    placeholder="e.g., Quantum Mechanics, The Water Cycle, photosynthesis..."
-                                    className="w-full px-8 py-6 text-xl md:text-2xl font-bold rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none text-slate-800 dark:text-white pr-24"
+                                    onChange={e => setTopic(e.target.value)}
+                                    placeholder="e.g., Photosynthesis, The Water Cycle, Quantum Mechanics..."
                                     required
+                                    style={{ width: '100%', background: '#060610', border: '0.5px solid #2a2a4a', borderRadius: 12, color: '#eeeef8', fontSize: 15, padding: '12px 52px 12px 16px', outline: 'none', boxSizing: 'border-box' }}
+                                    // @ts-ignore
+                                    onFocus={e => e.target.style.borderColor = '#4f46e5'}
+                                    onBlur={e => (e.target as HTMLInputElement).style.borderColor = '#2a2a4a'}
                                 />
-                                <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={startListening}
-                                        className={`p-3 rounded-full transition-all ${isListening ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
-                                        title="Voice Input"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                        </svg>
-                                    </button>
-                                    <div className="text-slate-300 dark:text-slate-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                                    </div>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={startListening}
+                                    style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: isListening ? '#3b0000' : 'transparent', border: 'none', cursor: 'pointer', color: isListening ? '#ef4444' : '#4f46e5', borderRadius: 8, padding: 4, display: 'flex', alignItems: 'center' }}
+                                    title={isListening ? 'Listening…' : 'Voice input'}
+                                >
+                                    {micIcon}
+                                </button>
                             </div>
                         </div>
 
-                        {/* ── Primary CTA ──────────────────────────────────── */}
+                        {/* Settings grid — always visible */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+
+                            {/* Target Level */}
+                            <div style={{ background: '#0b0720', border: '0.5px solid #33267a', borderRadius: 14, padding: 16 }}>
+                                <label style={{ display: 'block', color: '#c4b5fd', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>🎯 Target Level</label>
+                                <select
+                                    value={std}
+                                    onChange={e => setStd(e.target.value)}
+                                    style={{ width: '100%', background: '#060610', border: '0.5px solid #33267a', borderRadius: 10, color: '#c4b5fd', fontSize: 13, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
+                                >
+                                    {STD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Language */}
+                            <div style={{ background: '#030e09', border: '0.5px solid #10472a', borderRadius: 14, padding: 16 }}>
+                                <label style={{ display: 'block', color: '#6ee7b7', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>🌐 Language</label>
+                                <select
+                                    value={language}
+                                    onChange={e => {
+                                        const v = e.target.value as keyof typeof NARRATOR_VOICE_OPTIONS;
+                                        setLanguage(v);
+                                        setNarratorVoice(NARRATOR_VOICE_OPTIONS[v][0]);
+                                    }}
+                                    style={{ width: '100%', background: '#060610', border: '0.5px solid #10472a', borderRadius: 10, color: '#6ee7b7', fontSize: 13, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
+                                >
+                                    {LANGUAGE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Voice Persona */}
+                            <div style={{ background: '#0b0804', border: '0.5px solid #5a3d08', borderRadius: 14, padding: 16 }}>
+                                <label style={{ display: 'block', color: '#fcd34d', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>🎙️ Voice Persona</label>
+                                <select
+                                    value={narratorVoice}
+                                    onChange={e => setNarratorVoice(e.target.value)}
+                                    style={{ width: '100%', background: '#060610', border: '0.5px solid #5a3d08', borderRadius: 10, color: '#fcd34d', fontSize: 13, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
+                                >
+                                    {NARRATOR_VOICE_OPTIONS[language].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+
+                            {/* Emotional Tone */}
+                            <div style={{ background: '#04141a', border: '0.5px solid #0a5a5a', borderRadius: 14, padding: 16 }}>
+                                <label style={{ display: 'block', color: '#67e8f9', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>💫 Emotional Tone</label>
+                                <select
+                                    value={emotionTone}
+                                    onChange={e => setEmotionTone(e.target.value)}
+                                    style={{ width: '100%', background: '#060610', border: '0.5px solid #0a5a5a', borderRadius: 10, color: '#67e8f9', fontSize: 13, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
+                                >
+                                    {EMOTION_TONE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+
+                        </div>
+
+                        {/* Generate button */}
                         {user ? (
                             <button
                                 type="submit"
-                                className="w-full py-6 rounded-2xl bg-slate-900 dark:bg-blue-600 text-white text-lg font-black tracking-tight hover:bg-slate-800 dark:hover:bg-blue-700 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
+                                className="story-glow-btn"
+                                style={{ width: '100%', height: 52, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, color: 'white', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', marginBottom: 12 }}
                             >
-                                Generate Story ✨
+                                ✨ Generate Story
                             </button>
                         ) : (
                             <button
@@ -138,109 +236,44 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                 onClick={async () => {
                                     try {
                                         setIsLoggingIn(true);
-                                        console.log("Attempting Google Login...");
                                         await signInWithGoogle();
                                     } catch (err: any) {
-                                        console.error("Login failed:", err);
-                                        alert(err.message || "Login failed. Please check if popups are blocked.");
+                                        alert(err.message || 'Login failed. Please check if popups are blocked.');
                                     } finally {
                                         setIsLoggingIn(false);
                                     }
                                 }}
-                                className={`w-full py-6 rounded-2xl text-white text-lg font-black tracking-tight transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95 ${isLoggingIn ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                                style={{ width: '100%', height: 52, background: isLoggingIn ? '#4338ca' : 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, color: 'white', fontSize: 16, fontWeight: 700, border: 'none', cursor: isLoggingIn ? 'not-allowed' : 'pointer', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
                             >
                                 {isLoggingIn ? (
-                                    <>
-                                        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                                        <span>Authenticating...</span>
-                                    </>
+                                    <><span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" /> Authenticating…</>
                                 ) : (
-                                    <>
-                                        <span>🔑</span>
-                                        Login with Google to Start
-                                    </>
+                                    <><span>🔑</span> Login with Google to Start</>
                                 )}
                             </button>
                         )}
 
-                        {/* ── Advanced options toggle ───────────────────────── */}
-                        <div className="text-center">
-                            <button
-                                type="button"
-                                onClick={() => setShowAdvanced(v => !v)}
-                                className="text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 text-xs font-bold transition-colors"
-                            >
-                                {showAdvanced ? '▲ Hide options' : '⚙️ Advanced options'}
-                            </button>
-                        </div>
-
-                        {/* ── Advanced options panel (CSS max-height transition) */}
-                        <div
-                            style={{
-                                maxHeight: showAdvanced ? '400px' : '0',
-                                overflow: 'hidden',
-                                transition: 'max-height 300ms ease',
-                            }}
-                        >
-                            <div className="border-t border-slate-100 dark:border-slate-800 pt-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                    {[
-                                        { label: 'Target Level', val: std, set: setStd, opts: STD_OPTIONS },
-                                        { label: 'Instruction Language', val: language, set: (v: string) => { setLanguage(v as any); setNarratorVoice(NARRATOR_VOICE_OPTIONS[v as keyof typeof NARRATOR_VOICE_OPTIONS][0]); }, opts: LANGUAGE_OPTIONS },
-                                        { label: 'Voice Persona', val: narratorVoice, set: setNarratorVoice, opts: NARRATOR_VOICE_OPTIONS[language] },
-                                        { label: 'Emotional Tone', val: emotionTone, set: setEmotionTone, opts: EMOTION_TONE_OPTIONS }
-                                    ].map((field, i) => (
-                                        <div key={i} className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
-                                            <select
-                                                value={field.val}
-                                                onChange={(e) => field.set(e.target.value)}
-                                                className="w-full px-5 py-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-blue-600 dark:focus:border-blue-500 transition-all appearance-none cursor-pointer"
-                                            >
-                                                {field.opts.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                            </select>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                            <details className="group">
-                                <summary className="flex items-center justify-center gap-2 cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors text-[10px] font-black uppercase tracking-widest list-none">
-                                    <span>❓</span>
-                                    Trouble Logging In?
-                                    <svg className="w-3 h-3 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" /></svg>
+                        {/* Trouble logging in */}
+                        <div style={{ borderTop: '0.5px solid #1e1e35', paddingTop: 16, marginTop: 4 }}>
+                            <details>
+                                <summary style={{ cursor: 'pointer', color: '#4a4a6a', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', listStyle: 'none', textAlign: 'center' }}>
+                                    ❓ Trouble Logging In?
                                 </summary>
-                                <div className="mt-4 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl text-xs text-slate-500 dark:text-slate-400 leading-relaxed space-y-3">
-                                    <p>If the login button doesn't respond or shows an error, please check the following:</p>
-                                    <ul className="list-disc pl-5 space-y-2">
-                                        <li><strong>Pop-ups:</strong> Ensure your browser allows pop-ups for this site.</li>
-                                        <li><strong>Third-Party Cookies:</strong> Firebase requires third-party cookies. If you have "Block Third-Party Cookies" enabled, please disable it or try <strong>Incognito Mode</strong>.</li>
-                                        <li><strong>Authorized Domains:</strong> If you see an "unauthorized domain" error, the current URL must be added to the Firebase Console's Authorized Domains list.</li>
-                                        <li><strong>Brave/Safari:</strong> Disable "Shields" (Brave) or "Prevent Cross-Site Tracking" (Safari) if login fails.</li>
+                                <div style={{ marginTop: 12, background: '#0a0a16', border: '0.5px solid #1e1e35', borderRadius: 12, padding: '14px 16px', fontSize: 12, color: '#4a4a6a', lineHeight: 1.7 }}>
+                                    <p style={{ marginBottom: 8 }}>If the login button doesn't respond or shows an error:</p>
+                                    <ul style={{ paddingLeft: 16, margin: 0 }}>
+                                        <li><strong style={{ color: '#6060a0' }}>Pop-ups:</strong> Ensure your browser allows pop-ups for this site.</li>
+                                        <li><strong style={{ color: '#6060a0' }}>Third-Party Cookies:</strong> Firebase requires third-party cookies. Try Incognito Mode.</li>
+                                        <li><strong style={{ color: '#6060a0' }}>Brave/Safari:</strong> Disable Shields or Cross-Site Tracking prevention.</li>
                                     </ul>
                                 </div>
                             </details>
                         </div>
+
                     </form>
                 </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[
-                    { t: 'Verified Research', d: 'Rooted in cognitive load theory and affective science.', i: '🔬' },
-                    { t: 'Safe by Design', d: 'No identifiable user data storage or tracking.', i: '🛡️' },
-                    { t: 'Universal Access', d: 'Optimized for low-bandwidth educational settings.', i: '🌍' }
-                ].map((item, i) => (
-                    <div key={i} className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 text-center space-y-4 hover:shadow-lg transition-shadow">
-                        <div className="text-4xl">{item.i}</div>
-                        <h3 className="font-bold text-slate-900 dark:text-white uppercase tracking-tighter text-sm">{item.t}</h3>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{item.d}</p>
-                    </div>
-                ))}
-            </div>
-        </div>
+        </>
     );
 };
 

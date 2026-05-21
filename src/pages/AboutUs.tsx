@@ -90,6 +90,12 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
                 <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400">
                     FeelEd AI was founded by Velayutham S, an independent researcher and technology builder from Chennai, India. His work focuses on emotion-aware learning systems, multilingual AI experiences, and storytelling-driven educational design.
                 </p>
+                <button
+                    onClick={() => onNavigate('founder')}
+                    style={{ marginTop: '12px', padding: '8px 18px', background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: 'white', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', border: 'none', boxShadow: '0 4px 12px #4f46e530' }}
+                >
+                    Read Founder Story →
+                </button>
             </div>
 
             <hr className="border-gray-200 dark:border-gray-800 mb-10" />

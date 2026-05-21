@@ -121,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm md:hidden" onClick={onClose} />
             )}
             <div
-                className={`dark fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r transition-all duration-300 ease-in-out
+                className={`dark fixed top-0 left-0 h-full w-[200px] z-50 flex flex-col border-r transition-all duration-300 ease-in-out
                     ${open ? 'translate-x-0' : '-translate-x-full'}
                     ${desktopOpen ? 'md:translate-x-0' : 'md:-translate-x-full'}`}
                 style={{ background: '#07070f', borderColor: '#12122a' }}
@@ -766,7 +766,7 @@ const callAPI = useCallback(async (
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
-        <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[288px]' : ''}`}
+        <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[200px]' : ''}`}
             style={{ background: isDarkMode ? '#060610' : '#ffffff', color: isDarkMode ? '#eeeef8' : '#111111' }}>
 
             {/* Sidebar */}
@@ -842,7 +842,7 @@ const callAPI = useCallback(async (
                             What would you like to learn today?
                         </h1>
                         <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 36 }}>
-                            Your personal Samacheer tutor
+                            Your AI learning companion
                         </p>
 
                         {/* 3 Mode Cards */}
