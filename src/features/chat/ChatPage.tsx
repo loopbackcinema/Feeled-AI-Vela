@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Menu, X, Plus, Mic, Send, Loader2, BookOpen, Volume2,
-    LogIn, LogOut, SquarePen, Image as ImageIcon, Settings2, ChevronRight,
+    LogIn, LogOut, SquarePen, Image as ImageIcon, Settings2, ChevronRight, ChevronLeft,
     LayoutDashboard, BookMarked, FlaskConical, User, Lock, Globe, ArrowLeft,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -78,6 +78,8 @@ interface ChatHistoryItem {
 interface SidebarProps {
     open: boolean;
     onClose: () => void;
+    desktopOpen: boolean;
+    onToggle: () => void;
     user: any;
     chatHistory: ChatHistoryItem[];
     hasMoreHistory: boolean;
@@ -90,7 +92,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
-    open, onClose, user, chatHistory, hasMoreHistory, isLoadingHistory,
+    open, onClose, desktopOpen, onToggle, user, chatHistory, hasMoreHistory, isLoadingHistory,
     onLoadMore, onNewChat, onAuth, onNavigate, onSelectSession,
 }) => {
     const historyRef = useRef<HTMLDivElement>(null);
@@ -118,15 +120,28 @@ const Sidebar: React.FC<SidebarProps> = ({
             {open && (
                 <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm md:hidden" onClick={onClose} />
             )}
-            <div className={`fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : 'md:translate-x-0 -translate-x-full'}`} style={{ background: '#07070f', borderColor: '#12122a' }}>
-
+            <div
+                className={`fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r transition-all duration-300 ease-in-out
+                    ${open ? 'translate-x-0' : '-translate-x-full'}
+                    ${desktopOpen ? 'md:translate-x-0' : 'md:-translate-x-full'}`}
+                style={{ background: '#07070f', borderColor: '#12122a' }}
+            >
                 {/* Logo row */}
-                <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-200 dark:border-[#222]">
-                    <button onClick={onClose} className="p-1 rounded-md text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <div className="flex items-center gap-2 px-3 py-4" style={{ borderBottom: '0.5px solid #12122a' }}>
+                    <button onClick={onClose} className="md:hidden p-1 rounded-md transition-colors" style={{ color: '#3a3a5a' }}>
                         <X className="w-5 h-5" />
                     </button>
-                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-8 h-8 object-contain" />
-                    <span className="font-black text-gray-900 dark:text-white text-base tracking-tight">FeelEd AI</span>
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-7 h-7 object-contain" />
+                    <span className="font-black text-base tracking-tight flex-1" style={{ color: '#9090b8' }}>FeelEd AI</span>
+                    {/* Desktop collapse toggle */}
+                    <button
+                        onClick={onToggle}
+                        className="hidden md:flex p-1.5 rounded-lg transition-colors"
+                        style={{ color: '#3a3a5a' }}
+                        title="Collapse sidebar"
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                    </button>
                 </div>
 
                 {/* User profile */}
@@ -351,6 +366,7 @@ const ChatPage: React.FC = () => {
     const [input, setInput]               = useState('');
     const [isLoading, setIsLoading]       = useState(false);
     const [sidebarOpen, setSidebarOpen]   = useState(false);
+    const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [plusOpen, setPlusOpen]         = useState(false);
     const [isListening, setIsListening]   = useState(false);
     const [isSttLoading, setIsSttLoading] = useState(false);
@@ -728,12 +744,14 @@ const callAPI = useCallback(async (
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
-        <div className="fixed inset-0 flex flex-col overflow-hidden md:pl-[288px]" style={{ background: '#060610', color: '#eeeef8' }}>
+        <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[288px]' : ''}`} style={{ background: '#060610', color: '#eeeef8' }}>
 
             {/* Sidebar */}
             <Sidebar
                 open={sidebarOpen}
                 onClose={() => setSidebarOpen(false)}
+                desktopOpen={desktopSidebarOpen}
+                onToggle={() => setDesktopSidebarOpen(o => !o)}
                 user={user}
                 chatHistory={chatHistory}
                 hasMoreHistory={hasMoreHistory}
@@ -744,6 +762,18 @@ const callAPI = useCallback(async (
                 onNavigate={path => { navigate(path); setSidebarOpen(false); }}
                 onSelectSession={handleSelectSession}
             />
+
+            {/* Desktop sidebar reopen tab — visible only when sidebar is collapsed */}
+            {!desktopSidebarOpen && (
+                <button
+                    onClick={() => setDesktopSidebarOpen(true)}
+                    className="hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 z-50 flex-col items-center justify-center"
+                    style={{ background: '#12122a', border: '0.5px solid #252545', borderLeft: 'none', borderRadius: '0 8px 8px 0', padding: '10px 6px', color: '#6060a0' }}
+                    title="Open sidebar"
+                >
+                    <ChevronRight className="w-4 h-4" />
+                </button>
+            )}
 
             {/* Top bar */}
             <div className="flex-shrink-0 flex items-center justify-between gap-3 px-4 py-3" style={{ borderBottom: '1px solid #1a1a30', background: '#060610' }}>
@@ -1132,9 +1162,10 @@ const callAPI = useCallback(async (
 
                     <form
                         onSubmit={e => { e.preventDefault(); sendMessage(input); }}
-                        className="flex items-center gap-1.5 bg-gray-100 dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl px-2 py-2 focus-within:border-gray-400 dark:focus-within:border-[#444] transition-colors"
+                        className="flex items-center gap-1.5 rounded-2xl px-2 py-2 transition-colors"
+                        style={{ background: '#0c0c1c', border: '0.5px solid #252535' }}
                     >
-                        <button type="button" onClick={() => setPlusOpen(!plusOpen)} className={`flex-shrink-0 p-2 rounded-xl transition-all ${plusOpen ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-[#2A2A2A]'}`} aria-label="Upload or set context">
+                        <button type="button" onClick={() => setPlusOpen(!plusOpen)} className={`flex-shrink-0 p-2 rounded-xl transition-all ${plusOpen ? 'bg-indigo-600 text-white' : 'hover:bg-[#1a1a30]'}`} style={{ color: plusOpen ? undefined : '#6060a0' }} aria-label="Upload or set context">
                             <Plus className="w-5 h-5" />
                         </button>
                         <input
@@ -1144,9 +1175,10 @@ const callAPI = useCallback(async (
                             onChange={e => setInput(e.target.value)}
                             placeholder="Ask anything..."
                             disabled={isLoading}
-                            className="flex-1 bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#555] text-sm focus:outline-none px-2 disabled:opacity-60 min-w-0"
+                            className="flex-1 bg-transparent text-sm focus:outline-none px-2 disabled:opacity-60 min-w-0 placeholder-[#2a2a4a]"
+                            style={{ color: '#eeeef8' }}
                         />
-                        <button type="button" onClick={handleVoice} disabled={isSttLoading} aria-label={isListening ? 'Stop' : 'Voice input'} className={`flex-shrink-0 p-2 rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : isSttLoading ? 'text-indigo-500' : 'text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-[#2A2A2A]'}`}>
+                        <button type="button" onClick={handleVoice} disabled={isSttLoading} aria-label={isListening ? 'Stop' : 'Voice input'} className={`flex-shrink-0 p-2 rounded-xl transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : isSttLoading ? 'text-indigo-500' : 'hover:bg-[#1a1a30]'}`} style={isListening || isSttLoading ? undefined : { color: '#6060a0' }}>
                             {isSttLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mic className="w-5 h-5" />}
                         </button>
                         <button type="submit" disabled={isLoading || !input.trim()} aria-label="Send" className="flex-shrink-0 p-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 text-white transition-all">
