@@ -139,6 +139,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
     const [quizScore, setQuizScore] = useState<number | null>(null);
     const [isSharing, setIsSharing] = useState(false);
     const [activeTab, setActiveTab] = useState<'story' | 'chat'>('story');
+    const [shareOpen, setShareOpen] = useState(false);
     
     const chatSectionRef = useRef<HTMLDivElement>(null);
 
@@ -169,6 +170,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
     }, [isPlaying, isDecoding, base64Audio]);
 
     const shareText = `I just completed a learning journey on FeelEd AI! 🎓 I learned about "${story.title}" and scored ${quizScore}/${story.quiz?.length ?? 0} on the quiz. Check it out!`;
+    const storyShareText = (story.introduction || '').slice(0, 150);
     const shareUrl = window.location.origin;
 
     const handleNativeShare = async () => {
@@ -301,6 +303,46 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
                      <StorySection title="Moral_message" content={story.moral_message} />
                      <StorySection title="Conclusion" content={story.conclusion} />
                 </div>
+            </div>
+
+            {/* Share Story radial menu */}
+            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginTop: 32, marginBottom: 16, minHeight: shareOpen ? '180px' : '52px', transition: 'min-height 0.3s ease' }} className="no-print">
+                <button
+                    onClick={() => setShareOpen(o => !o)}
+                    style={{ padding: '10px 20px', borderRadius: 20, background: shareOpen ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : '#0d0d1c', border: '0.5px solid #4f46e5', color: '#c4b5fd', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s ease', transform: shareOpen ? 'rotate(5deg)' : 'rotate(0)', position: 'relative', zIndex: 10 }}
+                >
+                    {shareOpen ? '✕ Close' : '🔗 Share Story'}
+                </button>
+                {([
+                    { icon: '💬', label: 'WhatsApp', color: '#25d366', angle: -120, href: `https://wa.me/?text=${encodeURIComponent('Check this FeelEd AI story! ' + storyShareText + ' https://feeledai.com')}` },
+                    { icon: '📘', label: 'Facebook', color: '#1877f2', angle:  -60, href: 'https://www.facebook.com/sharer/sharer.php?u=https://feeledai.com' },
+                    { icon: '𝕏',  label: 'X',        color: '#111',    angle:    0, href: `https://twitter.com/intent/tweet?text=${encodeURIComponent('Learning with FeelEd AI! ' + storyShareText)}&url=https://feeledai.com` },
+                    { icon: 'in', label: 'LinkedIn', color: '#0077b5', angle:   60, href: 'https://www.linkedin.com/sharing/share-offsite/?url=https://feeledai.com' },
+                ] as { icon: string; label: string; color: string; angle: number; href: string }[]).map((item, i) => {
+                    const rad = ((item.angle - 90) * Math.PI) / 180;
+                    const radius = 70;
+                    const x = Math.cos(rad) * radius;
+                    const y = Math.sin(rad) * radius;
+                    return (
+                        <a
+                            key={item.label}
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={item.label}
+                            style={{ position: 'absolute', width: 40, height: 40, borderRadius: '50%', background: item.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, textDecoration: 'none', transform: shareOpen ? `translate(${x}px,${y}px) scale(1)` : 'translate(0,0) scale(0)', opacity: shareOpen ? 1 : 0, transition: `all 0.35s cubic-bezier(0.34,1.56,0.64,1) ${i * 0.06}s`, boxShadow: `0 4px 12px ${item.color}60`, zIndex: 9, top: '50%', left: '50%', marginTop: -20, marginLeft: -20, pointerEvents: shareOpen ? 'auto' : 'none' }}
+                        >
+                            {item.icon}
+                        </a>
+                    );
+                })}
+                <button
+                    onClick={() => { navigator.clipboard.writeText(storyShareText); alert('Story copied!'); }}
+                    title="Copy"
+                    style={{ position: 'absolute', width: 40, height: 40, borderRadius: '50%', background: '#4f46e5', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, cursor: 'pointer', transform: shareOpen ? `translate(${Math.cos((30) * Math.PI / 180) * 70}px,${Math.sin((30) * Math.PI / 180) * 70}px) scale(1)` : 'translate(0,0) scale(0)', opacity: shareOpen ? 1 : 0, transition: `all 0.35s cubic-bezier(0.34,1.56,0.64,1) ${4 * 0.06}s`, boxShadow: '0 4px 12px #4f46e560', zIndex: 9, top: '50%', left: '50%', marginTop: -20, marginLeft: -20, pointerEvents: shareOpen ? 'auto' : 'none' }}
+                >
+                    📋
+                </button>
             </div>
 
             {/* Quiz */}
