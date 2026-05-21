@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getToken } from 'firebase/messaging';
 import { getMessagingInstance } from '../firebase';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +25,7 @@ const registerToken = async (uid: string) => {
 };
 
 const PushNotificationSetup: React.FC = () => {
+    const { t } = useTranslation();
     const { user } = useAuth();
     const [showBanner, setShowBanner] = useState(false);
 
@@ -82,24 +84,24 @@ const PushNotificationSetup: React.FC = () => {
             <span style={{ fontSize: 24, flexShrink: 0 }}>🔔</span>
             <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ color: '#eeeef8', fontSize: 13, fontWeight: 700, margin: 0 }}>
-                    Stay on track
+                    {t('push.title')}
                 </p>
                 <p style={{ color: '#4a4a6a', fontSize: 11, margin: '2px 0 0' }}>
-                    Get daily study reminders
+                    {t('push.subtitle')}
                 </p>
             </div>
             <button
                 onClick={handleEnable}
                 style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none', borderRadius: 10, padding: '7px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
             >
-                Enable
+                {t('push.enable')}
             </button>
             <button
                 onClick={handleDismiss}
                 style={{ background: 'none', border: 'none', color: '#4a4a6a', fontSize: 18, cursor: 'pointer', lineHeight: 1, padding: '0 2px', flexShrink: 0 }}
                 aria-label="Dismiss"
             >
-                ×
+                {t('push.dismiss')}
             </button>
         </div>
     );

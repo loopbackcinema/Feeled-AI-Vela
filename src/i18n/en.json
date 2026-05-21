@@ -1,0 +1,65 @@
+{
+  "home": {
+    "title": "What would you like to learn today?",
+    "subtitle": "Your AI learning companion",
+    "badge": "AI Tutor • Stories • Exams"
+  },
+  "modes": {
+    "story": "Story Mode",
+    "game": "Game Mode",
+    "exam": "Exam Mode",
+    "chat": "Chat Tutor"
+  },
+  "chips": {
+    "electricity": "Electricity",
+    "geography": "Geography",
+    "algebra": "Algebra",
+    "acids": "Acids & Bases",
+    "biology": "Cell Biology",
+    "history": "History"
+  },
+  "input": {
+    "placeholder1": "Explain photosynthesis simply...",
+    "placeholder2": "Create a story about gravity...",
+    "placeholder3": "Start a Science mock test...",
+    "placeholder4": "Help me learn fractions..."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "myStories": "My Stories",
+    "forParents": "For Parents",
+    "forTeachers": "For Teachers",
+    "pilotProgram": "Pilot Program",
+    "faq": "FAQ",
+    "research": "Research Lab",
+    "about": "About FeelEd AI",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Use",
+    "founder": "Founder",
+    "signOut": "Sign Out",
+    "newChat": "New Chat"
+  },
+  "login": {
+    "welcome": "Welcome back",
+    "subtitle": "Sign in to continue learning.",
+    "button": "Continue with Google",
+    "privacy": "By continuing, you agree to our Privacy Policy and Terms of Use."
+  },
+  "continue": {
+    "label": "Continue where you left off",
+    "resume": "Resume progress"
+  },
+  "suggestions": {
+    "label": "Suggested for you"
+  },
+  "offline": {
+    "banner": "You're offline — AI features unavailable. Check your connection."
+  },
+  "push": {
+    "title": "Stay on track",
+    "subtitle": "Get daily study reminders",
+    "enable": "Enable",
+    "dismiss": "×"
+  }
+}

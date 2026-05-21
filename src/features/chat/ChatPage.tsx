@@ -19,6 +19,7 @@ import {
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
+import { useTranslation } from 'react-i18next';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -96,6 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     open, onClose, desktopOpen, onToggle, user, chatHistory, hasMoreHistory, isLoadingHistory,
     onLoadMore, onNewChat, onAuth, onNavigate, onSelectSession,
 }) => {
+    const { t } = useTranslation();
     const historyRef = useRef<HTMLDivElement>(null);
     const [researchOpen, setResearchOpen] = useState(false);
 
@@ -161,14 +163,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                     )}
                     <button onClick={onAuth} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-[#1E1E1E] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-sm font-semibold text-gray-700 dark:text-[#CCCCCC] transition-colors">
                         {user ? <LogOut className="w-4 h-4 flex-shrink-0" /> : <LogIn className="w-4 h-4 flex-shrink-0" />}
-                        {user ? 'Sign Out' : 'Student Login'}
+                        {user ? t('nav.signOut') : 'Student Login'}
                     </button>
                 </div>
 
                 {/* New Chat */}
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-[#222]">
                     <button onClick={onNewChat} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors">
-                        <SquarePen className="w-4 h-4" /> New Chat
+                        <SquarePen className="w-4 h-4" /> {t('nav.newChat')}
                     </button>
                 </div>
 
@@ -202,12 +204,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <div className={groupWrap}>
                         <span className={groupLabel}>Learn</span>
                         <div className="space-y-0.5">
-                            <button onClick={() => onNavigate('/dashboard')}  className={navBtn('/dashboard')}><span>📊</span> Dashboard</button>
+                            <button onClick={() => onNavigate('/dashboard')}  className={navBtn('/dashboard')}><span>📊</span> {t('nav.dashboard')}</button>
                             <button onClick={() => onNavigate('/')}            className={navBtn('/')}><span>💬</span> Chat Tutor</button>
                             <button onClick={() => onNavigate('/story')}       className={navBtn('/story')}><span>✨</span> Story Mode</button>
                             <button onClick={() => onNavigate('/game')}        className={navBtn('/game')}><span>🎮</span> Game Mode</button>
                             <button onClick={() => onNavigate('/exam-mock')}   className={navBtn('/exam-mock')}><span>📝</span> Exam Mode</button>
-                            <button onClick={() => onNavigate('/my-stories')}  className={navBtn('/my-stories')}><span>📖</span> My Stories</button>
+                            <button onClick={() => onNavigate('/my-stories')}  className={navBtn('/my-stories')}><span>📖</span> {t('nav.myStories')}</button>
                         </div>
                     </div>
 
@@ -215,8 +217,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <div className={groupWrap}>
                         <span className={groupLabel}>Support</span>
                         <div className="space-y-0.5">
-                            <button onClick={() => onNavigate('/parents')}  className={navBtn('/parents')}><span>👨‍👩‍👧</span> For Parents</button>
-                            <button onClick={() => onNavigate('/teachers')} className={navBtn('/teachers')}><span>👨‍🏫</span> For Teachers</button>
+                            <button onClick={() => onNavigate('/parents')}  className={navBtn('/parents')}><span>👨‍👩‍👧</span> {t('nav.forParents')}</button>
+                            <button onClick={() => onNavigate('/teachers')} className={navBtn('/teachers')}><span>👨‍🏫</span> {t('nav.forTeachers')}</button>
                             <button onClick={() => onNavigate('/pilot')}    className={navBtn('/pilot')}><span>🚀</span> Pilot Program</button>
                             <button onClick={() => onNavigate('/faq')}      className={navBtn('/faq')}><span>❓</span> FAQ</button>
                         </div>
@@ -359,6 +361,13 @@ const ChatPage: React.FC = () => {
     const { board, standard, subject, language, setContext } = useStudentStore();
     const chatMessages = useSessionStore(s => s.chatMessages);
     const setSession = useSessionStore(s => s.set);
+    const { t, i18n } = useTranslation();
+
+    const toggleLanguage = () => {
+        const next = i18n.language === 'en' ? 'ta' : 'en';
+        i18n.changeLanguage(next);
+        localStorage.setItem('feeled-lang', next);
+    };
 
     // Session tracking
     const sessionRef = useRef({ id: crypto.randomUUID(), createdAt: Date.now() });
@@ -401,19 +410,19 @@ const ChatPage: React.FC = () => {
     const lastAiIndex  = chatMessages.reduceRight((acc, m, i) => (acc === -1 && m.role === 'model' ? i : acc), -1);
 
     const suggestionChips = [
-        { emoji: '⚡', label: 'Electricity' },
-        { emoji: '🌍', label: 'Geography' },
-        { emoji: '➗', label: 'Algebra' },
-        { emoji: '🧪', label: 'Acids & Bases' },
-        { emoji: '🧬', label: 'Cell Biology' },
-        { emoji: '🏛️', label: 'History' },
+        { emoji: '⚡', label: t('chips.electricity') },
+        { emoji: '🌍', label: t('chips.geography') },
+        { emoji: '➗', label: t('chips.algebra') },
+        { emoji: '🧪', label: t('chips.acids') },
+        { emoji: '🧬', label: t('chips.biology') },
+        { emoji: '🏛️', label: t('chips.history') },
     ];
 
     const PLACEHOLDERS = [
-        'Explain photosynthesis simply...',
-        'Create a story about gravity...',
-        'Start a Science mock test...',
-        'Help me learn fractions...',
+        t('input.placeholder1'),
+        t('input.placeholder2'),
+        t('input.placeholder3'),
+        t('input.placeholder4'),
     ];
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
     const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
@@ -787,7 +796,7 @@ const callAPI = useCallback(async (
             {/* Offline banner */}
             {isOffline && (
                 <div style={{ background: '#7c2d12', color: '#fed7aa', textAlign: 'center', padding: '8px', fontSize: '12px', fontWeight: 500, flexShrink: 0, zIndex: 60 }}>
-                    📡 You're offline — AI features unavailable. Check your connection.
+                    📡 {t('offline.banner')}
                 </div>
             )}
 
@@ -830,6 +839,13 @@ const callAPI = useCallback(async (
                 <span className="font-bold text-sm tracking-tight" style={{ color: isDarkMode ? '#9090b8' : '#374151' }}>FeelEd AI</span>
                 <div className="flex items-center gap-1">
                     <button
+                        onClick={toggleLanguage}
+                        style={{ background: isDarkMode ? '#0d0d1c' : '#f3f4f6', border: `0.5px solid ${isDarkMode ? '#1e1e35' : '#e5e7eb'}`, borderRadius: 8, padding: '5px 10px', color: isDarkMode ? '#9090b8' : '#6b7280', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                        aria-label="Toggle language"
+                    >
+                        {i18n.language === 'en' ? '🌐 தமிழ்' : '🌐 English'}
+                    </button>
+                    <button
                         onClick={() => setIsDarkMode(d => !d)}
                         className="p-2 rounded-xl transition-colors"
                         style={{ color: isDarkMode ? '#6060a0' : '#6b7280', background: isDarkMode ? '#12122a' : '#f3f4f6' }}
@@ -861,10 +877,10 @@ const callAPI = useCallback(async (
                     <div style={{ maxWidth: 680, margin: '0 auto', padding: '15vh 20px 40px', textAlign: 'center' }}>
                         {/* Hero */}
                         <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.6rem)', fontWeight: 700, letterSpacing: '-0.5px', lineHeight: 1.2, marginBottom: 10, color: isDarkMode ? '#eeeef8' : '#111111' }}>
-                            What would you like to learn today?
+                            {t('home.title')}
                         </h1>
                         <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 36 }}>
-                            Your AI learning companion
+                            {t('home.subtitle')}
                         </p>
 
                         {/* 3 Mode Cards */}
@@ -872,21 +888,21 @@ const callAPI = useCallback(async (
                             <div className="fc-card" onClick={() => navigate('/story')}
                                 style={{ width: 160, background: 'linear-gradient(135deg, #1a0b40, #2d1b69)', border: '1px solid #4c3a99', borderRadius: 16, padding: 16, animation: 'floatA 4s ease-in-out infinite', textAlign: 'left' }}>
                                 <div style={{ fontSize: 22, marginBottom: 8 }}>✨</div>
-                                <div style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Story Mode</div>
+                                <div style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.story')}</div>
                                 <div style={{ color: '#7c6aad', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Turn lessons into stories</div>
                                 <span style={{ background: '#2d1b69', borderRadius: 4, color: '#a78bfa', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>✦ POPULAR</span>
                             </div>
                             <div className="fc-card" onClick={() => navigate('/game')}
                                 style={{ width: 160, background: 'linear-gradient(135deg, #052010, #0a3520)', border: '1px solid #1a6b45', borderRadius: 16, padding: 16, animation: 'floatB 4.8s ease-in-out infinite', textAlign: 'left' }}>
                                 <div style={{ fontSize: 22, marginBottom: 8 }}>🎮</div>
-                                <div style={{ color: '#6ee7b7', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Game Mode</div>
+                                <div style={{ color: '#6ee7b7', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.game')}</div>
                                 <div style={{ color: '#2d7a56', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Practice through play</div>
                                 <span style={{ background: '#0a3520', borderRadius: 4, color: '#34d399', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🔥 FUN</span>
                             </div>
                             <div className="fc-card" onClick={() => navigate('/exam-mock')}
                                 style={{ width: 160, background: 'linear-gradient(135deg, #1c0e04, #3d2010)', border: '1px solid #7a4a1a', borderRadius: 16, padding: 16, animation: 'floatC 3.8s ease-in-out infinite', textAlign: 'left' }}>
                                 <div style={{ fontSize: 22, marginBottom: 8 }}>📝</div>
-                                <div style={{ color: '#fcd34d', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Exam Mode</div>
+                                <div style={{ color: '#fcd34d', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.exam')}</div>
                                 <div style={{ color: '#a07030', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Mock tests & revision</div>
                                 <span style={{ background: '#3d2010', borderRadius: 4, color: '#f59e0b', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🎯 REAL PAPERS</span>
                             </div>

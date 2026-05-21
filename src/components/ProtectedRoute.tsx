@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle } from '../firebase';
 
@@ -39,6 +40,7 @@ const modeCards = [
 ];
 
 const LoginPage: React.FC = () => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -133,8 +135,8 @@ const LoginPage: React.FC = () => {
 
                         {/* Welcome */}
                         <div className="mb-6">
-                            <h2 style={{ color: '#eeeef8', fontSize: 20, fontWeight: 700, margin: 0 }}>Welcome back</h2>
-                            <p style={{ color: '#4a4a6a', fontSize: 13, marginTop: 4 }}>Sign in to continue learning.</p>
+                            <h2 style={{ color: '#eeeef8', fontSize: 20, fontWeight: 700, margin: 0 }}>{t('login.welcome')}</h2>
+                            <p style={{ color: '#4a4a6a', fontSize: 13, marginTop: 4 }}>{t('login.subtitle')}</p>
                         </div>
 
                         {/* Error */}
@@ -155,7 +157,7 @@ const LoginPage: React.FC = () => {
                             {loading ? (
                                 <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
                             ) : googleIcon}
-                            <span>{loading ? 'Signing in…' : 'Continue with Google'}</span>
+                            <span>{loading ? 'Signing in…' : t('login.button')}</span>
                         </button>
 
                         {/* Trust row */}
@@ -167,10 +169,7 @@ const LoginPage: React.FC = () => {
 
                         {/* Privacy */}
                         <p style={{ color: '#2a2a4a', fontSize: 10, textAlign: 'center', marginTop: 14, lineHeight: 1.6 }}>
-                            By continuing, you agree to our{' '}
-                            <a href="/privacy" style={{ color: '#4a4a8a' }}>Privacy Policy</a>
-                            {' '}and{' '}
-                            <a href="/terms" style={{ color: '#4a4a8a' }}>Terms of Use</a>.
+                            {t('login.privacy')}
                         </p>
 
                         {/* Ecosystem footer */}
