@@ -139,8 +139,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {/* Desktop collapse toggle */}
                     <button
                         onClick={onToggle}
-                        className="hidden md:flex p-1.5 rounded-lg transition-colors"
-                        style={{ color: '#3a3a5a' }}
+                        className="hidden md:flex"
+                        style={{ background: '#1a1a2e', border: '1px solid #4f46e5', color: '#818cf8', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px #4f46e540', cursor: 'pointer', flexShrink: 0 }}
                         title="Collapse sidebar"
                     >
                         <ChevronLeft className="w-4 h-4" />
@@ -822,7 +822,7 @@ const callAPI = useCallback(async (
                 <button
                     onClick={() => setDesktopSidebarOpen(true)}
                     className="hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 z-50 flex-col items-center justify-center"
-                    style={{ background: '#12122a', border: '0.5px solid #252545', borderLeft: 'none', borderRadius: '0 8px 8px 0', padding: '10px 6px', color: '#6060a0' }}
+                    style={{ background: '#1a1a2e', border: '1px solid #4f46e5', borderLeft: 'none', borderRadius: '0 8px 8px 0', padding: '10px 6px', color: '#818cf8', boxShadow: '0 0 8px #4f46e540' }}
                     title="Open sidebar"
                 >
                     <ChevronRight className="w-4 h-4" />
@@ -875,26 +875,26 @@ const callAPI = useCallback(async (
                         .fs-noscroll::-webkit-scrollbar{display:none}
                     ` }} />
 
-                    <div style={{ maxWidth: 680, margin: '0 auto', padding: '15vh 20px 40px', textAlign: 'center' }}>
+                    <div style={{ maxWidth: 680, margin: '0 auto', padding: '5vh 20px 24px', textAlign: 'center' }}>
                         {/* Animated logo */}
-                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                             <img
                                 src="/feeled-logo.webp"
                                 alt="FeelEd AI"
-                                style={{ width: 80, height: 80, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
+                                style={{ width: 120, height: 120, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
                             />
                         </div>
 
                         {/* Hero */}
-                        <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.6rem)', fontWeight: 700, letterSpacing: '-0.5px', lineHeight: 1.2, marginBottom: 10, color: isDarkMode ? '#eeeef8' : '#111111' }}>
+                        <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.6rem)', fontWeight: 700, letterSpacing: '-0.5px', lineHeight: 1.2, marginBottom: 4, color: isDarkMode ? '#eeeef8' : '#111111' }}>
                             {t('home.title')}
                         </h1>
-                        <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 36 }}>
+                        <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 16 }}>
                             {t('home.subtitle')}
                         </p>
 
                         {/* 3 Mode Cards */}
-                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
                             <div className="fc-card" onClick={() => navigate('/story')}
                                 style={{ width: 160, background: 'linear-gradient(135deg, #1a0b40, #2d1b69)', border: '1px solid #4c3a99', borderRadius: 16, padding: 16, animation: 'floatA 4s ease-in-out infinite', textAlign: 'left' }}>
                                 <div style={{ fontSize: 22, marginBottom: 8 }}>✨</div>
@@ -919,7 +919,7 @@ const callAPI = useCallback(async (
                         </div>
 
                         {/* Topic Chips */}
-                        <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 10 }}>
                             {suggestionChips.map(chip => (
                                 <button key={chip.label} className="fc-chip"
                                     onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
