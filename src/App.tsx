@@ -16,6 +16,7 @@ import Founder from './pages/Founder';
 import Research from './pages/Research';
 import PilotProgram from './pages/PilotProgram';
 import InclusiveResearch from './pages/InclusiveResearch';
+import FAQ from './pages/FAQ';
 import Teachers from './pages/Teachers';
 import Parents from './pages/Parents';
 import MyStories from './components/MyStories';
@@ -282,6 +283,7 @@ const App: React.FC = () => {
                 <Route path="/privacy"   element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/terms"    element={<PageShell showNav><TermsOfUse onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/inclusive" element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/faq"      element={<PageShell showNav><FAQ onNavigate={navigate} /></PageShell>} />
 
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
