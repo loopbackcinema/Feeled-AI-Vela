@@ -65,50 +65,6 @@ const researchData: Achievement[] = [
         link: "https://fos.tsm.ac.in/",
         status: 'UPCOMING'
     },
-    {
-        id: 5,
-        date: "Feb 12-14, 2026",
-        title: "FeelEd AI as Pedagogy: Reimagining Learning as Emotional Becoming",
-        event: "Learning, Love, and Liberation (IIT Madras Annual Conference)",
-        location: "IIT Madras, Chennai",
-        badge: "🎓 Conference Paper",
-        description: "Humanities and Social Sciences investigation into emotional becoming in intelligent environments.",
-        link: "https://ge.iitm.ac.in/lll-2026",
-        status: 'UPCOMING'
-    },
-    {
-        id: 6,
-        date: "Feb 16-20, 2026",
-        title: "FeelEd AI: A Casebook on the Real-World Impact of AI in Education",
-        event: "India-AI Impact Summit 2026 (Official Government Initiative)",
-        location: "New Delhi, India",
-        badge: "🚀 Casebook Launch",
-        description: "Presentation of scalable AI solutions for educational impact across national demographics.",
-        link: "https://impact.indiaai.gov.in/",
-        status: 'UPCOMING'
-    },
-    {
-        id: 7,
-        date: "June 22, 2026",
-        title: "Emotion-Adaptive AI System for Cognitive Belief Rewriting",
-        event: "12th International Conference on Neurology & Neurological Disorders",
-        location: "Barcelona, Spain",
-        badge: "🌟 Featured Keynote",
-        description: "Keynote presentation on the physiological response to adaptive narrative stimulus.",
-        link: "https://neurology.magnusconferences.com/program/scientific-program/2026/emotion-adaptive-ai-system-for-cognitive-belief-rewriting-a-framework-for-belief-medicine",
-        status: 'UPCOMING'
-    },
-    {
-        id: 8,
-        date: "July 2-7, 2026",
-        title: "FeelEd AI: Narrative-Driven, Explainable Adaptivity in Low-Resource Contexts",
-        event: "64th Annual Meeting of the Association for Computational Linguistics (ACL 2026)",
-        location: "San Diego, California, USA",
-        badge: "🔬 ACL Research Paper",
-        description: "Peer-reviewed paper on explainable AI (XAI) for underserved linguistic environments.",
-        link: "https://2026.aclweb.org/",
-        status: 'UPCOMING'
-    }
 ];
 
 const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
@@ -122,7 +78,7 @@ const Research: React.FC<ResearchProps> = ({ onNavigate }) => {
                     Scientific <span className="text-indigo-600 dark:text-indigo-400">Portfolio</span>
                 </h1>
                 <p className="text-2xl text-slate-500 dark:text-slate-400 font-medium max-w-4xl mx-auto leading-relaxed">
-                    A record of theoretical validation and international recognition in <span className="text-slate-900 dark:text-slate-200 font-bold">Affective Computing</span> and <span className="text-slate-900 dark:text-slate-200 font-bold">Neuroscience</span>.
+                    A record of presentations, publications, and educational AI research initiatives related to multilingual and emotion-aware learning systems.
                 </p>
             </div>
 
