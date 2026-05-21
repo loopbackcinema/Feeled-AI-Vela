@@ -282,7 +282,7 @@ const App: React.FC = () => {
                 <Route path="/founder"   element={<PageShell showNav><Founder onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/privacy"   element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/terms"    element={<PageShell showNav><TermsOfUse onNavigate={navigateTo} /></PageShell>} />
-                <Route path="/inclusive" element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
+                <Route path="/inclusive" element={<PageShell showNav><InclusiveResearch onNavigate={navigate} /></PageShell>} />
                 <Route path="/faq"      element={<PageShell showNav><FAQ onNavigate={navigate} /></PageShell>} />
 
                 <Route path="*" element={<Navigate to="/" />} />
