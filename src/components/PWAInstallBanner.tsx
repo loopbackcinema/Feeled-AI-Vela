@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { usePWA } from '../hooks/usePWA';
 
 const PWAInstallBanner: React.FC = () => {
+  // TODO: Re-enable after Play Store publish
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   const { installPrompt, isInstalled, isIOS, install } = usePWA();
   const [dismissed, setDismissed] = useState(false);
 
