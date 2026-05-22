@@ -239,11 +239,7 @@ const App: React.FC = () => {
                 } />
                 <Route path="/generator" element={
                     <ProtectedRoute>
-                        <PageShell>
-                            <div className="container mx-auto px-4 py-8 md:py-16 max-w-7xl">
-                                <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
-                            </div>
-                        </PageShell>
+                        <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
                     </ProtectedRoute>
                 } />
                 <Route path="/exam" element={

@@ -124,7 +124,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     // ── Loading state ──────────────────────────────────────────────────────────
     if (isLoading) {
         return (
-            <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+            <div style={{ minHeight: '100vh', width: '100%', margin: 0, padding: 0, background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
                 <style>{`
                     @keyframes pulseDot  { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.2)} }
                     @keyframes fadeSlide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
@@ -154,23 +154,43 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                     0%,100% { box-shadow: 0 4px 20px #4f46e550; }
                     50%     { box-shadow: 0 4px 40px #4f46e580, 0 0 60px #7c3aed30; }
                 }
-                @keyframes floatParticle {
-                    0%,100% { transform: translateY(0) translateX(0); opacity: 0.4; }
-                    50%     { transform: translateY(-20px) translateX(5px); opacity: 0.8; }
-                }
                 @keyframes spin { to { transform: rotate(360deg); } }
                 .sgf-pulse { animation: buttonPulse 2s ease-in-out infinite; }
                 .sgf-pulse:hover { transform: translateY(-2px) scale(1.01); transition: transform 0.2s ease; }
                 .sgf-card  { transition: all 0.2s ease; cursor: pointer; }
                 .sgf-card:hover { transform: translateY(-2px) scale(1.04); }
+                .sgf-cards-grid {
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
+                    gap: 8px;
+                }
+                @media (max-width: 480px) {
+                    .sgf-cards-grid {
+                        grid-template-columns: repeat(3, 1fr);
+                    }
+                    .sgf-cards-grid > :nth-child(4),
+                    .sgf-cards-grid > :nth-child(5) {
+                        grid-column: span 1;
+                    }
+                    .sgf-cards-grid-last {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 8px;
+                    }
+                }
             `}</style>
 
+            {/* Outermost — full viewport, no white borders */}
             <div style={{
-                width: '100%', minHeight: '100vh',
+                minHeight: '100vh',
+                width: '100%',
+                margin: 0,
+                padding: 0,
                 background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%)',
-                backgroundImage: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%), linear-gradient(#ffffff04 1px, transparent 1px), linear-gradient(90deg, #ffffff04 1px, transparent 1px)',
-                backgroundSize: 'auto, 24px 24px, 24px 24px',
-                position: 'relative', overflow: 'hidden',
+                position: 'relative',
+                overflow: 'hidden',
+                display: 'flex',
+                flexDirection: 'column',
             }}>
 
                 {/* Ambient blobs */}
@@ -183,40 +203,41 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                     <div key={i} style={{ position: 'absolute', top: s.top, left: s.left, width: s.size, height: s.size, borderRadius: '50%', background: s.color, animation: `twinkle ${s.dur} ease-in-out ${s.delay} infinite`, pointerEvents: 'none' }} />
                 ))}
 
-                <div style={{ position: 'relative', zIndex: 10, maxWidth: 600, margin: '0 auto', padding: '28px 20px 64px' }}>
+                {/* Inner content — full width, no max-width cap */}
+                <div style={{ position: 'relative', zIndex: 10, width: '100%', padding: '20px 24px 80px', boxSizing: 'border-box' }}>
 
                     {/* Back */}
-                    <div style={{ marginBottom: 20 }}>
+                    <div style={{ marginBottom: 16 }}>
                         <button onClick={() => navigate('/')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#7c7ca8', fontSize: 13, fontWeight: 600, background: 'none', border: '0.5px solid #3a3a5a', borderRadius: 8, padding: '6px 14px', cursor: 'pointer' }}>
                             ← Home
                         </button>
                     </div>
 
                     {/* Hero */}
-                    <div style={{ textAlign: 'center', paddingTop: 24, marginBottom: 16 }}>
+                    <div style={{ textAlign: 'center', paddingTop: 16, marginBottom: 12 }}>
                         <span style={{ display: 'inline-block', background: '#1e1258', border: '0.5px solid #4c3a99', color: '#a78bfa', borderRadius: 999, padding: '5px 16px', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
                             ✨ Story Mode
                         </span>
-                        <h1 style={{ color: '#eeeef8', fontSize: 'clamp(22px, 5vw, 34px)', fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                            Turn any lesson into a<br />cinematic AI story
+                        <h1 style={{ color: '#eeeef8', fontSize: 26, fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+                            Turn any lesson into a cinematic AI story
                         </h1>
-                        <p style={{ color: '#7070a0', fontSize: 13, margin: '0 0 16px' }}>
+                        <p style={{ color: '#7070a0', fontSize: 12, margin: '0 0 12px' }}>
                             Learn through characters, emotion, and imagination.
                         </p>
                     </div>
 
                     {/* Error */}
                     {error && (
-                        <div style={{ background: '#2d0a0a', border: '0.5px solid #7f1d1d', color: '#fca5a5', padding: '12px 16px', borderRadius: 12, fontSize: 13, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ background: '#2d0a0a', border: '0.5px solid #7f1d1d', color: '#fca5a5', padding: '10px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span>⚠️</span> {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
                         {/* ── Topic input ───────────────────────────────── */}
                         <div>
-                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                                 What should we turn into a story?
                             </label>
                             <div style={{ position: 'relative' }}>
@@ -228,7 +249,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                     required
                                     onFocus={() => setInputFocused(true)}
                                     onBlur={() => setInputFocused(false)}
-                                    style={{ width: '100%', background: 'rgba(12,12,28,0.7)', border: `1px solid ${inputFocused ? '#4f46e5' : '#3a3a5a'}`, borderRadius: 16, color: '#eeeef8', fontSize: 16, padding: '16px 52px 16px 20px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s', boxShadow: inputFocused ? '0 0 24px #4f46e535' : 'none', backdropFilter: 'blur(8px)' }}
+                                    style={{ width: '100%', background: 'rgba(12,12,28,0.7)', border: `1px solid ${inputFocused ? '#4f46e5' : '#3a3a5a'}`, borderRadius: 14, color: '#eeeef8', fontSize: 16, padding: '14px 52px 14px 18px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s', boxShadow: inputFocused ? '0 0 24px #4f46e535' : 'none', backdropFilter: 'blur(8px)' }}
                                 />
                                 <button
                                     type="button"
@@ -241,12 +262,12 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                             </div>
                         </div>
 
-                        {/* ── Story style cards ─────────────────────────── */}
+                        {/* ── Story style cards — full-width grid ───────── */}
                         <div>
-                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                                 Choose your story style
                             </label>
-                            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                            <div className="sgf-cards-grid">
                                 {STYLE_CARDS.map((card, i) => {
                                     const sel = selectedStyle === i;
                                     return (
@@ -255,14 +276,14 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                             className="sgf-card"
                                             onClick={() => setSelectedStyle(i)}
                                             style={{
-                                                minWidth: 100, flexShrink: 0, borderRadius: 14, padding: '12px 14px', userSelect: 'none',
+                                                borderRadius: 12, padding: '10px 12px', userSelect: 'none',
                                                 background: sel ? card.selGradient : card.unselBg,
                                                 border: `1px solid ${sel ? card.selBorder : card.unselBorder}`,
                                                 boxShadow: sel ? `0 4px 16px ${card.selBorder}40` : 'none',
                                             }}
                                         >
-                                            <div style={{ fontSize: 20, marginBottom: 6 }}>{card.emoji}</div>
-                                            <div style={{ color: sel ? card.selColor : card.unselColor, fontSize: 12, fontWeight: 700, marginBottom: 3 }}>{card.label}</div>
+                                            <div style={{ fontSize: 18, marginBottom: 4 }}>{card.emoji}</div>
+                                            <div style={{ color: sel ? card.selColor : card.unselColor, fontSize: 12, fontWeight: 700, marginBottom: 2 }}>{card.label}</div>
                                             <div style={{ color: sel ? 'rgba(255,255,255,0.8)' : card.unselColor, fontSize: 10, opacity: sel ? 0.9 : 0.7 }}>{card.sub}</div>
                                         </div>
                                     );
@@ -272,7 +293,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
                         {/* ── Language pills ────────────────────────────── */}
                         <div>
-                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                                 Language
                             </label>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -287,7 +308,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                                 const v = (lang === 'Tanglish' ? 'English' : lang) as keyof typeof NARRATOR_VOICE_OPTIONS;
                                                 setNarratorVoice(NARRATOR_VOICE_OPTIONS[v][0]);
                                             }}
-                                            style={{ borderRadius: 999, padding: '6px 18px', fontSize: 12, fontWeight: 600, border: `1px solid ${sel ? '#4f46e5' : '#3a3a5a'}`, background: sel ? '#4f46e5' : 'rgba(13,13,28,0.6)', color: sel ? 'white' : '#7070a0', cursor: 'pointer', transition: 'all 0.2s ease', backdropFilter: 'blur(4px)' }}
+                                            style={{ borderRadius: 999, padding: '6px 18px', fontSize: 12, fontWeight: 600, border: `1px solid ${sel ? '#4f46e5' : '#3a3a5a'}`, background: sel ? '#4f46e5' : 'rgba(13,13,28,0.6)', color: sel ? 'white' : '#7070a0', cursor: 'pointer', transition: 'all 0.2s ease' }}
                                         >
                                             {lang}
                                         </button>
@@ -363,12 +384,12 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
                         {/* Trouble logging in */}
                         {!user && (
-                            <div style={{ borderTop: '0.5px solid #2a2a4a', paddingTop: 14 }}>
+                            <div style={{ borderTop: '0.5px solid #2a2a4a', paddingTop: 12 }}>
                                 <details>
                                     <summary style={{ cursor: 'pointer', color: '#4a4a6a', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', listStyle: 'none', textAlign: 'center' }}>
                                         ❓ Trouble Logging In?
                                     </summary>
-                                    <div style={{ marginTop: 12, background: 'rgba(10,10,22,0.7)', border: '0.5px solid #2a2a4a', borderRadius: 12, padding: '14px 16px', fontSize: 12, color: '#4a4a6a', lineHeight: 1.7 }}>
+                                    <div style={{ marginTop: 10, background: 'rgba(10,10,22,0.7)', border: '0.5px solid #2a2a4a', borderRadius: 12, padding: '12px 16px', fontSize: 12, color: '#4a4a6a', lineHeight: 1.7 }}>
                                         <p style={{ marginBottom: 8 }}>If the login button doesn't respond or shows an error:</p>
                                         <ul style={{ paddingLeft: 16, margin: 0 }}>
                                             <li><strong style={{ color: '#6060a0' }}>Pop-ups:</strong> Ensure your browser allows pop-ups for this site.</li>
