@@ -11,6 +11,7 @@ import StoryDisplay from './components/StoryDisplay';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import BottomNav from './components/BottomNav';
 
 // Lazy-loaded pages — only fetched when the route is first visited
 const AboutUs          = lazy(() => import('./pages/AboutUs'));
@@ -61,7 +62,7 @@ const PAGE_TO_PATH: Record<Page, string> = {
 const PageShell: React.FC<{ children: React.ReactNode; showNav?: boolean }> = ({ children, showNav }) => {
     const nav = useNavigate();
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors md:pb-0 pb-[70px]">
             {showNav && (
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <button
@@ -287,6 +288,7 @@ const App: React.FC = () => {
             </Suspense>
             </ErrorBoundary>
             <PWAInstallBanner />
+            <BottomNav />
         </>
     );
 };
