@@ -400,6 +400,7 @@ const ChatPage: React.FC = () => {
 
     // UI state
     const [input, setInput]               = useState('');
+    const [inputFocused, setInputFocused] = useState(false);
     const [isLoading, setIsLoading]       = useState(false);
     const [sidebarOpen, setSidebarOpen]   = useState(false);
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
@@ -1055,8 +1056,8 @@ const callAPI = useCallback(async (
                 </div>
             )}
 
-            {/* Bottom area — fixed at bottom, safe-area aware */}
-            <div className="flex-shrink-0 px-4 pt-2"
+            {/* Bottom area — clears mobile bottom nav via mb-[70px] on mobile only */}
+            <div className="flex-shrink-0 px-4 pt-2 mb-[70px] md:mb-0"
                 style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)',
                     background: isDarkMode ? '#060610' : '#ffffff',
                     borderTop: `1px solid ${isDarkMode ? '#1a1a30' : '#e5e7eb'}` }}>
@@ -1086,8 +1087,18 @@ const callAPI = useCallback(async (
 
                     <form
                         onSubmit={e => { e.preventDefault(); sendMessage(input); }}
-                        className="flex items-center gap-1.5 rounded-2xl px-2 py-2 transition-colors"
-                        style={{ background: isDarkMode ? '#0c0c1c' : '#f9fafb', border: `0.5px solid ${isDarkMode ? '#252535' : '#e5e7eb'}` }}
+                        className={`flex items-center gap-1.5 rounded-2xl px-2 py-2 transition-all ${inputFocused ? 'feeled-input-focused' : ''}`}
+                        style={{
+                            background: isDarkMode ? '#0c0c1c' : '#f0f0ff',
+                            border: `1.5px solid ${
+                                inputFocused
+                                    ? '#4f46e5'
+                                    : isDarkMode ? '#3b3b6a' : '#4f46e5'
+                            }`,
+                            boxShadow: inputFocused
+                                ? (isDarkMode ? '0 0 20px #4f46e540' : '0 0 0 3px #4f46e525')
+                                : (isDarkMode ? '0 0 16px #4f46e520' : '0 0 0 3px #4f46e515'),
+                        }}
                     >
                         <button type="button" onClick={() => setPlusOpen(!plusOpen)}
                             className={`flex-shrink-0 p-2 rounded-xl transition-all ${plusOpen ? 'bg-indigo-600 text-white' : ''}`}
@@ -1100,6 +1111,8 @@ const callAPI = useCallback(async (
                             type="text"
                             value={input}
                             onChange={e => setInput(e.target.value)}
+                            onFocus={() => setInputFocused(true)}
+                            onBlur={() => setInputFocused(false)}
                             placeholder={PLACEHOLDERS[placeholderIdx]}
                             disabled={isLoading}
                             className="flex-1 bg-transparent text-sm focus:outline-none px-2 disabled:opacity-60 min-w-0"

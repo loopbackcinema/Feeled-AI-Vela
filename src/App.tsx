@@ -62,7 +62,7 @@ const PAGE_TO_PATH: Record<Page, string> = {
 const PageShell: React.FC<{ children: React.ReactNode; showNav?: boolean }> = ({ children, showNav }) => {
     const nav = useNavigate();
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors md:pb-0 pb-[70px]">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors md:pb-0 pb-[80px]">
             {showNav && (
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <button
