@@ -293,18 +293,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
                  </button>
             </div>
             
-            {/* Story Flow */}
-            <div className="space-y-8">
-                <StorySection title="Introduction" content={story.introduction} />
-                <StorySection title="Emotional_trigger" content={story.emotional_trigger} />
-                <StorySection title="Concept_explanation" content={story.concept_explanation} />
-                <StorySection title="Resolution" content={story.resolution} />
-                <div className="grid md:grid-cols-2 gap-8">
-                     <StorySection title="Moral_message" content={story.moral_message} />
-                     <StorySection title="Conclusion" content={story.conclusion} />
-                </div>
-            </div>
-
             {/* Share Story radial menu */}
             <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', marginTop: 32, marginBottom: 16, minHeight: shareOpen ? '180px' : '52px', transition: 'min-height 0.3s ease' }} className="no-print">
                 <button
