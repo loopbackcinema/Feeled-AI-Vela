@@ -257,42 +257,48 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <button onClick={() => onNavigate('/privacy')} className={navBtn('/privacy')}><span>🔒</span> Privacy Policy</button>
                             <button onClick={() => onNavigate('/terms')}   className={navBtn('/terms')}><span>📄</span> Terms of Use</button>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Social grid menu */}
-                        <div style={{ padding: '12px 8px', borderTop: '0.5px solid #1a1a2e' }}>
-                            <button
-                                onClick={() => setSocialOpen(o => !o)}
-                                style={{ width: '100%', padding: '8px', borderRadius: 10, background: socialOpen ? '#1a1040' : '#0d0d1c', border: `0.5px solid ${socialOpen ? '#4f46e5' : '#1e1e35'}`, color: socialOpen ? '#c4b5fd' : '#5a5a8a', fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                {/* Social fan-out — outside scroll area so it can overflow upward freely */}
+                <div style={{ position: 'relative', overflow: 'visible', flexShrink: 0 }}>
+                    {/* Fan icons — positioned relative to toggle button */}
+                    {([
+                        { label: 'Facebook',  icon: 'f',    bg: '#1877f2', url: 'https://www.facebook.com/profile.php?id=61584338379138' },
+                        { label: 'Instagram', icon: '✦',   bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', url: 'https://www.instagram.com/feeledai/' },
+                        { label: 'X',         icon: '𝕏',    bg: '#000',    url: 'https://x.com/FeelEdAI' },
+                        { label: 'LinkedIn',  icon: 'in',   bg: '#0077b5', url: 'https://www.linkedin.com/company/feeled-ai/' },
+                        { label: 'YouTube',   icon: '▶',    bg: '#ff0000', url: 'https://www.youtube.com/@FeelEdAI' },
+                        { label: 'Scholar',   icon: '🎓',   bg: '#4285f4', url: 'https://scholar.google.com/citations?view_op=list_works&hl=en&user=pvT3c7UAAAAJ' },
+                        { label: 'GitHub',    icon: '</>',  bg: '#24292e', url: 'https://github.com/loopbackcinema/Velayutham-S' },
+                        { label: 'ORCID',     icon: 'iD',   bg: '#a6ce39', url: 'https://orcid.org/0009-0005-6518-9291' },
+                    ] as { label: string; icon: string; bg: string; url: string }[]).map((item, i, arr) => {
+                        const angle = 180 - (i * (180 / (arr.length - 1)));
+                        const rad = angle * Math.PI / 180;
+                        const x = Math.cos(rad) * 65;
+                        const y = -Math.sin(rad) * 65;
+                        return (
+                            <a
+                                key={item.label}
+                                href={item.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={item.label}
+                                style={{ position: 'absolute', bottom: 44, left: '50%', width: 30, height: 30, borderRadius: '50%', background: item.bg, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, textDecoration: 'none', transform: socialOpen ? `translate(calc(-50% + ${x}px), ${y}px) scale(1)` : 'translate(-50%, 0) scale(0)', opacity: socialOpen ? 1 : 0, transition: `all 0.4s cubic-bezier(0.34,1.56,0.64,1) ${i * 0.04}s`, boxShadow: '0 3px 10px rgba(0,0,0,0.4)', zIndex: 20, pointerEvents: socialOpen ? 'auto' : 'none' }}
                             >
-                                <span style={{ display: 'inline-block', transition: 'transform 0.3s ease', transform: socialOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}>🔗</span>
-                                {socialOpen ? 'Hide Links' : 'Follow Us'}
-                            </button>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: socialOpen ? 10 : 0, maxHeight: socialOpen ? 100 : 0, overflow: 'hidden', transition: 'all 0.3s ease', opacity: socialOpen ? 1 : 0 }}>
-                                {([
-                                    { label: 'Facebook',  icon: 'f',  color: '#1877f2', url: 'https://www.facebook.com/profile.php?id=61584338379138' },
-                                    { label: 'Instagram', icon: '📷', color: '#e1306c', url: 'https://www.instagram.com/feeledai/' },
-                                    { label: 'X',         icon: '✕',  color: '#222',    url: 'https://x.com/FeelEdAI' },
-                                    { label: 'LinkedIn',  icon: 'in', color: '#0077b5', url: 'https://www.linkedin.com/company/feeled-ai/' },
-                                    { label: 'YouTube',   icon: '▶',  color: '#ff0000', url: 'https://www.youtube.com/@FeelEdAI' },
-                                    { label: 'GitHub',    icon: '🐙', color: '#24292e', url: 'https://github.com/loopbackcinema/Velayutham-S' },
-                                    { label: 'ORCID',     icon: 'ID', color: '#a6ce39', url: 'https://orcid.org/0009-0005-6518-9291' },
-                                    { label: 'Scholar',   icon: '🎓', color: '#4285f4', url: 'https://scholar.google.com/citations?view_op=list_works&hl=en&user=pvT3c7UAAAAJ' },
-                                ] as { label: string; icon: string; color: string; url: string }[]).map((item, i) => (
-                                    <a
-                                        key={item.label}
-                                        href={item.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        title={item.label}
-                                        style={{ width: 36, height: 36, borderRadius: '50%', background: item.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, textDecoration: 'none', margin: '0 auto', boxShadow: `0 2px 8px ${item.color}50`, transition: `transform 0.2s ease ${i * 0.03}s`, transform: socialOpen ? 'scale(1)' : 'scale(0)' }}
-                                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'; }}
-                                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
-                                    >
-                                        {item.icon}
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
+                                {item.icon}
+                            </a>
+                        );
+                    })}
+                    {/* Toggle button */}
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '8px', borderTop: '0.5px solid #1a1a2e' }}>
+                        <button
+                            onClick={() => setSocialOpen(o => !o)}
+                            style={{ width: 36, height: 36, borderRadius: '50%', background: socialOpen ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : '#0d0d1c', border: `1px solid ${socialOpen ? '#818cf8' : '#2a2a4a'}`, color: socialOpen ? '#fff' : '#5a5a8a', fontSize: 14, cursor: 'pointer', transition: 'all 0.3s ease', transform: socialOpen ? 'rotate(45deg)' : 'rotate(0deg)', boxShadow: socialOpen ? '0 0 16px #4f46e560' : 'none', zIndex: 21, position: 'relative', flexShrink: 0 }}
+                            title="Follow us"
+                        >
+                            {socialOpen ? '×' : '🔗'}
+                        </button>
                     </div>
                 </div>
 
