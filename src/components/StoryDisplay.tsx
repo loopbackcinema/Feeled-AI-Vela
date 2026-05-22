@@ -140,6 +140,12 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
     const [isSharing, setIsSharing] = useState(false);
     const [activeTab, setActiveTab] = useState<'story' | 'chat'>('story');
     const [shareOpen, setShareOpen] = useState(false);
+    const [toast, setToast] = useState('');
+
+    const showToast = (msg: string) => {
+        setToast(msg);
+        setTimeout(() => setToast(''), 2000);
+    };
     
     const chatSectionRef = useRef<HTMLDivElement>(null);
 
@@ -201,7 +207,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
                 link.download = 'feeled-ai-certificate.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                alert('Native sharing not supported. Certificate downloaded instead!');
+                showToast('Certificate downloaded ✓');
             }
         } catch (error) {
             console.error('Sharing failed:', error);
@@ -325,7 +331,7 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
                     );
                 })}
                 <button
-                    onClick={() => { navigator.clipboard.writeText(storyShareText); alert('Story copied!'); }}
+                    onClick={() => { navigator.clipboard.writeText(storyShareText); showToast('Story copied! ✓'); }}
                     title="Copy"
                     style={{ position: 'absolute', width: 40, height: 40, borderRadius: '50%', background: '#4f46e5', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, cursor: 'pointer', transform: shareOpen ? `translate(${Math.cos((30) * Math.PI / 180) * 70}px,${Math.sin((30) * Math.PI / 180) * 70}px) scale(1)` : 'translate(0,0) scale(0)', opacity: shareOpen ? 1 : 0, transition: `all 0.35s cubic-bezier(0.34,1.56,0.64,1) ${4 * 0.06}s`, boxShadow: '0 4px 12px #4f46e560', zIndex: 9, top: '50%', left: '50%', marginTop: -20, marginLeft: -20, pointerEvents: shareOpen ? 'auto' : 'none' }}
                 >
@@ -480,6 +486,17 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
         </div>
     )}
 </div>
+
+            {toast && (
+                <div style={{
+                    position: 'fixed', bottom: '90px', left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#1a1040', border: '0.5px solid #4f46e5',
+                    color: '#c4b5fd', padding: '10px 20px',
+                    borderRadius: '12px', fontSize: '13px',
+                    zIndex: 2000, boxShadow: '0 4px 16px rgba(0,0,0,0.4)'
+                }}>{toast}</div>
+            )}
 
             {/* Restart */}
             <div className="mt-24 text-center no-print">

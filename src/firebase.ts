@@ -30,7 +30,7 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export const signInWithGoogle = async () => {
   try {
-    console.log("Current Origin:", window.location.origin);
+    if (import.meta.env.DEV) { console.log("Current Origin:", window.location.origin); }
     const result = await signInWithPopup(auth, googleProvider);
     return result;
   } catch (error: any) {
@@ -80,7 +80,7 @@ async function testConnection() {
   try {
     // Attempt to fetch a dummy doc to verify connection
     await getDocFromServer(doc(db, 'test', 'connection'));
-    console.log("Firebase connection verified.");
+    if (import.meta.env.DEV) { console.log("Firebase connection verified."); }
   } catch (error: any) {
     if (error.message && error.message.includes('the client is offline')) {
       console.error("CRITICAL: Firebase Client is Offline.");
