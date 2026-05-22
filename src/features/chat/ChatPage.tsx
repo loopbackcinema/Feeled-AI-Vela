@@ -258,41 +258,40 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <button onClick={() => onNavigate('/terms')}   className={navBtn('/terms')}><span>📄</span> Terms of Use</button>
                         </div>
 
-                        {/* Social radial menu */}
-                        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', padding: '16px 0', marginTop: 12, borderTop: '0.5px solid #1e1e35', minHeight: socialOpen ? '150px' : '72px', transition: 'min-height 0.3s ease' }}>
+                        {/* Social grid menu */}
+                        <div style={{ padding: '12px 8px', borderTop: '0.5px solid #1a1a2e' }}>
                             <button
                                 onClick={() => setSocialOpen(o => !o)}
-                                style={{ width: 40, height: 40, borderRadius: '50%', background: socialOpen ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : '#0d0d1c', border: '0.5px solid #1e1e35', color: '#9090b8', fontSize: 16, cursor: 'pointer', transition: 'all 0.3s ease', transform: socialOpen ? 'rotate(360deg)' : 'rotate(0deg)', boxShadow: socialOpen ? '0 0 16px #4f46e550' : 'none', zIndex: 10, position: 'relative', flexShrink: 0 }}
-                                title="Follow us"
+                                style={{ width: '100%', padding: '8px', borderRadius: 10, background: socialOpen ? '#1a1040' : '#0d0d1c', border: `0.5px solid ${socialOpen ? '#4f46e5' : '#1e1e35'}`, color: socialOpen ? '#c4b5fd' : '#5a5a8a', fontSize: 11, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                             >
-                                {socialOpen ? '×' : '🔗'}
+                                <span style={{ display: 'inline-block', transition: 'transform 0.3s ease', transform: socialOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}>🔗</span>
+                                {socialOpen ? 'Hide Links' : 'Follow Us'}
                             </button>
-                            {([
-                                { icon: '📘', label: 'Facebook',  url: 'https://www.facebook.com/profile.php?id=61584338379138', angle: -120, color: '#1877f2' },
-                                { icon: '📷', label: 'Instagram', url: 'https://www.instagram.com/feeledai/',                    angle:  -80, color: '#e1306c' },
-                                { icon: '𝕏',  label: 'X',         url: 'https://x.com/FeelEdAI',                                 angle:  -40, color: '#000'    },
-                                { icon: 'in', label: 'LinkedIn',  url: 'https://www.linkedin.com/company/feeled-ai/',             angle:    0, color: '#0077b5' },
-                                { icon: '▶',  label: 'YouTube',   url: 'https://www.youtube.com/@FeelEdAI',                      angle:   40, color: '#ff0000' },
-                                { icon: '🆔', label: 'ORCID',     url: 'https://orcid.org/0009-0005-6518-9291',                  angle:   80, color: '#a6ce39' },
-                                { icon: '🐙', label: 'GitHub',    url: 'https://github.com/loopbackcinema/Velayutham-S',          angle:  120, color: '#24292e' },
-                            ] as { icon: string; label: string; url: string; angle: number; color: string }[]).map((item, i) => {
-                                const rad = (item.angle * Math.PI) / 180;
-                                const radius = 55;
-                                const x = Math.cos(rad) * radius;
-                                const y = Math.sin(rad) * radius;
-                                return (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginTop: socialOpen ? 10 : 0, maxHeight: socialOpen ? 100 : 0, overflow: 'hidden', transition: 'all 0.3s ease', opacity: socialOpen ? 1 : 0 }}>
+                                {([
+                                    { label: 'Facebook',  icon: 'f',  color: '#1877f2', url: 'https://www.facebook.com/profile.php?id=61584338379138' },
+                                    { label: 'Instagram', icon: '📷', color: '#e1306c', url: 'https://www.instagram.com/feeledai/' },
+                                    { label: 'X',         icon: '✕',  color: '#222',    url: 'https://x.com/FeelEdAI' },
+                                    { label: 'LinkedIn',  icon: 'in', color: '#0077b5', url: 'https://www.linkedin.com/company/feeled-ai/' },
+                                    { label: 'YouTube',   icon: '▶',  color: '#ff0000', url: 'https://www.youtube.com/@FeelEdAI' },
+                                    { label: 'GitHub',    icon: '🐙', color: '#24292e', url: 'https://github.com/loopbackcinema/Velayutham-S' },
+                                    { label: 'ORCID',     icon: 'ID', color: '#a6ce39', url: 'https://orcid.org/0009-0005-6518-9291' },
+                                    { label: 'Scholar',   icon: '🎓', color: '#4285f4', url: 'https://scholar.google.com/citations?view_op=list_works&hl=en&user=pvT3c7UAAAAJ' },
+                                ] as { label: string; icon: string; color: string; url: string }[]).map((item, i) => (
                                     <a
                                         key={item.label}
                                         href={item.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         title={item.label}
-                                        style={{ position: 'absolute', width: 32, height: 32, borderRadius: '50%', background: item.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, textDecoration: 'none', transform: socialOpen ? `translate(${x}px,${y}px) scale(1)` : 'translate(0,0) scale(0)', opacity: socialOpen ? 1 : 0, transition: `all 0.3s ease ${i * 0.05}s`, boxShadow: `0 2px 8px ${item.color}60`, zIndex: 9, top: '50%', left: '50%', marginTop: -16, marginLeft: -16, pointerEvents: socialOpen ? 'auto' : 'none' }}
+                                        style={{ width: 36, height: 36, borderRadius: '50%', background: item.color, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, textDecoration: 'none', margin: '0 auto', boxShadow: `0 2px 8px ${item.color}50`, transition: `transform 0.2s ease ${i * 0.03}s`, transform: socialOpen ? 'scale(1)' : 'scale(0)' }}
+                                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.15)'; }}
+                                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; }}
                                     >
                                         {item.icon}
                                     </a>
-                                );
-                            })}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
