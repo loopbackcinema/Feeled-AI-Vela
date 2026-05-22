@@ -7,23 +7,23 @@ interface FounderProps {
 
 const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 text-gray-900 dark:text-gray-100">
+        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-1 text-gray-900 dark:text-white">Founder</h1>
+                <h1 className="text-3xl font-bold mb-1 text-slate-900 dark:text-white">Founder</h1>
             </div>
 
             {/* Photo + name */}
             <div className="flex flex-col items-center mb-10">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-lg ring-4 ring-indigo-50 dark:ring-indigo-900/20 mb-4 bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center relative group transition-colors">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-lg ring-4 ring-indigo-50 dark:ring-indigo-900/20 mb-4 bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center relative group transition-colors">
                     <img
                         src="https://i.postimg.cc/LYm0CcTm/IMG-20260317-WA0028.jpg"
                         alt="Velayutham S"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Velayutham S</h2>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Velayutham S</h2>
                 <p className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">Founder, FeelEd AI</p>
             </div>
 
@@ -31,8 +31,8 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
 
                 {/* Section 1 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">About the Founder</h2>
-                    <div className="space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-400">
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">About the Founder</h2>
+                    <div className="space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
                         <p>
                             Velayutham S is the founder of FeelEd AI, a multilingual AI learning platform focused on conversational tutoring, storytelling, exam preparation, and mobile-first educational experiences for students.
                         </p>
@@ -45,12 +45,12 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 2 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Vision</h2>
-                    <div className="space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-400">
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Vision</h2>
+                    <div className="space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
                         <p>
                             FeelEd AI was created with a simple goal: to make learning more engaging, accessible, and approachable for students through AI-assisted educational experiences.
                         </p>
@@ -60,11 +60,11 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 3 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-5 text-gray-900 dark:text-white">Focus Areas</h2>
+                    <h2 className="text-xl font-bold mb-5 text-slate-900 dark:text-white">Focus Areas</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
                             { icon: '📘', title: 'Educational AI', desc: 'AI-assisted tutoring and revision systems' },
@@ -72,21 +72,21 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
                             { icon: '✨', title: 'Story-Based Learning', desc: 'Interactive educational storytelling approaches' },
                             { icon: '📱', title: 'Mobile-First Accessibility', desc: 'Designed for accessible learning on everyday devices' },
                         ].map(card => (
-                            <div key={card.title} className="border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
+                            <div key={card.title} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
                                 <div className="text-2xl mb-2">{card.icon}</div>
-                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">{card.title}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{card.desc}</p>
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">{card.title}</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">{card.desc}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 4 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Research & Educational Interests</h2>
-                    <p className="text-base text-gray-600 dark:text-gray-400 mb-3">Current areas of interest include:</p>
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Research & Educational Interests</h2>
+                    <p className="text-base text-slate-600 dark:text-slate-400 mb-3">Current areas of interest include:</p>
                     <ul className="space-y-1.5">
                         {[
                             'AI-assisted learning systems',
@@ -95,7 +95,7 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
                             'Student engagement workflows',
                             'Inclusive and mobile-first learning environments',
                         ].map(item => (
-                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-400">
                                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
                                 {item}
                             </li>
@@ -103,39 +103,39 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
                     </ul>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 5 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Contact</h2>
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Contact</h2>
                     <div className="space-y-3">
-                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                             <span>📧</span>
                             <a href="mailto:founder@feeledai.com" className="text-indigo-600 dark:text-indigo-400 hover:underline">founder@feeledai.com</a>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                             <span>🔗</span>
                             <a href="https://www.linkedin.com/in/velayutham-s-loopbackcinema" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">linkedin.com/in/velayutham-s-loopbackcinema</a>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                             <span>🆔</span>
                             <a href="https://orcid.org/0009-0005-6518-9291" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">orcid.org/0009-0005-6518-9291</a>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                             <span>🐙</span>
                             <a href="https://github.com/loopbackcinema/Velayutham-S" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">github.com/loopbackcinema/Velayutham-S</a>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
                             <span>📍</span>
                             <span>Chennai, Tamil Nadu, India</span>
                         </div>
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Footer note */}
-                <p className="text-sm text-gray-500 dark:text-gray-400 text-center pb-4">
+                <p className="text-sm text-slate-500 dark:text-slate-400 text-center pb-4">
                     FeelEd AI is being developed as a modern AI learning platform focused on accessibility, engagement, and multilingual education.
                 </p>
 

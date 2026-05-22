@@ -120,18 +120,18 @@ const FAQ: React.FC<FAQProps> = ({ onNavigate }) => {
     const toggle = (key: string) => setOpenItem(prev => (prev === key ? null : key));
 
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 text-gray-900 dark:text-gray-100">
+        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Frequently Asked Questions</h1>
-                <p className="text-base text-gray-500 dark:text-gray-400">
+                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Frequently Asked Questions</h1>
+                <p className="text-base text-slate-500 dark:text-slate-400">
                     Answers to common questions about FeelEd AI, learning features, safety, and classroom usage.
                 </p>
             </div>
 
             {/* Tab bar */}
-            <div className="flex gap-1 flex-wrap mb-8 border-b border-gray-200 dark:border-gray-800">
+            <div className="flex gap-1 flex-wrap mb-8 border-b border-slate-200 dark:border-slate-800">
                 {groups.map(g => (
                     <button
                         key={g.id}
@@ -139,7 +139,7 @@ const FAQ: React.FC<FAQProps> = ({ onNavigate }) => {
                         className={`px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px ${
                             activeTab === g.id
                                 ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
-                                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         }`}
                     >
                         {g.label}
@@ -148,7 +148,7 @@ const FAQ: React.FC<FAQProps> = ({ onNavigate }) => {
             </div>
 
             {/* Accordion */}
-            <div className="divide-y divide-gray-100 dark:divide-gray-800 mb-12">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 mb-12">
                 {activeGroup.items.map((item, i) => {
                     const key = `${activeTab}-${i}`;
                     const isOpen = openItem === key;
@@ -158,25 +158,25 @@ const FAQ: React.FC<FAQProps> = ({ onNavigate }) => {
                                 onClick={() => toggle(key)}
                                 className="w-full flex items-center justify-between text-left gap-4"
                             >
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">{item.q}</span>
-                                <span className={`flex-shrink-0 text-lg leading-none font-medium transition-colors ${isOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-600'}`}>
+                                <span className="text-sm font-medium text-slate-900 dark:text-white">{item.q}</span>
+                                <span className={`flex-shrink-0 text-lg leading-none font-medium transition-colors ${isOpen ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-600'}`}>
                                     {isOpen ? '−' : '+'}
                                 </span>
                             </button>
                             {isOpen && (
-                                <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{item.a}</p>
+                                <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{item.a}</p>
                             )}
                         </div>
                     );
                 })}
             </div>
 
-            <hr className="border-gray-200 dark:border-gray-800 mb-10" />
+            <hr className="border-slate-200 dark:border-slate-800 mb-10" />
 
             {/* CTA */}
             <div className="text-center">
-                <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Still Have Questions?</h2>
-                <p className="text-base text-gray-600 dark:text-gray-400 mb-6">
+                <h2 className="text-xl font-bold mb-2 text-slate-900 dark:text-white">Still Have Questions?</h2>
+                <p className="text-base text-slate-600 dark:text-slate-400 mb-6">
                     Our team is available for support, educational partnerships, and pilot collaboration enquiries.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -188,7 +188,7 @@ const FAQ: React.FC<FAQProps> = ({ onNavigate }) => {
                     </button>
                     <button
                         onClick={() => onNavigate('/pilot')}
-                        className="inline-flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+                        className="inline-flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
                     >
                         Explore Pilot Program →
                     </button>

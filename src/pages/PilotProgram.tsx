@@ -60,12 +60,12 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 text-gray-900 dark:text-gray-100">
+        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-2 text-gray-900 dark:text-white">Pilot Program</h1>
-                <p className="text-base text-gray-500 dark:text-gray-400">
+                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Pilot Program</h1>
+                <p className="text-base text-slate-500 dark:text-slate-400">
                     Collaborating with schools, educators, and learning communities to explore AI-assisted learning experiences in real classrooms.
                 </p>
             </div>
@@ -74,8 +74,8 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
 
                 {/* Section 1 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Purpose of the Pilot Program</h2>
-                    <div className="space-y-4 text-base leading-relaxed text-gray-600 dark:text-gray-400">
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Purpose of the Pilot Program</h2>
+                    <div className="space-y-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
                         <p>
                             The FeelEd AI Pilot Program is designed to help educators, schools, and learning organizations explore how AI-assisted storytelling, conversational learning, and interactive educational experiences can support student engagement and revision workflows.
                         </p>
@@ -85,12 +85,12 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 2 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Why We Are Running Pilot Programs</h2>
-                    <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-5">
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Why We Are Running Pilot Programs</h2>
+                    <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400 mb-5">
                         Classrooms are diverse, multilingual, and constantly changing. Students learn through different speeds, formats, and levels of participation. Rather than building educational technology in isolation, FeelEd AI works directly with educators and institutions to understand what is genuinely useful in real classrooms.
                     </p>
                     <ul className="space-y-2">
@@ -101,7 +101,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                             'Understand engagement patterns across different learners',
                             'Refine educational tools responsibly before scaling',
                         ].map(item => (
-                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-400">
                                 <span className="mt-0.5 text-green-600 dark:text-green-500 font-bold flex-shrink-0">✓</span>
                                 {item}
                             </li>
@@ -109,45 +109,45 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                     </ul>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 3 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Who Can Participate</h2>
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Who Can Participate</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                         {participants.map(p => (
-                            <div key={p.label} className="flex flex-col items-center text-center gap-2 border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-white dark:bg-gray-900">
+                            <div key={p.label} className="flex flex-col items-center text-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-white dark:bg-slate-900">
                                 <span className="text-2xl">{p.icon}</span>
-                                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-snug">{p.label}</p>
+                                <p className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-snug">{p.label}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 4 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-5 text-gray-900 dark:text-white">How the Pilot Works</h2>
+                    <h2 className="text-xl font-bold mb-5 text-slate-900 dark:text-white">How the Pilot Works</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {steps.map(step => (
-                            <div key={step.num} className="border border-gray-200 dark:border-gray-800 rounded-xl p-5 bg-white dark:bg-gray-900">
+                            <div key={step.num} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
                                 <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-xs font-black mb-3">
                                     {step.num}
                                 </div>
-                                <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1.5">{step.title}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{step.desc}</p>
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1.5">{step.title}</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{step.desc}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 5 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Responsible Use & Student Safety</h2>
-                    <p className="text-base text-gray-600 dark:text-gray-400 mb-4">
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Responsible Use & Student Safety</h2>
+                    <p className="text-base text-slate-600 dark:text-slate-400 mb-4">
                         Student safety, privacy, and responsible educational use are important parts of the pilot program.
                     </p>
                     <div className="bg-amber-50 dark:bg-amber-950/50 border-l-4 border-amber-400 p-4 rounded">
@@ -159,7 +159,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                                 'Teacher-guided educational participation',
                                 'Privacy-focused learning interactions',
                             ].map(item => (
-                                <li key={item} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
+                                <li key={item} className="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300">
                                     <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
                                     {item}
                                 </li>
@@ -168,11 +168,11 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 6 */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">What Participating Institutions Receive</h2>
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">What Participating Institutions Receive</h2>
                     <ul className="space-y-2">
                         {[
                             'Early access to FeelEd AI educational features',
@@ -181,7 +181,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                             'Support for multilingual learning workflows',
                             'Participation in future educational research initiatives',
                         ].map(item => (
-                            <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400">
+                            <li key={item} className="flex items-start gap-2.5 text-sm text-slate-600 dark:text-slate-400">
                                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
                                 {item}
                             </li>
@@ -189,37 +189,37 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                     </ul>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 7: FAQ */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Common Questions</h2>
-                    <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                    <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Common Questions</h2>
+                    <div className="divide-y divide-slate-200 dark:divide-slate-800">
                         {faqs.map((faq, i) => (
                             <div key={i} className="py-4">
                                 <button
                                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                                     className="w-full flex items-center justify-between text-left gap-4"
                                 >
-                                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{faq.q}</span>
-                                    <span className="text-gray-400 dark:text-gray-600 flex-shrink-0 text-lg leading-none">
+                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{faq.q}</span>
+                                    <span className="text-slate-400 dark:text-slate-600 flex-shrink-0 text-lg leading-none">
                                         {openFaq === i ? '−' : '+'}
                                     </span>
                                 </button>
                                 {openFaq === i && (
-                                    <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{faq.a}</p>
+                                    <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">{faq.a}</p>
                                 )}
                             </div>
                         ))}
                     </div>
                 </section>
 
-                <hr className="border-gray-200 dark:border-gray-800" />
+                <hr className="border-slate-200 dark:border-slate-800" />
 
                 {/* Section 8: Apply CTA */}
                 <section className="text-center">
-                    <h2 className="text-xl font-bold mb-3 text-gray-900 dark:text-white">Interested in Participating?</h2>
-                    <p className="text-base leading-relaxed text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+                    <h2 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Interested in Participating?</h2>
+                    <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400 mb-6 max-w-2xl mx-auto">
                         We welcome collaboration with institutions aligned with responsible, student-focused, and inclusive educational innovation.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -231,7 +231,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                         </a>
                         <button
                             onClick={() => onNavigate('contact')}
-                            className="inline-flex items-center justify-center gap-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
+                            className="inline-flex items-center justify-center gap-2 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 font-semibold px-6 py-3 rounded-lg transition-colors text-sm"
                         >
                             Contact FeelEd AI →
                         </button>
