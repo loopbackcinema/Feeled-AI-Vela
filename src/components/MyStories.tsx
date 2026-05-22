@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, Calendar, ChevronRight, Clock } from 'lucide-react';
+import { BookOpen, Calendar, ChevronRight, Clock, X } from 'lucide-react';
 
 interface SavedStory {
     id: string;
@@ -22,6 +22,32 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
     const [stories, setStories] = useState<SavedStory[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
+    const [toast, setToast] = useState('');
+
+    useEffect(() => {
+        if (!selectedStory) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedStory(null); };
+        window.addEventListener('keydown', onKey);
+        document.body.style.overflow = 'hidden';
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            document.body.style.overflow = '';
+        };
+    }, [selectedStory]);
+
+    const handleShare = async (story: SavedStory) => {
+        const shareText = `${story.title}\n\n${story.content}\n\n— via FeelEd AI`;
+        try {
+            if (navigator.share) {
+                await navigator.share({ title: story.title, text: shareText });
+            } else {
+                await navigator.clipboard.writeText(shareText);
+                setToast('Story copied to clipboard ✓');
+                setTimeout(() => setToast(''), 2000);
+            }
+        } catch { /* user cancelled */ }
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -116,40 +142,125 @@ const MyStories: React.FC<MyStoriesProps> = ({ onNavigate }) => {
             ) : (
                 <div className="grid gap-4">
                     {stories.map((story) => (
-                        <div 
+                        <button
                             key={story.id}
-                            className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer"
+                            type="button"
+                            onClick={() => setSelectedStory(story)}
+                            className="text-left bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-600 hover:scale-[1.01] transition-all group cursor-pointer w-full"
                         >
-                            <div className="flex justify-between items-start">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 uppercase tracking-wider mb-2">
+                            <div className="flex justify-between items-start gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">
                                         <span>{story.language}</span>
-                                        <span className="text-slate-300">•</span>
+                                        <span className="text-slate-300 dark:text-slate-700">•</span>
                                         <span className="flex items-center gap-1">
                                             <Calendar className="w-3 h-3" />
                                             {story.createdAt?.toDate ? story.createdAt.toDate().toLocaleDateString() : 'Recently'}
                                         </span>
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-indigo-600 transition-colors">
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                         {story.title}
                                     </h3>
-                                    <p className="text-slate-600 dark:text-slate-400 line-clamp-2 text-sm mb-4">
+                                    <p className="text-sm text-slate-500 dark:text-slate-500 mb-2">
                                         Topic: {story.topic}
                                     </p>
-                                    <div className="flex items-center gap-4 text-xs text-slate-500">
+                                    {story.content && (
+                                        <p className="text-slate-600 dark:text-slate-400 line-clamp-2 text-sm mb-4">
+                                            {story.content.slice(0, 120)}{story.content.length > 120 ? '…' : ''}
+                                        </p>
+                                    )}
+                                    <div className="flex items-center justify-between text-xs text-slate-500">
                                         <span className="flex items-center gap-1">
                                             <Clock className="w-3 h-3" />
                                             {story.createdAt?.toDate ? story.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                         </span>
+                                        <span className="font-semibold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+                                            Read →
+                                        </span>
                                     </div>
                                 </div>
-                                <div className="bg-slate-50 dark:bg-slate-800 p-2 rounded-lg group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors">
-                                    <ChevronRight className="text-slate-400 group-hover:text-indigo-600" />
+                                <div className="bg-slate-50 dark:bg-slate-800 p-2 rounded-lg group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 transition-colors flex-shrink-0">
+                                    <ChevronRight className="text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                                 </div>
                             </div>
-                        </div>
+                        </button>
                     ))}
                 </div>
+            )}
+
+            {/* Story modal */}
+            {selectedStory && (
+                <div
+                    onClick={() => setSelectedStory(null)}
+                    className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-6"
+                    style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        className="relative w-full max-w-[700px] max-h-[90vh] bg-white dark:bg-[#0d0d1c] rounded-2xl shadow-2xl flex flex-col border border-slate-200 dark:border-indigo-900/40"
+                    >
+                        {/* Header */}
+                        <div className="flex items-start justify-between gap-4 p-6 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">
+                                    <span>{selectedStory.language}</span>
+                                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                                    <span>{selectedStory.createdAt?.toDate ? selectedStory.createdAt.toDate().toLocaleDateString() : 'Recently'}</span>
+                                </div>
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{selectedStory.title}</h2>
+                                <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">Topic: {selectedStory.topic}</p>
+                            </div>
+                            <button
+                                onClick={() => setSelectedStory(null)}
+                                aria-label="Close"
+                                className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Scrollable content */}
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {selectedStory.content ? (
+                                <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                                    {selectedStory.content}
+                                </p>
+                            ) : (
+                                <p className="text-sm text-slate-500 dark:text-slate-500 italic">
+                                    Story content unavailable for this entry.
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Footer actions */}
+                        <div className="flex items-center justify-end gap-2 p-4 border-t border-slate-200 dark:border-slate-800 flex-shrink-0">
+                            <button
+                                onClick={() => handleShare(selectedStory)}
+                                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
+                            >
+                                🔗 Share
+                            </button>
+                            <button
+                                onClick={() => setSelectedStory(null)}
+                                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Toast */}
+            {toast && (
+                <div style={{
+                    position: 'fixed', bottom: '90px', left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#1a1040', border: '0.5px solid #4f46e5',
+                    color: '#c4b5fd', padding: '10px 20px',
+                    borderRadius: '12px', fontSize: '13px',
+                    zIndex: 2000, boxShadow: '0 4px 16px rgba(0,0,0,0.4)'
+                }}>{toast}</div>
             )}
         </div>
     );
