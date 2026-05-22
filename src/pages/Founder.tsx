@@ -7,11 +7,12 @@ interface FounderProps {
 
 const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-1 text-slate-900 dark:text-white">Founder</h1>
+                <span className="block w-fit mb-3 text-xs font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 rounded-full px-3 py-1">👤 Meet the <span className="text-indigo-600 dark:text-indigo-400">Founder</span></span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-1 text-slate-900 dark:text-white">Meet the <span className="text-indigo-600 dark:text-indigo-400">Founder</span></h1>
             </div>
 
             {/* Photo + name */}

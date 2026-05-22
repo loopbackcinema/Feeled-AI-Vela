@@ -6,11 +6,14 @@ interface InclusiveResearchProps {
 
 const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Inclusive Learning Research</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest mb-3 w-fit">
+                    ♿ Inclusive Research
+                </span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">Inclusive Learning <span className="text-indigo-600 dark:text-indigo-400">Research</span></h1>
                 <p className="text-base text-slate-500 dark:text-slate-400">
                     Exploring multilingual and accessible learning experiences for diverse student needs.
                 </p>
@@ -46,7 +49,7 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                 <section>
                     <h2 className="text-xl font-bold mb-5 text-slate-900 dark:text-white">Areas of Exploration</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-white dark:bg-slate-900">
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-slate-50 dark:bg-slate-800/60">
                             <div className="text-2xl mb-3">👁️</div>
                             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">Blind & Low-Vision Accessibility</p>
                             <ul className="space-y-1.5">
@@ -63,7 +66,7 @@ const InclusiveResearch: React.FC<InclusiveResearchProps> = ({ onNavigate }) => 
                                 ))}
                             </ul>
                         </div>
-                        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-white dark:bg-slate-900">
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-6 bg-slate-50 dark:bg-slate-800/60">
                             <div className="text-2xl mb-3">👂</div>
                             <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-3">Deaf & Hard-of-Hearing Accessibility</p>
                             <ul className="space-y-1.5">

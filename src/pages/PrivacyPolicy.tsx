@@ -8,11 +8,14 @@ interface PrivacyPolicyProps {
 
 const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-3xl mx-auto px-6 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-1 text-slate-900 dark:text-white">Privacy Policy</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest mb-3 w-fit">
+                    🔒 Privacy Policy
+                </span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-1 text-slate-900 dark:text-white">Privacy <span className="text-indigo-600 dark:text-indigo-400">Policy</span></h1>
                 <p className="text-sm text-slate-500 dark:text-slate-500 mb-5">Last Updated: May 2026</p>
                 <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     FeelEd AI ("FeelEd," "we," "our," or "us") is committed to protecting user privacy and maintaining safe, responsible educational experiences. This Privacy Policy explains how information is collected, used, stored, and protected when using FeelEd AI applications, websites, and related services.

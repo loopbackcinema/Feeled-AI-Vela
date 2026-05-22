@@ -60,11 +60,14 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Pilot Program</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest mb-3 w-fit">
+                    🚀 Pilot <span className="text-indigo-600 dark:text-indigo-400">Program</span>
+                </span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">Pilot <span className="text-indigo-600 dark:text-indigo-400">Program</span></h1>
                 <p className="text-base text-slate-500 dark:text-slate-400">
                     Collaborating with schools, educators, and learning communities to explore AI-assisted learning experiences in real classrooms.
                 </p>
@@ -116,7 +119,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                     <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">Who Can Participate</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                         {participants.map(p => (
-                            <div key={p.label} className="flex flex-col items-center text-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-white dark:bg-slate-900">
+                            <div key={p.label} className="flex flex-col items-center text-center gap-2 border border-slate-200 dark:border-slate-800 rounded-xl p-4 bg-slate-50 dark:bg-slate-800/60">
                                 <span className="text-2xl">{p.icon}</span>
                                 <p className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-snug">{p.label}</p>
                             </div>
@@ -131,7 +134,7 @@ const PilotProgram: React.FC<PilotProgramProps> = ({ onNavigate }) => {
                     <h2 className="text-xl font-bold mb-5 text-slate-900 dark:text-white">How the Pilot Works</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {steps.map(step => (
-                            <div key={step.num} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
+                            <div key={step.num} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/60">
                                 <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-xs font-black mb-3">
                                     {step.num}
                                 </div>

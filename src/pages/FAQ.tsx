@@ -120,11 +120,14 @@ const FAQ: React.FC<FAQProps> = ({ onNavigate }) => {
     const toggle = (key: string) => setOpenItem(prev => (prev === key ? null : key));
 
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-3xl mx-auto px-6 md:px-8 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Frequently Asked Questions</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest mb-3 w-fit">
+                    ❓ Frequently Asked Questions
+                </span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">Frequently Asked <span className="text-indigo-600 dark:text-indigo-400">Questions</span></h1>
                 <p className="text-base text-slate-500 dark:text-slate-400">
                     Answers to common questions about FeelEd AI, learning features, safety, and classroom usage.
                 </p>

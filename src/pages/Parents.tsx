@@ -28,11 +28,14 @@ const Parents: React.FC<ParentsProps> = ({ onNavigate }) => {
     const [openFaq, setOpenFaq] = useState<number | null>(null);
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-4xl mx-auto px-6 md:px-8 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">For Parents</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest mb-3 w-fit">
+                    👨‍👩‍👧 For <span className="text-indigo-600 dark:text-indigo-400">Parents</span>
+                </span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">For <span className="text-indigo-600 dark:text-indigo-400">Parents</span></h1>
                 <p className="text-base text-slate-500 dark:text-slate-400">
                     Learning experiences designed to feel more supportive, engaging, and accessible for students.
                 </p>
@@ -77,12 +80,12 @@ const Parents: React.FC<ParentsProps> = ({ onNavigate }) => {
                     </ul>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {[
-                            { icon: '📘', title: 'AI Tutor', desc: 'Ask questions and receive conversational explanations.' },
-                            { icon: '✨', title: 'Story Mode', desc: 'Turn lessons into engaging educational stories.' },
-                            { icon: '🎮', title: 'Game Mode', desc: 'Practice concepts through interactive activities.' },
-                            { icon: '📝', title: 'Exam Mode', desc: 'Prepare using chapter-wise mock tests and revision tools.' },
+                            { icon: '📘', title: 'AI Tutor', desc: 'Ask questions and receive conversational explanations.', accent: 'rounded-xl p-5 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50' },
+                            { icon: '✨', title: 'Story Mode', desc: 'Turn lessons into engaging educational stories.', accent: 'rounded-xl p-5 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800/50' },
+                            { icon: '🎮', title: 'Game Mode', desc: 'Practice concepts through interactive activities.', accent: 'rounded-xl p-5 bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800/50' },
+                            { icon: '📝', title: 'Exam Mode', desc: 'Prepare using chapter-wise mock tests and revision tools.', accent: 'rounded-xl p-5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50' },
                         ].map(card => (
-                            <div key={card.title} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
+                            <div key={card.title} className={card.accent}>
                                 <div className="text-2xl mb-2">{card.icon}</div>
                                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1">{card.title}</p>
                                 <p className="text-sm text-slate-600 dark:text-slate-400">{card.desc}</p>

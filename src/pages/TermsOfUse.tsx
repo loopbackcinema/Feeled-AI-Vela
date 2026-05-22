@@ -8,18 +8,21 @@ interface TermsOfUseProps {
 
 const TermsOfUse: React.FC<TermsOfUseProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-3xl mx-auto px-6 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-1 text-slate-900 dark:text-white">Terms of Use</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-widest mb-3 w-fit">
+                    📜 Terms of Use
+                </span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-1 text-slate-900 dark:text-white">Terms of <span className="text-indigo-600 dark:text-indigo-400">Use</span></h1>
                 <p className="text-sm text-slate-500 dark:text-slate-500 mb-5">Last Updated: May 2026</p>
                 <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                     Welcome to FeelEd AI. These Terms of Use ("Terms") govern your access to and use of FeelEd AI applications, websites, educational features, and related services operated by Alteridea Web Services Private Limited ("FeelEd AI," "we," "our," or "us"). By accessing or using FeelEd AI, you agree to these Terms.
                 </p>
             </div>
 
-            <div className="space-y-0">
+            <div className="space-y-2">
 
                 {/* Section 1 */}
                 <section className="border-b border-slate-100 dark:border-slate-800 pb-8 mb-8">

@@ -8,11 +8,12 @@ interface AboutUsProps {
 
 const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-3xl mx-auto px-6 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-3xl mx-auto px-6 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">About FeelEd AI</h1>
+                <span className="block w-fit mb-3 text-xs font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 rounded-full px-3 py-1">✦ About FeelEd <span className="text-indigo-600 dark:text-indigo-400">AI</span></span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">About FeelEd <span className="text-indigo-600 dark:text-indigo-400">AI</span></h1>
                 <p className="text-base text-slate-500 dark:text-slate-400 mb-6">AI-powered learning designed for Indian students.</p>
                 <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400">
                     FeelEd AI is a multilingual AI learning platform designed to make education more engaging, adaptive, and emotionally supportive for students. By combining conversational AI, storytelling, exam preparation, and interactive learning experiences, FeelEd AI helps students learn in ways that feel more personal, relatable, and less intimidating.
@@ -36,12 +37,12 @@ const AboutUs: React.FC<AboutUsProps> = ({ onNavigate }) => {
                 <h2 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">What FeelEd AI Offers</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { icon: '📘', title: 'AI Chat Tutor', desc: 'Ask questions, understand concepts, and learn subjects conversationally in Tamil or English.' },
-                        { icon: '✨', title: 'Story Mode', desc: 'Transform lessons into emotionally engaging stories that improve memory and understanding.' },
-                        { icon: '🎮', title: 'Game Mode', desc: 'Practice core concepts through interactive educational games designed for mobile-first learners.' },
-                        { icon: '📝', title: 'Exam Mode', desc: 'Prepare using real TN Board-style questions, mock tests, and AI-powered explanations.' },
+                        { icon: '📘', title: 'AI Chat Tutor', desc: 'Ask questions, understand concepts, and learn subjects conversationally in Tamil or English.', accent: 'rounded-xl p-5 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50' },
+                        { icon: '✨', title: 'Story Mode', desc: 'Transform lessons into emotionally engaging stories that improve memory and understanding.', accent: 'rounded-xl p-5 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800/50' },
+                        { icon: '🎮', title: 'Game Mode', desc: 'Practice core concepts through interactive educational games designed for mobile-first learners.', accent: 'rounded-xl p-5 bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800/50' },
+                        { icon: '📝', title: 'Exam Mode', desc: 'Prepare using real TN Board-style questions, mock tests, and AI-powered explanations.', accent: 'rounded-xl p-5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50' },
                     ].map(card => (
-                        <div key={card.title} className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
+                        <div key={card.title} className={card.accent}>
                             <div className="text-2xl mb-3">{card.icon}</div>
                             <h3 className="font-semibold text-sm mb-2 text-slate-900 dark:text-white">{card.title}</h3>
                             <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">{card.desc}</p>

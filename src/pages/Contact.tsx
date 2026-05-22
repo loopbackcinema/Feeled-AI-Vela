@@ -8,11 +8,12 @@ interface ContactProps {
 
 const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
     return (
-        <div className="w-full max-w-5xl mx-auto px-6 md:px-8 py-10 text-slate-900 dark:text-slate-100">
+        <div className="w-full max-w-5xl mx-auto px-6 md:px-8 py-10 pb-[80px] text-slate-900 dark:text-slate-100">
 
             {/* Hero */}
             <div className="mb-10">
-                <h1 className="text-3xl font-bold mb-2 text-slate-900 dark:text-white">Contact FeelEd AI</h1>
+                <span className="block w-fit mb-3 text-xs font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 rounded-full px-3 py-1">📬 Get in <span className="text-indigo-600 dark:text-indigo-400">Touch</span></span>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-2 text-slate-900 dark:text-white">Contact FeelEd <span className="text-indigo-600 dark:text-indigo-400">AI</span></h1>
                 <p className="text-base text-slate-500 dark:text-slate-400">
                     Questions, partnerships, support, or pilot collaborations — our team is here to help.
                 </p>
@@ -29,28 +30,28 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-stretch">
                         <a href="mailto:admin@feeledai.com"
-                            className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors group">
+                            className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/60 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors group">
                             <span className="text-xl">📧</span>
                             <div>
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wide mb-1">Email</p>
                                 <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 group-hover:underline break-all">admin@feeledai.com</p>
                             </div>
                         </a>
-                        <div className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
+                        <div className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/60">
                             <span className="text-xl">📱</span>
                             <div>
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wide mb-1">Phone</p>
                                 <p className="text-sm font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">+91 90924 50286</p>
                             </div>
                         </div>
-                        <div className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
+                        <div className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/60">
                             <span className="text-xl">📍</span>
                             <div>
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wide mb-1">Location</p>
                                 <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Chennai, Tamil Nadu, India</p>
                             </div>
                         </div>
-                        <div className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900">
+                        <div className="flex flex-col h-full gap-3 border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/60">
                             <span className="text-xl">🕒</span>
                             <div>
                                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wide mb-1">Support Hours</p>
@@ -97,7 +98,7 @@ const Contact: React.FC<ContactProps> = ({ onNavigate }) => {
                         <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400 mb-4">
                             If you experience issues with login, stories, exam mode, dashboards, or app performance, our support team will assist you as quickly as possible.
                         </p>
-                        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-white dark:bg-slate-900 mb-3">
+                        <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-5 bg-slate-50 dark:bg-slate-800/60 mb-3">
                             <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Please include:</p>
                             <ul className="space-y-1.5">
                                 {[
