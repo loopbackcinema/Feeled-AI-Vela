@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
-import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare } from 'lucide-react';
+import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
+import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X } from 'lucide-react';
+
+interface SavedStory {
+    id: string;
+    title: string;
+    topic: string;
+    content: string;
+    language: string;
+    createdAt: Timestamp;
+}
 
 interface ActivityLog {
     id: string;
@@ -78,6 +87,16 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [streak, setStreak] = useState(0);
     const [improvingSubject, setImprovingSubject] = useState<string | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(true);
+    const [recentStories, setRecentStories] = useState<SavedStory[]>([]);
+    const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
+
+    useEffect(() => {
+        if (!selectedStory) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedStory(null); };
+        window.addEventListener('keydown', onKey);
+        document.body.style.overflow = 'hidden';
+        return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
+    }, [selectedStory]);
     
     // Profile form state
     const [formData, setFormData] = useState({
@@ -128,10 +147,33 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                 setImprovingSubject(findImprovingSubject(fetchedScores));
                 setScores(fetchedScores.slice(0, 5));
 
-                // Count stories
+                // Count + fetch recent stories
                 const storiesQ = query(collection(db, 'stories'), where('userId', '==', user.uid));
                 const storiesSnap = await getDocs(storiesQ);
                 setStoriesCount(storiesSnap.size);
+
+                try {
+                    const recentQ = query(
+                        collection(db, 'stories'),
+                        where('userId', '==', user.uid),
+                        orderBy('createdAt', 'desc'),
+                        limit(3)
+                    );
+                    const recentSnap = await getDocs(recentQ);
+                    const rs: SavedStory[] = [];
+                    recentSnap.forEach(d => rs.push({ id: d.id, ...d.data() } as SavedStory));
+                    setRecentStories(rs);
+                } catch {
+                    // index may not exist yet — fall back to in-memory sort of already-fetched snap
+                    const fallback: SavedStory[] = [];
+                    storiesSnap.forEach(d => fallback.push({ id: d.id, ...d.data() } as SavedStory));
+                    fallback.sort((a, b) => {
+                        const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                        const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                        return tb - ta;
+                    });
+                    setRecentStories(fallback.slice(0, 3));
+                }
 
                 // Count chat sessions
                 const chatsQ = query(collection(db, 'chat_sessions'), where('userId', '==', user.uid));
@@ -277,6 +319,52 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
             <p className="text-center text-sm text-slate-400 dark:text-slate-500 font-medium mb-8 -mt-2">
                 Every question brings you closer to mastery ✨
             </p>
+
+            {/* Recent Stories */}
+            {!isLoadingData && (recentStories.length > 0) && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm mb-8">
+                    <div className="flex items-center justify-between mb-5">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <BookOpen className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                            Recent Stories
+                        </h2>
+                        <button
+                            onClick={() => onNavigate('my-stories')}
+                            className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                        >
+                            View All Stories →
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {recentStories.map(story => (
+                            <button
+                                key={story.id}
+                                type="button"
+                                onClick={() => setSelectedStory(story)}
+                                className="text-left p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 hover:border-violet-400 dark:hover:border-violet-600 hover:scale-[1.02] transition-all group cursor-pointer"
+                            >
+                                <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-1.5">
+                                    {story.language}
+                                </p>
+                                <p className="text-sm font-bold text-slate-900 dark:text-white mb-1 line-clamp-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                                    {story.title}
+                                </p>
+                                {story.content && (
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2">
+                                        {story.content.slice(0, 80)}…
+                                    </p>
+                                )}
+                                <p className="text-xs text-slate-400 dark:text-slate-600">
+                                    {story.createdAt?.toDate ? story.createdAt.toDate().toLocaleDateString() : ''}
+                                </p>
+                                <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 mt-2 group-hover:translate-x-0.5 transition-transform">
+                                    Read →
+                                </p>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
@@ -455,6 +543,62 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
 
                 </div>
             </div>
+
+            {/* Story modal */}
+            {selectedStory && (
+                <div
+                    onClick={() => setSelectedStory(null)}
+                    className="fixed inset-0 z-[1000] flex items-center justify-center p-4 md:p-6"
+                    style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+                >
+                    <div
+                        onClick={e => e.stopPropagation()}
+                        className="relative w-full max-w-[700px] max-h-[90vh] bg-white dark:bg-[#0d0d1c] rounded-2xl shadow-2xl flex flex-col border border-slate-200 dark:border-indigo-900/40"
+                    >
+                        <div className="flex items-start justify-between gap-4 p-6 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 text-xs font-medium text-violet-600 dark:text-violet-400 uppercase tracking-wider mb-2">
+                                    <span>{selectedStory.language}</span>
+                                    <span className="text-slate-300 dark:text-slate-700">•</span>
+                                    <span>{selectedStory.createdAt?.toDate ? selectedStory.createdAt.toDate().toLocaleDateString() : 'Recently'}</span>
+                                </div>
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{selectedStory.title}</h2>
+                                <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">Topic: {selectedStory.topic}</p>
+                            </div>
+                            <button
+                                onClick={() => setSelectedStory(null)}
+                                aria-label="Close"
+                                className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {selectedStory.content ? (
+                                <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                                    {selectedStory.content}
+                                </p>
+                            ) : (
+                                <p className="text-sm text-slate-500 italic">Story content unavailable for this entry.</p>
+                            )}
+                        </div>
+                        <div className="flex items-center justify-end gap-2 p-4 border-t border-slate-200 dark:border-slate-800 flex-shrink-0">
+                            <button
+                                onClick={() => onNavigate('my-stories')}
+                                className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-colors"
+                            >
+                                View All Stories →
+                            </button>
+                            <button
+                                onClick={() => setSelectedStory(null)}
+                                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold transition-colors"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
