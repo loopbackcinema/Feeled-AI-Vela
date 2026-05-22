@@ -259,7 +259,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </div>
 
                         {/* Social radial menu */}
-                        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', padding: '16px 0', marginTop: 12, borderTop: '0.5px solid #1e1e35', minHeight: socialOpen ? '130px' : '72px', transition: 'min-height 0.3s ease' }}>
+                        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', padding: '16px 0', marginTop: 12, borderTop: '0.5px solid #1e1e35', minHeight: socialOpen ? '150px' : '72px', transition: 'min-height 0.3s ease' }}>
                             <button
                                 onClick={() => setSocialOpen(o => !o)}
                                 style={{ width: 40, height: 40, borderRadius: '50%', background: socialOpen ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : '#0d0d1c', border: '0.5px solid #1e1e35', color: '#9090b8', fontSize: 16, cursor: 'pointer', transition: 'all 0.3s ease', transform: socialOpen ? 'rotate(360deg)' : 'rotate(0deg)', boxShadow: socialOpen ? '0 0 16px #4f46e550' : 'none', zIndex: 10, position: 'relative', flexShrink: 0 }}
@@ -268,11 +268,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 {socialOpen ? '×' : '🔗'}
                             </button>
                             {([
-                                { icon: '📘', label: 'Facebook',  url: 'https://www.facebook.com/profile.php?id=61584338379138', angle: -90, color: '#1877f2' },
-                                { icon: '📷', label: 'Instagram', url: 'https://www.instagram.com/feeledai/',                    angle: -45, color: '#e1306c' },
-                                { icon: '𝕏',  label: 'X',         url: 'https://x.com/FeelEdAI',                                 angle:   0, color: '#111'    },
-                                { icon: 'in', label: 'LinkedIn',  url: 'https://www.linkedin.com/company/feeled-ai/',             angle:  45, color: '#0077b5' },
-                                { icon: '▶',  label: 'YouTube',   url: 'https://www.youtube.com/@FeelEdAI',                      angle:  90, color: '#ff0000' },
+                                { icon: '📘', label: 'Facebook',  url: 'https://www.facebook.com/profile.php?id=61584338379138', angle: -120, color: '#1877f2' },
+                                { icon: '📷', label: 'Instagram', url: 'https://www.instagram.com/feeledai/',                    angle:  -80, color: '#e1306c' },
+                                { icon: '𝕏',  label: 'X',         url: 'https://x.com/FeelEdAI',                                 angle:  -40, color: '#000'    },
+                                { icon: 'in', label: 'LinkedIn',  url: 'https://www.linkedin.com/company/feeled-ai/',             angle:    0, color: '#0077b5' },
+                                { icon: '▶',  label: 'YouTube',   url: 'https://www.youtube.com/@FeelEdAI',                      angle:   40, color: '#ff0000' },
+                                { icon: '🆔', label: 'ORCID',     url: 'https://orcid.org/0009-0005-6518-9291',                  angle:   80, color: '#a6ce39' },
+                                { icon: '🐙', label: 'GitHub',    url: 'https://github.com/loopbackcinema/Velayutham-S',          angle:  120, color: '#24292e' },
                             ] as { icon: string; label: string; url: string; angle: number; color: string }[]).map((item, i) => {
                                 const rad = (item.angle * Math.PI) / 180;
                                 const radius = 55;

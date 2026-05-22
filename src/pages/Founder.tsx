@@ -118,6 +118,14 @@ const Founder: React.FC<FounderProps> = ({ onNavigate }) => {
                             <a href="https://www.linkedin.com/in/velayutham-s-loopbackcinema" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">linkedin.com/in/velayutham-s-loopbackcinema</a>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                            <span>🆔</span>
+                            <a href="https://orcid.org/0009-0005-6518-9291" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">orcid.org/0009-0005-6518-9291</a>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
+                            <span>🐙</span>
+                            <a href="https://github.com/loopbackcinema/Velayutham-S" target="_blank" rel="noopener noreferrer" className="text-indigo-600 dark:text-indigo-400 hover:underline">github.com/loopbackcinema/Velayutham-S</a>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
                             <span>📍</span>
                             <span>Chennai, Tamil Nadu, India</span>
                         </div>
