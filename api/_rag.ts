@@ -137,3 +137,67 @@ export function formatCitations(citations: RagCitation[]): string {
     if (best.chunkType && best.chunkType !== 'text') parts.push(best.chunkType);
     return parts.join(' · ');
 }
+
+// ── Exam frequency ──────────────────────────────────────────────────────────────
+// Queries Pinecone exam-paper docs to find which years a topic appeared.
+
+export interface ExamFrequency {
+    years: string[];   // sorted, e.g. ['2021', '2023', '2024']
+    count: number;     // total matching exam paper chunks
+}
+
+export async function fetchExamFrequency(params: {
+    query:   string;
+    subject: string;
+    grade:   string;
+}): Promise<ExamFrequency> {
+    const { API_KEY, PINECONE_API_KEY, PINECONE_HOST } = process.env;
+    if (!API_KEY || !PINECONE_API_KEY || !PINECONE_HOST) return { years: [], count: 0 };
+
+    try {
+        const embRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: { parts: [{ text: params.query }] },
+                    outputDimensionality: 768,
+                }),
+            }
+        );
+        if (!embRes.ok) return { years: [], count: 0 };
+        const embData = await embRes.json() as any;
+        const vector: number[] = embData.embedding?.values ?? [];
+        if (!vector.length) return { years: [], count: 0 };
+
+        const pinRes = await fetch(`${PINECONE_HOST}/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Api-Key': PINECONE_API_KEY },
+            body: JSON.stringify({
+                vector,
+                topK: 10,
+                includeMetadata: true,
+                filter: {
+                    docType: { $eq: 'question-paper' },
+                    grade:   { $eq: params.grade },
+                },
+            }),
+        });
+        if (!pinRes.ok) return { years: [], count: 0 };
+        const pinData = await pinRes.json() as any;
+
+        const EXAM_SCORE_THRESHOLD = 0.5;
+        const good = ((pinData.matches ?? []) as any[]).filter((m: any) => (m.score ?? 0) >= EXAM_SCORE_THRESHOLD);
+
+        const yearSet = new Set<string>();
+        for (const m of good) {
+            const y = m.metadata?.year as string;
+            if (y) yearSet.add(String(y));
+        }
+        const years = Array.from(yearSet).sort();
+        return { years, count: good.length };
+    } catch {
+        return { years: [], count: 0 };
+    }
+}

@@ -16,6 +16,11 @@ import {
     doc, setDoc, serverTimestamp, Timestamp, startAfter,
     QueryDocumentSnapshot,
 } from 'firebase/firestore';
+import {
+    getStudentProfile, upsertStudentProfile,
+    updateStudiedTopic, incrementQuestionCount,
+    StudentProfile,
+} from '../../lib/studentMemory';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
@@ -418,6 +423,9 @@ const ChatPage: React.FC = () => {
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const lastHistoryDoc = useRef<QueryDocumentSnapshot | null>(null);
 
+    // Student mentor profile (cached for the session)
+    const studentProfileRef = useRef<StudentProfile | null>(null);
+
     // Plus panel context state
     const [setupBoard, setSetupBoard]       = useState(board || ALL_BOARDS[0]);
     const [setupGrade, setSetupGrade]       = useState(standard || '10th');
@@ -505,10 +513,15 @@ const ChatPage: React.FC = () => {
         return () => document.removeEventListener('mousedown', handle);
     }, [plusOpen]);
 
-    // Load initial chat history
+    // Load initial chat history + bootstrap student profile
     useEffect(() => {
-        if (!user) { setChatHistory([]); return; }
+        if (!user) { setChatHistory([]); studentProfileRef.current = null; return; }
         loadHistory(false);
+        // Bootstrap profile (create if new user, fetch if returning)
+        (async () => {
+            await upsertStudentProfile(user.uid, user.displayName || 'Student', language || 'English');
+            studentProfileRef.current = await getStudentProfile(user.uid);
+        })();
     }, [user]);
 
     const loadHistory = async (loadMore: boolean) => {
@@ -595,6 +608,7 @@ const callAPI = useCallback(async (
     imgBase64?: string,
     imgMime?: string,
 ) => {
+    const profile = studentProfileRef.current;
     const res = await fetch('/api/chat-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -604,6 +618,13 @@ const callAPI = useCallback(async (
             context: ctx,
             imageBase64: imgBase64 || undefined,
             imageMimeType: imgMime || undefined,
+            // Mentor context — only sent when profile is loaded
+            ...(profile && {
+                studentName:   profile.name,
+                studiedTopics: profile.studied_topics ?? [],
+                weakTopics:    profile.weak_topics    ?? [],
+                examTarget:    profile.exam_target    ?? null,
+            }),
         }),
     });
     if (!res.ok) throw new Error('API error');
@@ -708,13 +729,21 @@ const callAPI = useCallback(async (
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
+            // Update student memory — fire-and-forget, never blocks the UI
+            if (user) {
+                const topicLabel = `${subject}: ${trimmed.slice(0, 60)}`;
+                updateStudiedTopic(user.uid, topicLabel).catch(() => {});
+                incrementQuestionCount(user.uid).catch(() => {});
+                // Refresh cached profile in background
+                getStudentProfile(user.uid).then(p => { if (p) studentProfileRef.current = p; }).catch(() => {});
+            }
         } catch {
             setSession({ chatMessages: [...updated, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
         } finally {
             setIsLoading(false);
             setUploadedImage(null);
         }
-    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession]);
+    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession, user]);
 
     // TTS
     const playTts = async (text: string) => {
