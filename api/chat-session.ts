@@ -46,9 +46,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // ── Textbook RAG ──────────────────────────────────────────────────────
         const ragSection = ragContext
-            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${subject}):\n${ragContext}\n\nUse the above textbook content as your PRIMARY source when answering.
-
-SOURCE: ${formatCitations(citations)}`
+            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${subject}):\n${ragContext}\n\nSOURCE: ${formatCitations(citations)}\n\nUse the above textbook content as your PRIMARY source. When answering, mention the page number from SOURCE at the bottom of your response like: "📚 TN Samacheer — Page [X]"`
             : 'No textbook excerpt — answer from general academic knowledge.';
 
         // ── Exam frequency note ───────────────────────────────────────────────
