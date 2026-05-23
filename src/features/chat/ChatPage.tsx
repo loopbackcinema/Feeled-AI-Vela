@@ -23,6 +23,8 @@ import {
     updateRecentMode,
     updateLearningStreak,
 } from '../../services/memoryService';
+import type { StudentMemory } from '../../services/memoryService';
+import { generateStudyInsights, generateNextTopicSuggestions, generateWeaknessRecommendations } from '../../services/intelligenceEngine';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
@@ -460,6 +462,7 @@ const ChatPage: React.FC = () => {
     ];
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
     const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
+    const [studentMemory, setStudentMemory] = useState<StudentMemory | null>(null);
 
     // Offline/online detection
     useEffect(() => {
@@ -519,8 +522,11 @@ const ChatPage: React.FC = () => {
         // Fire-and-forget — never blocks UI
         updateRecentMode({ uid: user.uid, mode: 'chat' });
         updateLearningStreak(user.uid);
-        // DEBUG — remove after confirming students_memory doc exists
-        getStudentMemory(user.uid).then(mem => console.log('[FeelEd Memory]', JSON.stringify(mem, null, 2)));
+        // Load memory for personalized empty state (2s timeout)
+        Promise.race([
+            getStudentMemory(user.uid),
+            new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
+        ]).then(mem => { if (mem) setStudentMemory(mem); });
     }, [user]);
 
     const loadHistory = async (loadMore: boolean) => {
@@ -970,6 +976,57 @@ const callAPI = useCallback(async (
                                 <span style={{ background: '#3d2010', borderRadius: 4, color: '#f59e0b', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🎯 REAL PAPERS</span>
                             </div>
                         </div>
+
+                        {/* Personalized insights + recommended topics */}
+                        {studentMemory && (() => {
+                            const insights = generateStudyInsights(studentMemory);
+                            const nextTopics = generateNextTopicSuggestions(studentMemory);
+                            const weakRec = generateWeaknessRecommendations(studentMemory);
+                            const recommended = [...nextTopics, ...weakRec].slice(0, 4);
+                            if (!insights.length && !recommended.length) return null;
+                            return (
+                                <div style={{ marginBottom: 12 }}>
+                                    {insights.length > 0 && (
+                                        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+                                            {insights.map((insight, i) => (
+                                                <span key={i} style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                                                    padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                                                    background: isDarkMode ? 'rgba(79,70,229,0.12)' : 'rgba(99,102,241,0.08)',
+                                                    border: `1px solid ${isDarkMode ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.2)'}`,
+                                                    color: isDarkMode ? '#a5b4fc' : '#4f46e5',
+                                                    whiteSpace: 'nowrap',
+                                                }}>
+                                                    {insight}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {recommended.length > 0 && (
+                                        <div>
+                                            <p style={{ fontSize: 10, fontWeight: 700, color: isDarkMode ? '#3a3a5a' : '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                                                Recommended for you
+                                            </p>
+                                            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                {recommended.map((topic, i) => (
+                                                    <button key={i} className="fc-chip"
+                                                        onClick={() => { setInput(topic); inputRef.current?.focus(); }}
+                                                        style={{
+                                                            padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                                                            background: isDarkMode ? '#0d0d20' : '#f0f0ff',
+                                                            border: `1px solid ${isDarkMode ? '#2a2a50' : '#c7d2fe'}`,
+                                                            color: isDarkMode ? '#818cf8' : '#4338ca',
+                                                            cursor: 'pointer',
+                                                        }}>
+                                                        ✦ {topic}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
 
                         {/* Topic Chips */}
                         <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 10 }}>

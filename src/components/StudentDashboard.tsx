@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
-import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X } from 'lucide-react';
+import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X, Zap, Brain } from 'lucide-react';
+import { getStudentMemory, StudentMemory } from '../services/memoryService';
+import { generateExamReadiness, generateCrossModeSuggestions, generateStudyInsights } from '../services/intelligenceEngine';
 
 interface SavedStory {
     id: string;
@@ -89,6 +91,9 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [recentStories, setRecentStories] = useState<SavedStory[]>([]);
     const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
+    const [studentMemory, setStudentMemory] = useState<StudentMemory | null>(null);
+    const [learningGoal, setLearningGoal] = useState<StudentMemory['learningGoal']>(null);
+    const [savingGoal, setSavingGoal] = useState(false);
 
     useEffect(() => {
         if (!selectedStory) return;
@@ -185,6 +190,17 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                 const mockTestSnap = await getDocs(mockTestQ);
                 setMockTestCount(mockTestSnap.size);
 
+                // Load student memory (2s timeout, non-blocking)
+                Promise.race([
+                    getStudentMemory(user.uid),
+                    new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
+                ]).then(mem => {
+                    if (mem) {
+                        setStudentMemory(mem);
+                        setLearningGoal(mem.learningGoal);
+                    }
+                });
+
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
             } finally {
@@ -213,6 +229,20 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
             alert("Failed to update profile. Please try again.");
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleSaveGoal = async (goal: StudentMemory['learningGoal']) => {
+        if (!user || savingGoal) return;
+        setSavingGoal(true);
+        setLearningGoal(goal);
+        try {
+            await updateDoc(doc(db, 'students_memory', user.uid), { learningGoal: goal });
+            setStudentMemory(prev => prev ? { ...prev, learningGoal: goal } : prev);
+        } catch (e) {
+            console.warn('handleSaveGoal error:', e);
+        } finally {
+            setSavingGoal(false);
         }
     };
 
@@ -319,6 +349,114 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
             <p className="text-center text-sm text-slate-400 dark:text-slate-500 font-medium mb-8 -mt-2">
                 Every question brings you closer to mastery ✨
             </p>
+
+            {/* Learning Goal Selector */}
+            {studentMemory && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Target className="w-5 h-5 text-indigo-500" />
+                        <h2 className="text-base font-bold text-slate-900 dark:text-white">Learning Goal</h2>
+                        {savingGoal && <Loader2 className="w-4 h-4 animate-spin text-indigo-400 ml-auto" />}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                        {([null, '10th Board', '12th Board', 'NEET', 'JEE'] as StudentMemory['learningGoal'][]).map(goal => (
+                            <button
+                                key={String(goal)}
+                                onClick={() => handleSaveGoal(goal)}
+                                disabled={savingGoal}
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+                                    learningGoal === goal
+                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400 dark:hover:border-indigo-500'
+                                }`}
+                            >
+                                {goal === null ? '🌱 Explore' : goal === 'NEET' ? '🩺 NEET' : goal === 'JEE' ? '⚙️ JEE' : goal === '10th Board' ? '📘 10th Board' : '📗 12th Board'}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Exam Readiness Score */}
+            {studentMemory && (() => {
+                const score = generateExamReadiness(studentMemory);
+                const color = score >= 70 ? '#22c55e' : score >= 40 ? '#f59e0b' : '#ef4444';
+                const label = score >= 70 ? 'Exam Ready 🎯' : score >= 40 ? 'Getting There 📈' : 'Needs Practice 💪';
+                const insights = generateStudyInsights(studentMemory);
+                return (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Zap className="w-5 h-5 text-yellow-500" />
+                            <h2 className="text-base font-bold text-slate-900 dark:text-white">Exam Readiness</h2>
+                        </div>
+                        <div className="flex items-center gap-5">
+                            <div className="relative w-20 h-20 flex-shrink-0">
+                                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-100 dark:text-slate-800" />
+                                    <circle
+                                        cx="18" cy="18" r="15.9" fill="none"
+                                        stroke={color} strokeWidth="2.5"
+                                        strokeDasharray={`${score} 100`} strokeLinecap="round"
+                                    />
+                                </svg>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-xl font-black" style={{ color }}>{score}</span>
+                                </div>
+                            </div>
+                            <div className="flex-1">
+                                <p className="font-bold text-slate-900 dark:text-white mb-1" style={{ color }}>{label}</p>
+                                {insights.length > 0 && (
+                                    <ul className="space-y-1">
+                                        {insights.map((ins, i) => (
+                                            <li key={i} className="text-xs text-slate-500 dark:text-slate-400">{ins}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* Cross-Mode: What to do next */}
+            {studentMemory && (() => {
+                const suggestions = generateCrossModeSuggestions(studentMemory);
+                if (!suggestions.length) return null;
+                const modeConfig: Record<string, { emoji: string; color: string; bg: string; route: string }> = {
+                    chat:  { emoji: '💬', color: '#6366f1', bg: 'rgba(99,102,241,0.08)',  route: '/' },
+                    story: { emoji: '✨', color: '#8b5cf6', bg: 'rgba(139,92,246,0.08)', route: '/story' },
+                    exam:  { emoji: '📝', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', route: '/exam-mock' },
+                    game:  { emoji: '🎮', color: '#22c55e', bg: 'rgba(34,197,94,0.08)',  route: '/game' },
+                };
+                return (
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-8">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Brain className="w-5 h-5 text-purple-500" />
+                            <h2 className="text-base font-bold text-slate-900 dark:text-white">What to do next</h2>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            {suggestions.map((s, i) => {
+                                const cfg = modeConfig[s.mode] || modeConfig.chat;
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => onNavigate(s.route === '/' ? 'home' : s.mode === 'exam' ? 'exam-mock' : s.mode)}
+                                        className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all text-left group"
+                                        style={{ background: cfg.bg }}
+                                    >
+                                        <span className="text-xl">{cfg.emoji}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: cfg.color }}>{s.action}</p>
+                                            <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{s.topic}</p>
+                                        </div>
+                                        <span className="text-slate-300 dark:text-slate-700 group-hover:text-indigo-400 transition-colors text-lg">→</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Recent Stories */}
             {!isLoadingData && (recentStories.length > 0) && (
