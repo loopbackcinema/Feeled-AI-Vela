@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import {
     getPersonalizedContext,
+    getStudentMemory,
     updateRecentTopic,
     updateRecentMode,
     updateLearningStreak,
@@ -518,6 +519,8 @@ const ChatPage: React.FC = () => {
         // Fire-and-forget — never blocks UI
         updateRecentMode({ uid: user.uid, mode: 'chat' });
         updateLearningStreak(user.uid);
+        // DEBUG — remove after confirming students_memory doc exists
+        getStudentMemory(user.uid).then(mem => console.log('[FeelEd Memory]', JSON.stringify(mem, null, 2)));
     }, [user]);
 
     const loadHistory = async (loadMore: boolean) => {
