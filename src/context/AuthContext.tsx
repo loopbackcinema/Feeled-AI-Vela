@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { useSessionStore } from '../stores/sessionStore';
 import { useStudentStore } from '../stores/studentStore';
+import { initializeStudentMemory } from '../services/memoryService';
 
 interface AuthContextType {
   user: User | null;
@@ -39,6 +40,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (firebaseUser) {
+          // Bootstrap memory engine — non-blocking
+          initializeStudentMemory(firebaseUser);
+
           // Check/Create user profile in Firestore
           const userRef = doc(db, 'users', firebaseUser.uid);
           try {

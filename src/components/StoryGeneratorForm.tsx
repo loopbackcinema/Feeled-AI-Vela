@@ -4,6 +4,7 @@ import { StoryRequest } from '../types';
 import { STD_OPTIONS, NARRATOR_VOICE_OPTIONS } from '../constants';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle } from '../firebase';
+import { updateRecentTopic, updateRecentMode } from '../services/memoryService';
 
 interface StoryGeneratorFormProps {
     onSubmit: (request: StoryRequest) => void;
@@ -106,6 +107,9 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         e.preventDefault();
         if (!user || !topic.trim()) return;
         onSubmit({ topic, std, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
+        // Memory engine — fire-and-forget
+        updateRecentTopic({ uid: user.uid, topic: topic.trim(), subject: 'General', source: 'story' });
+        updateRecentMode({ uid: user.uid, mode: 'story' });
     };
 
     const startListening = () => {

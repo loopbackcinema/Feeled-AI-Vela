@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
-import { fetchRagContext, fetchExamFrequency, normaliseGrade, effectiveMedium, formatCitations } from './_rag.js';
+import { fetchRagContext, fetchExamFrequency, normaliseGrade, effectiveMedium } from './_rag.js';
 
 function parseSuggestions(text: string): { reply: string; suggestions: string[] } {
     const match = text.match(/\nFOLLOWUP:([^\n]+)/);
@@ -23,11 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             context,
             imageBase64,
             imageMimeType,
-            // Student mentor context (optional — injected by ChatPage when available)
-            studentName,
-            studiedTopics,
-            weakTopics,
-            examTarget,
+            studentContext = '', // pre-formatted string from getPersonalizedContext()
         } = req.body;
 
         const lang    = context?.language || 'English';
@@ -36,54 +32,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const subject = context?.subject || 'General';
         const board   = context?.board   || 'TN Samacheer';
 
-        // Run textbook RAG and exam frequency lookup in parallel
+        // Run textbook RAG + exam frequency in parallel — no added latency
         const [ragResult, examFreq] = await Promise.all([
             fetchRagContext({ query: message, subject, grade, medium, board }),
             fetchExamFrequency({ query: message, subject, grade }),
         ]);
 
-        const { context: ragContext, chunksFound, citations } = ragResult;
-        const { scores } = ragResult;
+        const { context: ragContext, chunksFound, citations, scores } = ragResult;
 
         if (process.env.NODE_ENV !== 'production') {
-            console.log(`[chat-session] grade="${grade}" subject="${subject}" medium="${medium}" RAG=${chunksFound} examYears=[${examFreq.years.join(',')}] scores=[${scores.join(',')}]`);
+            console.log(`[chat-session] grade="${grade}" subject="${subject}" RAG=${chunksFound} examYears=[${examFreq.years.join(',')}] scores=[${scores.join(',')}]`);
         }
 
-        // ── RAG section ────────────────────────────────────────────────────────
+        // ── Textbook RAG ──────────────────────────────────────────────────────
         const ragSection = ragContext
             ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${subject}):\n${ragContext}\n\nUse the above textbook content as your PRIMARY source when answering.`
             : 'No textbook excerpt — answer from general academic knowledge.';
 
-        // ── Exam frequency note ─────────────────────────────────────────────────
+        // ── Exam frequency note ───────────────────────────────────────────────
         const examNote = examFreq.years.length > 0
-            ? `EXAM INTELLIGENCE: This topic has appeared in TN Board question papers from: ${examFreq.years.join(', ')}. Mention this naturally in your response when relevant — e.g. "This concept appeared in the ${examFreq.years.join(' and ')} TN Board exams."  In Tamil responses use: "இந்த கேள்வி ${examFreq.years.join(', ')} தேர்வில் கேட்கப்பட்டது."`
+            ? `EXAM INTELLIGENCE: This topic appeared in TN Board papers for: ${examFreq.years.join(', ')}. Mention this naturally in the Exam Tip section. Tamil: "இந்த கேள்வி ${examFreq.years.join(', ')} தேர்வில் கேட்கப்பட்டது."`
             : '';
 
-        // ── Student context section ─────────────────────────────────────────────
-        const studentContextParts: string[] = [];
-        if (studentName)                           studentContextParts.push(`- Student name: ${studentName}`);
-        if (studiedTopics?.length)                 studentContextParts.push(`- Recently studied: ${(studiedTopics as string[]).slice(-5).join(', ')}`);
-        if (weakTopics?.length)                    studentContextParts.push(`- Topics needing more practice: ${(weakTopics as string[]).join(', ')}`);
-        if (examTarget && examTarget !== 'null')   studentContextParts.push(`- Exam goal: ${examTarget}`);
-
-        const studentSection = studentContextParts.length > 0
-            ? `STUDENT CONTEXT (use naturally — never list this back to them):\n${studentContextParts.join('\n')}`
-            : '';
-
-        // ── System instruction ──────────────────────────────────────────────────
-        const systemInstruction = `You are FeelEd AI, a warm and knowledgeable learning mentor for Tamil Nadu Samacheer students (Grade ${grade}, ${subject}).
+        // ── Mentor personality ────────────────────────────────────────────────
+        const mentorPersonality = `You are FeelEd AI — a warm, knowledgeable educational mentor for Indian students following TN Samacheer curriculum (Grade ${grade}, ${subject}).
 
 MENTOR PERSONALITY:
-- You are a calm, supportive teacher — NOT a hype machine or motivational speaker.
-- Address the student by name occasionally when it feels natural (not every reply).
-- Give SPECIFIC encouragement based on their actual progress:
-  GOOD: "You're building solid understanding of ${subject} fundamentals"
-  AVOID: "You're amazing!" or "I believe in you more than anyone!"
-- Never use therapy-style language or fake emotional bonding.
-- Connect learning to their exam goal when it adds genuine value.
-- Be knowledgeable and direct — students trust depth, not cheerleading.
+- Address the student by first name occasionally (naturally, not every message)
+- Give SPECIFIC encouragement based on their actual progress only
+  GOOD: "You've been exploring ${subject} concepts consistently"
+  NEVER: "You are amazing!" or generic over-praise
+- Mention exam relevance naturally when the topic appeared in past TN Board papers
+- Connect learning to future goals when relevant (NEET / JEE / Board exams)
+- End concept responses with 2-3 follow-up options when helpful
+- Tone: educational, warm, practical — NOT therapist-like, NOT a hype machine
+- NEVER: overpraise, emotionally manipulate, act like a counsellor
 
-${studentSection}
+${studentContext ? studentContext : ''}`;
+
+        // ── Full system instruction ───────────────────────────────────────────
+        const systemInstruction = `${mentorPersonality}
 
 ${ragSection}
 
@@ -105,7 +93,7 @@ For concept/academic questions, structure your response EXACTLY like this:
 [One relatable real-world example]
 
 **📝 Exam Tip**
-[One specific tip for exam writing — include exam frequency info here if examNote is present]
+[One specific tip for exam writing — include exam year info here if available]
 
 **⚡ Quick Revision**
 [3-5 bullet points of key points]
@@ -125,7 +113,7 @@ where question1, question2, question3 are 3 short follow-up questions the studen
 
         const contents = [
             ...(history as any[]).map((msg: any) => ({
-                role: msg.role === 'user' ? 'user' : 'model',
+                role:  msg.role === 'user' ? 'user' : 'model',
                 parts: [{ text: msg.text }],
             })),
             { role: 'user', parts: userParts },
@@ -147,11 +135,11 @@ where question1, question2, question3 are 3 short follow-up questions the studen
         }
         const { reply, suggestions } = parseSuggestions(fullText);
         res.write('data: ' + JSON.stringify({
-            done: true,
-            ragUsed: chunksFound > 0,
+            done:        true,
+            ragUsed:     chunksFound > 0,
             suggestions,
             ragCitations: citations,
-            examYears: examFreq.years,
+            examYears:   examFreq.years,
         }) + '\n\n');
         res.end();
 

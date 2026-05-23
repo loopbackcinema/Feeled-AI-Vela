@@ -17,10 +17,11 @@ import {
     QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import {
-    getStudentProfile, upsertStudentProfile,
-    updateStudiedTopic, incrementQuestionCount,
-    StudentProfile,
-} from '../../lib/studentMemory';
+    getPersonalizedContext,
+    updateRecentTopic,
+    updateRecentMode,
+    updateLearningStreak,
+} from '../../services/memoryService';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
@@ -423,9 +424,6 @@ const ChatPage: React.FC = () => {
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const lastHistoryDoc = useRef<QueryDocumentSnapshot | null>(null);
 
-    // Student mentor profile (cached for the session)
-    const studentProfileRef = useRef<StudentProfile | null>(null);
-
     // Plus panel context state
     const [setupBoard, setSetupBoard]       = useState(board || ALL_BOARDS[0]);
     const [setupGrade, setSetupGrade]       = useState(standard || '10th');
@@ -513,15 +511,13 @@ const ChatPage: React.FC = () => {
         return () => document.removeEventListener('mousedown', handle);
     }, [plusOpen]);
 
-    // Load initial chat history + bootstrap student profile
+    // Load initial chat history + fire mode/streak tracking
     useEffect(() => {
-        if (!user) { setChatHistory([]); studentProfileRef.current = null; return; }
+        if (!user) { setChatHistory([]); return; }
         loadHistory(false);
-        // Bootstrap profile (create if new user, fetch if returning)
-        (async () => {
-            await upsertStudentProfile(user.uid, user.displayName || 'Student', language || 'English');
-            studentProfileRef.current = await getStudentProfile(user.uid);
-        })();
+        // Fire-and-forget — never blocks UI
+        updateRecentMode({ uid: user.uid, mode: 'chat' });
+        updateLearningStreak(user.uid);
     }, [user]);
 
     const loadHistory = async (loadMore: boolean) => {
@@ -607,24 +603,18 @@ const callAPI = useCallback(async (
     ctx: { board: string; grade: string; subject: string; language: string; medium: string },
     imgBase64?: string,
     imgMime?: string,
+    studentCtx?: string,
 ) => {
-    const profile = studentProfileRef.current;
     const res = await fetch('/api/chat-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            message: text,
-            history: history.slice(-12).map(m => ({ role: m.role, text: m.text })),
-            context: ctx,
-            imageBase64: imgBase64 || undefined,
-            imageMimeType: imgMime || undefined,
-            // Mentor context — only sent when profile is loaded
-            ...(profile && {
-                studentName:   profile.name,
-                studiedTopics: profile.studied_topics ?? [],
-                weakTopics:    profile.weak_topics    ?? [],
-                examTarget:    profile.exam_target    ?? null,
-            }),
+            message:       text,
+            history:       history.slice(-12).map(m => ({ role: m.role, text: m.text })),
+            context:       ctx,
+            imageBase64:   imgBase64  || undefined,
+            imageMimeType: imgMime    || undefined,
+            studentContext: studentCtx || undefined,
         }),
     });
     if (!res.ok) throw new Error('API error');
@@ -697,13 +687,17 @@ const callAPI = useCallback(async (
                 const questionToAsk = pendingQuestion
                     ? `The student is in grade ${actualGrade} studying ${actualSubject}. They originally asked: "${pendingQuestion}". Please answer that question now.`
                     : trimmed;
+                const studentCtx = user ? await Promise.race([
+                    getPersonalizedContext(user.uid),
+                    new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
+                ]) : '';
                 const data = await callAPI(questionToAsk, newMessages, {
                     board: actualBoard,
                     grade: actualGrade.replace(/\D/g, '') || '10',
                     subject: actualSubject,
                     language: actualLang,
                     medium: actualLang === 'Tamil' ? 'Tamil' : 'English',
-                });
+                }, undefined, undefined, studentCtx);
                 const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
                 const finalMsgs = [...newMessages, aiMsg];
                 setSession({ chatMessages: finalMsgs });
@@ -724,18 +718,18 @@ const callAPI = useCallback(async (
         setIsLoading(true);
 
         try {
-            const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime);
+            const studentCtx = user ? await Promise.race([
+                getPersonalizedContext(user.uid),
+                new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
+            ]) : '';
+            const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime, studentCtx);
             const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
-            // Update student memory — fire-and-forget, never blocks the UI
+            // Update memory — fire-and-forget, never blocks UI
             if (user) {
-                const topicLabel = `${subject}: ${trimmed.slice(0, 60)}`;
-                updateStudiedTopic(user.uid, topicLabel).catch(() => {});
-                incrementQuestionCount(user.uid).catch(() => {});
-                // Refresh cached profile in background
-                getStudentProfile(user.uid).then(p => { if (p) studentProfileRef.current = p; }).catch(() => {});
+                updateRecentTopic({ uid: user.uid, topic: trimmed.slice(0, 60), subject: subject || 'General', source: 'chat' });
             }
         } catch {
             setSession({ chatMessages: [...updated, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });

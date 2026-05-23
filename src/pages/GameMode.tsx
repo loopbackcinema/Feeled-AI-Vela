@@ -1,13 +1,20 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { updateRecentMode } from '../services/memoryService';
 
 const GameMode: React.FC = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [iframeError, setIframeError] = useState(false);
     const [loading, setLoading] = useState(true);
     const [key, setKey] = useState(0);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        if (user) updateRecentMode({ uid: user.uid, mode: 'game' });
+    }, [user]);
 
     useEffect(() => {
         setLoading(true);

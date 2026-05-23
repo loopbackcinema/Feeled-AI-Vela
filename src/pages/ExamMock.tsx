@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { updateRecentMode, updateExamPerformance } from '../services/memoryService';
 
 interface QuestionOption {
     a: string;
@@ -124,6 +125,8 @@ export default function ExamMock() {
         if (!chapter.trim()) { setError('Please enter a chapter name'); return; }
         setError('');
         setPhase('loading');
+        // Fire-and-forget mode tracking
+        if (user) updateRecentMode({ uid: user.uid, mode: 'exam' });
         setLoadingStep(0);
 
         const stepInterval = setInterval(() => {
@@ -184,8 +187,8 @@ export default function ExamMock() {
 
         console.log('[exam] user:', user?.uid, 'questions:', questions.length);
         if (user) {
-        try {
-            const mcqQuestions = questions.filter(q => q.questionType === 'MCQ');
+            try {
+                const mcqQuestions = questions.filter(q => q.questionType === 'MCQ');
                 const mcqCorrect = mcqQuestions.filter(q => newResults[q.id]?.correct).length;
                 await addDoc(collection(db, 'practice_scores'), {
                     userId: user.uid,
@@ -203,6 +206,14 @@ export default function ExamMock() {
                     topic: chapter,
                     subject,
                     createdAt: serverTimestamp(),
+                });
+                // Memory engine — fire-and-forget
+                updateExamPerformance({
+                    uid:     user.uid,
+                    chapter,
+                    subject,
+                    score:   mcqCorrect,
+                    total:   mcqQuestions.length || 1,
                 });
             } catch (err) {
                 console.error('Failed to save exam score:', err);
