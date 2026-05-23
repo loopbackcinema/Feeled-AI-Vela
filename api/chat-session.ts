@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
-import { fetchRagContext, fetchExamFrequency, normaliseGrade, effectiveMedium } from './_rag.js';
+import { fetchRagContext, fetchExamFrequency, normaliseGrade, effectiveMedium, formatCitations } from './_rag.js';
 
 function parseSuggestions(text: string): { reply: string; suggestions: string[] } {
     const match = text.match(/\nFOLLOWUP:([^\n]+)/);
@@ -46,7 +46,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // ── Textbook RAG ──────────────────────────────────────────────────────
         const ragSection = ragContext
-            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${subject}):\n${ragContext}\n\nUse the above textbook content as your PRIMARY source when answering.`
+            ? `TEXTBOOK REFERENCE (TN Samacheer Class ${grade} — ${subject}):\n${ragContext}\n\nUse the above textbook content as your PRIMARY source when answering.
+
+SOURCE: ${formatCitations(citations)}`
             : 'No textbook excerpt — answer from general academic knowledge.';
 
         // ── Exam frequency note ───────────────────────────────────────────────
