@@ -22,6 +22,7 @@ import {
     updateRecentTopic,
     updateRecentMode,
     updateLearningStreak,
+    markWelcomeShown,
 } from '../../services/memoryService';
 import type { StudentMemory } from '../../services/memoryService';
 import { generateStudyInsights, generateNextTopicSuggestions, generateWeaknessRecommendations } from '../../services/intelligenceEngine';
@@ -41,6 +42,39 @@ const STT_LANG: Record<string, string> = {
 const CONTEXT_QUESTION =
     'Which grade and subject are you studying? 🎓\n\nநீங்கள் எந்த வகுப்பு படிக்கிறீர்கள்? எந்த பாடம்?';
 const HISTORY_PAGE_SIZE = 15;
+
+const WELCOME_SETS = [
+    // SET 1 — Friendly Academic
+    [
+        { text: `வணக்கம் {name} 👋\nநான் FeelEd AI — உங்கள் personal learning companion.` },
+        { text: `கதைகள், mock tests, games, மற்றும் AI tutoring மூலம் நாம் சேர்ந்து கற்றுக்கொள்ளலாம் 📚\nTN Samacheer syllabus முழுவதும் நான் உங்களுக்கு உதவுவேன்.` },
+        { text: `இன்று என்ன topic-ல் தொடங்கலாம்? ✨` },
+    ],
+    // SET 2 — Exam Mentor
+    [
+        { text: `ஹாய் {name} ✨\nBoard exams-க்கு smart-ஆக prepare செய்ய FeelEd AI உங்களுடன் இருக்கும்.` },
+        { text: `Important questions, revision tricks, மற்றும் practice tests மூலம் step-by-step முன்னேறலாம் 📝\nReal TN Board questions (2021-2026) என்னிடம் இருக்கின்றன!` },
+        { text: `இப்போது எந்த subject பார்க்க விரும்புகிறீர்கள்? 🎯` },
+    ],
+    // SET 3 — Curiosity Style
+    [
+        { text: `வணக்கம் {name} 🚀\nஒரு topic-ஐ story-ஆகவும், game-ஆகவும், exam practice-ஆகவும் கற்றுக்கொள்ள முடியும்!` },
+        { text: `அதற்காகதான் FeelEd AI உருவாக்கப்பட்டது.\nகேள்விகள் கேளுங்கள், stories கேளுங்கள், mock tests எழுதுங்கள் — எல்லாம் ஒரே இடத்தில் 🌟` },
+        { text: `இன்று என்ன explore செய்யலாம்? 💡` },
+    ],
+    // SET 4 — Calm Supportive
+    [
+        { text: `ஹாய் {name} 🌱\nஒவ்வொருவரும் வெவ்வேறு விதமாக கற்கிறார்கள் — அது சரிதான்.` },
+        { text: `FeelEd AI உங்கள் pace-க்கு ஏற்ற மாதிரி explanations, stories, மற்றும் practice வழங்கும் 📖\nஒவ்வொரு கேள்வியும் முக்கியமானது — தயங்காமல் கேளுங்கள்.` },
+        { text: `Ready to start learning today? 😊` },
+    ],
+    // SET 5 — Future-Oriented
+    [
+        { text: `வணக்கம் {name} ⚡\nநீங்கள் இன்று கற்கும் concepts தான் உங்கள் future exams மற்றும் career-க்கான அடித்தளம்.` },
+        { text: `FeelEd AI மூலம் NEET, JEE, Board exams — எதற்கும் smart-ஆக prepare செய்யலாம் 🎓\nReal questions, AI explanations, stories — எல்லாம் இங்கே இருக்கிறது.` },
+        { text: `முதலில் எந்த பாடத்தில் தொடங்கலாம்? 📚` },
+    ],
+];
 
 function getSubjectsForGrade(grade: string): string[] {
     const n = parseInt(grade);
@@ -463,6 +497,9 @@ const ChatPage: React.FC = () => {
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
     const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
     const [studentMemory, setStudentMemory] = useState<StudentMemory | null>(null);
+    const [welcomeStep, setWelcomeStep] = useState(0);
+    const [welcomeMessages, setWelcomeMessages] = useState<{ text: string }[]>([]);
+    const [showingWelcome, setShowingWelcome] = useState(false);
 
     // Offline/online detection
     useEffect(() => {
@@ -526,7 +563,13 @@ const ChatPage: React.FC = () => {
         Promise.race([
             getStudentMemory(user.uid),
             new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
-        ]).then(mem => { if (mem) setStudentMemory(mem); });
+        ]).then(mem => {
+            if (!mem) return;
+            setStudentMemory(mem);
+            if (!mem.welcomeShown && chatMessages.length === 0) {
+                triggerWelcome(mem, user.uid, user.displayName);
+            }
+        });
     }, [user]);
 
     const loadHistory = async (loadMore: boolean) => {
@@ -568,6 +611,27 @@ const ChatPage: React.FC = () => {
         } catch { /* ignore */ } finally {
             setIsLoadingHistory(false);
         }
+    };
+
+    // First-time welcome message sequence
+    const triggerWelcome = async (memory: StudentMemory, uid: string, displayName: string | null) => {
+        const variant = Math.floor(Math.random() * 5); // 0-4
+        const firstName = (displayName || 'Student').split(' ')[0];
+        const selectedSet = WELCOME_SETS[variant].map(msg => ({
+            text: msg.text.replace('{name}', firstName),
+        }));
+        setWelcomeMessages(selectedSet);
+        setShowingWelcome(true);
+        setWelcomeStep(0);
+        // Mark shown immediately — fire-and-forget
+        markWelcomeShown(uid, variant + 1);
+        // Reveal messages one by one
+        for (let i = 0; i < selectedSet.length; i++) {
+            await new Promise<void>(resolve => setTimeout(resolve, 900));
+            setWelcomeStep(i + 1);
+        }
+        await new Promise<void>(resolve => setTimeout(resolve, 500));
+        setShowingWelcome(false);
     };
 
     // Save session to Firestore
@@ -927,12 +991,82 @@ const callAPI = useCallback(async (
                         @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
                         @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
                         @keyframes logoFloat{0%,100%{transform:translateY(0px);filter:drop-shadow(0 0 15px #4f46e540)}50%{transform:translateY(-8px);filter:drop-shadow(0 0 25px #4f46e570)}}
+                        @keyframes fadeSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
                         .fc-card{transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer}
                         .fc-card:hover{transform:translateY(-2px) scale(1.04)!important}
                         .fc-chip{transition:border-color 0.15s,background 0.15s;cursor:pointer}
                         .fs-noscroll{scrollbar-width:none}
                         .fs-noscroll::-webkit-scrollbar{display:none}
                     ` }} />
+
+                    {/* Welcome message sequence */}
+                    {welcomeStep > 0 && (
+                        <div style={{ maxWidth: 480, margin: '24px auto 0', padding: '0 20px' }}>
+                            {welcomeMessages.slice(0, welcomeStep).map((msg, i) => (
+                                <div key={i} style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12,
+                                    animation: 'fadeSlide 0.4s ease-out both',
+                                }}>
+                                    <div style={{
+                                        width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                                        background: '#1a1040', border: '0.5px solid #4c3a99',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+                                    }}>🤖</div>
+                                    <div style={{
+                                        background: isDarkMode ? '#0d0d1c' : '#f5f3ff',
+                                        border: `0.5px solid ${isDarkMode ? '#1e1e35' : '#ddd6fe'}`,
+                                        borderRadius: 16, borderTopLeftRadius: 4,
+                                        padding: '10px 14px',
+                                        color: isDarkMode ? '#eeeef8' : '#1e1b4b',
+                                        fontSize: 13, lineHeight: 1.6, whiteSpace: 'pre-line',
+                                        textAlign: 'left',
+                                    }}>
+                                        {msg.text}
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Quick-action chips after all messages are shown */}
+                            {!showingWelcome && welcomeStep >= 3 && (
+                                <div style={{
+                                    display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
+                                    marginTop: 4, marginBottom: 20,
+                                    animation: 'fadeSlide 0.4s ease-out both',
+                                }}>
+                                    {([
+                                        { icon: '📖', label: 'Create a Story', path: '/story' },
+                                        { icon: '📝', label: 'Start Mock Test', path: '/exam-mock' },
+                                        { icon: '🎮', label: 'Play & Practice', path: '/game' },
+                                        { icon: '💬', label: 'Ask a Doubt',     path: null },
+                                    ] as { icon: string; label: string; path: string | null }[]).map((item, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => item.path ? navigate(item.path) : inputRef.current?.focus()}
+                                            style={{
+                                                background: isDarkMode ? '#0d0d1c' : '#f5f3ff',
+                                                border: `0.5px solid ${isDarkMode ? '#2a2a4a' : '#ddd6fe'}`,
+                                                borderRadius: 20, padding: '7px 13px',
+                                                color: isDarkMode ? '#9090b8' : '#5b21b6',
+                                                fontSize: 12, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: 5,
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={e => {
+                                                (e.currentTarget as HTMLElement).style.borderColor = '#4f46e5';
+                                                (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#c4b5fd' : '#4338ca';
+                                            }}
+                                            onMouseLeave={e => {
+                                                (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#ddd6fe';
+                                                (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#9090b8' : '#5b21b6';
+                                            }}
+                                        >
+                                            {item.icon} {item.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div style={{ maxWidth: 680, margin: '0 auto', padding: '5vh 20px 24px', textAlign: 'center' }}>
                         {/* Animated logo */}

@@ -13,6 +13,8 @@ export interface StudentMemory {
     updatedAt:         any;
     preferredLanguage: 'English' | 'Tamil' | 'Tanglish';
     learningGoal:      null | '10th Board' | '12th Board' | 'NEET' | 'JEE';
+    welcomeShown:      boolean;
+    welcomeVariant:    number;
     streak: {
         current:        number;
         longest:        number;
@@ -68,6 +70,8 @@ export async function initializeStudentMemory(user: {
             updatedAt:  serverTimestamp(),
             preferredLanguage: 'English',
             learningGoal:      null,
+            welcomeShown:      false,
+            welcomeVariant:    0,
             streak: { current: 1, longest: 1, lastActiveDate: new Date().toISOString().split('T')[0] },
             recentTopics:          [],
             weakTopics:            [],
@@ -169,6 +173,18 @@ export async function updateLearningStreak(uid: string): Promise<void> {
         });
     } catch (e) {
         console.warn('updateLearningStreak error:', e);
+    }
+}
+
+export async function markWelcomeShown(uid: string, variant: number): Promise<void> {
+    try {
+        await updateDoc(doc(db, 'students_memory', uid), {
+            welcomeShown:   true,
+            welcomeVariant: variant,
+            updatedAt:      serverTimestamp(),
+        });
+    } catch (e) {
+        console.warn('markWelcomeShown error:', e);
     }
 }
 
