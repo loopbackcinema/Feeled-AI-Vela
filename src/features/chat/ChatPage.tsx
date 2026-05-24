@@ -26,7 +26,7 @@ import {
 } from '../../services/memoryService';
 import type { StudentMemory } from '../../services/memoryService';
 import { generateStudyInsights, generateNextTopicSuggestions, generateWeaknessRecommendations } from '../../services/intelligenceEngine';
-import { generateFuturePathSuggestions, generateExamPriorityRecommendations, generateLearningHabitInsights } from '../../services/mentorEngine';
+import { generateFuturePathSuggestions, generateExamPriorityRecommendations, generateLearningHabitInsights, generateCrossModeContext } from '../../services/mentorEngine';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
@@ -770,6 +770,7 @@ const callAPI = useCallback(async (
                         baseCtx,
                         generateFuturePathSuggestions(studentMemory).slice(0, 2).join(' '),
                         `Exam priorities: ${generateExamPriorityRecommendations(studentMemory).slice(0, 2).join(', ')}`,
+                        generateCrossModeContext(studentMemory),
                     ].filter(Boolean).join('\n')
                     : baseCtx;
                 const data = await callAPI(questionToAsk, newMessages, {

@@ -5,8 +5,11 @@ import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Time
 import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X, Zap, Brain } from 'lucide-react';
 import { getStudentMemory, StudentMemory } from '../services/memoryService';
 import { generateExamReadiness, generateCrossModeSuggestions, generateStudyInsights } from '../services/intelligenceEngine';
-import { generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule } from '../services/mentorEngine';
-import type { StudyTask, RevisionItem } from '../services/mentorEngine';
+import {
+    generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule,
+    generateSmartRevisionPlan, detectLearningPatterns,
+} from '../services/mentorEngine';
+import type { StudyTask, RevisionItem, RevisionPriority, LearningPattern } from '../services/mentorEngine';
 
 interface SavedStory {
     id: string;
@@ -99,6 +102,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [dailyTasks, setDailyTasks] = useState<StudyTask[]>([]);
     const [revisionQueue, setRevisionQueue] = useState<RevisionItem[]>([]);
     const [mentorNote, setMentorNote] = useState('');
+    const [smartRevision, setSmartRevision] = useState<RevisionPriority[]>([]);
+    const [learningPatterns, setLearningPatterns] = useState<LearningPattern[]>([]);
 
     useEffect(() => {
         if (!selectedStory) return;
@@ -206,6 +211,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                         setDailyTasks(generateDailyLearningGoals(mem));
                         setRevisionQueue(generateRevisionSchedule(mem));
                         setMentorNote(generateMotivationalGuidance(mem));
+                        setSmartRevision(generateSmartRevisionPlan(mem));
+                        setLearningPatterns(detectLearningPatterns(mem));
                     }
                 });
 
@@ -563,6 +570,77 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                             </button>
                         ))}
                     </div>
+                </div>
+            )}
+
+            {/* Smart Revision Engine */}
+            {smartRevision.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-lg">🔁</span>
+                        <h2 className="text-base font-bold text-slate-900 dark:text-white">Smart Revision Plan</h2>
+                    </div>
+                    <div className="space-y-2">
+                        {smartRevision.map((item, i) => {
+                            const priorityStyle = item.priority === 'HIGH'
+                                ? { bg: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-200 dark:border-red-900', badge: 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400' }
+                                : item.priority === 'MEDIUM'
+                                ? { bg: 'bg-amber-50 dark:bg-amber-950/20', border: 'border-amber-200 dark:border-amber-900', badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400' }
+                                : { bg: 'bg-slate-50 dark:bg-slate-800/40', border: 'border-slate-200 dark:border-slate-800', badge: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400' };
+                            return (
+                                <div key={i} className={`flex items-start gap-3 p-3 rounded-xl border ${priorityStyle.bg} ${priorityStyle.border}`}>
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${priorityStyle.badge}`}>
+                                        {item.priority}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{item.topic}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">{item.reason}</p>
+                                        {item.improvementNote && (
+                                            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">{item.improvementNote}</p>
+                                        )}
+                                        {item.daysSinceLastStudy && (
+                                            <p className="text-xs text-slate-400 dark:text-slate-600 mt-0.5">{item.daysSinceLastStudy} days since last study</p>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => onNavigate('exam-mock')}
+                                        className="flex-shrink-0 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                                    >
+                                        Practice →
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Learning Pattern Detection */}
+            {learningPatterns.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-lg">🧠</span>
+                        <h2 className="text-base font-bold text-slate-900 dark:text-white">Your Learning Patterns</h2>
+                    </div>
+                    <div className="space-y-3">
+                        {learningPatterns.map((p, i) => {
+                            const typeConfig = {
+                                strength:    { dot: 'bg-emerald-400', text: 'text-emerald-700 dark:text-emerald-400' },
+                                opportunity: { dot: 'bg-amber-400',   text: 'text-amber-700 dark:text-amber-400' },
+                                habit:       { dot: 'bg-blue-400',    text: 'text-blue-700 dark:text-blue-400' },
+                                curiosity:   { dot: 'bg-purple-400',  text: 'text-purple-700 dark:text-purple-400' },
+                            }[p.type];
+                            return (
+                                <div key={i} className="flex items-start gap-3">
+                                    <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${typeConfig.dot}`} />
+                                    <p className={`text-sm ${typeConfig.text} leading-snug`}>{p.observation}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <p className="text-xs text-slate-400 dark:text-slate-600 mt-3 border-t border-slate-100 dark:border-slate-800 pt-3">
+                        Patterns are based on your recent activity and update as you learn.
+                    </p>
                 </div>
             )}
 

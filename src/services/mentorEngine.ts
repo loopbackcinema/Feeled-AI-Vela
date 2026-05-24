@@ -14,6 +14,20 @@ export interface RevisionItem {
     reason: string;
 }
 
+export interface RevisionPriority {
+    topic: string;
+    subject: string;
+    priority: 'HIGH' | 'MEDIUM' | 'LOW';
+    reason: string;
+    daysSinceLastStudy?: number;
+    improvementNote?: string;
+}
+
+export interface LearningPattern {
+    type: 'strength' | 'opportunity' | 'habit' | 'curiosity';
+    observation: string;
+}
+
 export function generateDailyLearningGoals(memory: StudentMemory): StudyTask[] {
     const tasks: StudyTask[] = [];
 
@@ -323,6 +337,186 @@ export function generateLearningHabitInsights(memory: StudentMemory): string[] {
     }
 
     return insights.slice(0, 3);
+}
+
+// ── Part 4: Smart Revision Engine ────────────────────────────────────────────
+
+export function generateSmartRevisionPlan(memory: StudentMemory): RevisionPriority[] {
+    const plan: RevisionPriority[] = [];
+    const seen = new Set<string>();
+    const now = Date.now();
+    const day = 24 * 60 * 60 * 1000;
+
+    // HIGH: weak topics with score >= 3
+    for (const wt of (memory.weakTopics || []).sort((a, b) => b.weaknessScore - a.weaknessScore)) {
+        if (plan.length >= 6) break;
+        if (seen.has(wt.topic.toLowerCase())) continue;
+        seen.add(wt.topic.toLowerCase());
+        plan.push({
+            topic: wt.topic, subject: wt.subject, priority: wt.weaknessScore >= 3 ? 'HIGH' : 'MEDIUM',
+            reason: wt.weaknessScore >= 3
+                ? 'Repeatedly struggled — needs focused revision cycle'
+                : 'Some difficulty detected — one more revision recommended',
+        });
+    }
+
+    // HIGH: exam performance < 50% (check for repeated failure)
+    const examCounts: Record<string, number> = {};
+    for (const perf of (memory.recentExamPerformance || [])) {
+        const ratio = perf.total > 0 ? perf.score / perf.total : 1;
+        if (ratio < 0.5) examCounts[perf.chapter] = (examCounts[perf.chapter] || 0) + 1;
+    }
+    for (const [chapter, count] of Object.entries(examCounts)) {
+        if (plan.length >= 6) break;
+        if (seen.has(chapter.toLowerCase())) continue;
+        const perf = memory.recentExamPerformance.find(p => p.chapter === chapter)!;
+        seen.add(chapter.toLowerCase());
+        const note = count >= 2 ? `Chemical Equations still needs one more revision cycle.` : undefined;
+        plan.push({
+            topic: chapter, subject: perf.subject,
+            priority: count >= 2 ? 'HIGH' : 'MEDIUM',
+            reason: count >= 2 ? 'Failed mock test multiple times' : 'Below 50% in mock test',
+            improvementNote: note,
+        });
+    }
+
+    // MEDIUM/HIGH: topics not studied in 3+ days
+    for (const rt of (memory.recentTopics || [])) {
+        if (plan.length >= 6) break;
+        if (seen.has(rt.topic.toLowerCase())) continue;
+        const daysAgo = Math.floor((now - rt.timestamp) / day);
+        if (daysAgo < 3) continue;
+        seen.add(rt.topic.toLowerCase());
+        plan.push({
+            topic: rt.topic, subject: rt.subject,
+            priority: daysAgo >= 7 ? 'HIGH' : daysAgo >= 5 ? 'MEDIUM' : 'LOW',
+            reason: daysAgo >= 7
+                ? `${rt.topic} has not been revised in ${daysAgo} days`
+                : `Not revisited in ${daysAgo} days`,
+            daysSinceLastStudy: daysAgo,
+        });
+    }
+
+    // LOW: topics where score improved (worth maintaining)
+    const byChapter: Record<string, number[]> = {};
+    for (const p of (memory.recentExamPerformance || [])) {
+        if (!byChapter[p.chapter]) byChapter[p.chapter] = [];
+        byChapter[p.chapter].push(p.total > 0 ? p.score / p.total : 0);
+    }
+    for (const [chapter, scores] of Object.entries(byChapter)) {
+        if (plan.length >= 6) break;
+        if (seen.has(chapter.toLowerCase()) || scores.length < 2) continue;
+        const latest = scores[0], prev = scores[scores.length - 1];
+        if (latest > prev && latest >= 0.6) {
+            seen.add(chapter.toLowerCase());
+            const perf = memory.recentExamPerformance.find(p => p.chapter === chapter)!;
+            plan.push({
+                topic: chapter, subject: perf.subject, priority: 'LOW',
+                reason: 'Improving — maintain with one more revision',
+                improvementNote: `You improved in ${chapter} after your second revision.`,
+            });
+        }
+    }
+
+    // Sort: HIGH → MEDIUM → LOW
+    const order = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+    return plan.sort((a, b) => order[a.priority] - order[b.priority]).slice(0, 6);
+}
+
+// ── Part 5: Learning Pattern Detection ───────────────────────────────────────
+
+export function detectLearningPatterns(memory: StudentMemory): LearningPattern[] {
+    const patterns: LearningPattern[] = [];
+
+    // Strong subjects: avg exam score >= 0.7 in subjects with 2+ entries
+    const scoresBySubject: Record<string, number[]> = {};
+    for (const p of (memory.recentExamPerformance || [])) {
+        if (!scoresBySubject[p.subject]) scoresBySubject[p.subject] = [];
+        scoresBySubject[p.subject].push(p.total > 0 ? p.score / p.total : 0);
+    }
+    for (const [subject, scores] of Object.entries(scoresBySubject)) {
+        if (scores.length < 2) continue;
+        const avg = scores.reduce((s, n) => s + n, 0) / scores.length;
+        if (avg >= 0.7) {
+            patterns.push({ type: 'strength', observation: `You perform consistently well in ${subject} mock tests — that's a reliable exam strength.` });
+        }
+    }
+
+    // Curiosity areas: most explored subject (most unique topics)
+    const topicsBySubject: Record<string, Set<string>> = {};
+    for (const t of (memory.recentTopics || [])) {
+        if (!topicsBySubject[t.subject]) topicsBySubject[t.subject] = new Set();
+        topicsBySubject[t.subject].add(t.topic.toLowerCase());
+    }
+    let mostCurious = { subject: '', count: 0 };
+    for (const [subject, topics] of Object.entries(topicsBySubject)) {
+        if (topics.size > mostCurious.count) mostCurious = { subject, count: topics.size };
+    }
+    if (mostCurious.count >= 4) {
+        patterns.push({ type: 'curiosity', observation: `You tend to revisit ${mostCurious.subject} topics frequently — strong curiosity in this area.` });
+    }
+
+    // Conceptual vs memory: chat/story topics indicate conceptual strength
+    const conceptualTopics = (memory.recentTopics || []).filter(t => t.source === 'chat' || t.source === 'story');
+    const examTopics = (memory.recentTopics || []).filter(t => t.source === 'exam');
+    if (conceptualTopics.length > examTopics.length * 2) {
+        patterns.push({ type: 'strength', observation: 'You ask strong conceptual questions — understanding the "why" behind topics, not just facts.' });
+    } else if (examTopics.length > conceptualTopics.length) {
+        patterns.push({ type: 'habit', observation: 'You lean toward exam practice — balancing with conceptual exploration can deepen understanding.' });
+    }
+
+    // Weak subject pattern
+    const weakSubjects = [...new Set((memory.weakTopics || []).map(w => w.subject))];
+    if (weakSubjects.length > 0) {
+        patterns.push({ type: 'opportunity', observation: `${weakSubjects.slice(0, 2).join(' and ')} ${weakSubjects.length > 1 ? 'have' : 'has'} the most room for growth — focused revision here will have visible results.` });
+    }
+
+    // Mode variety habit
+    const last10Modes = (memory.recentModes || []).slice(0, 10).map(m => m.mode);
+    const uniqueModes = new Set(last10Modes).size;
+    if (last10Modes.length >= 5 && uniqueModes >= 3) {
+        patterns.push({ type: 'habit', observation: 'You use multiple learning modes — combining chat, story, and exam practice creates stronger memory pathways.' });
+    }
+
+    return patterns.slice(0, 4);
+}
+
+// ── Part 6: Cross-Mode Intelligence ──────────────────────────────────────────
+
+export function generateCrossModeContext(memory: StudentMemory): string {
+    const parts: string[] = [];
+
+    // Topics explored via story mode
+    const storyTopics = (memory.recentTopics || [])
+        .filter(t => t.source === 'story').slice(0, 3).map(t => t.topic);
+    if (storyTopics.length > 0) {
+        parts.push(`Stories explored: ${storyTopics.join(', ')}`);
+    }
+
+    // Recent exam weak areas
+    const examWeak = (memory.recentExamPerformance || [])
+        .filter(p => p.total > 0 && p.score / p.total < 0.6).slice(0, 2);
+    if (examWeak.length > 0) {
+        const weakList = examWeak.map(p => `${p.chapter} (${p.score}/${p.total})`).join(', ');
+        parts.push(`Recent exam struggles: ${weakList}`);
+    }
+
+    // Topics from game mode
+    const gameTopics = (memory.recentTopics || [])
+        .filter(t => t.source === 'game').slice(0, 2).map(t => t.topic);
+    if (gameTopics.length > 0) {
+        parts.push(`Game practice: ${gameTopics.join(', ')}`);
+    }
+
+    // Suggest underused modes
+    const last7Modes = (memory.recentModes || []).slice(0, 7).map(m => m.mode);
+    const unused: string[] = [];
+    if (!last7Modes.includes('story')) unused.push('story mode for hard concepts');
+    if (!last7Modes.includes('game'))  unused.push('game mode for practice');
+    if (!last7Modes.includes('exam'))  unused.push('mock test to measure progress');
+    if (unused.length > 0) parts.push(`Suggest trying: ${unused.slice(0, 2).join(', ')}`);
+
+    return parts.length > 0 ? `CROSS-MODE CONTEXT:\n${parts.join('\n')}` : '';
 }
 
 export function generateStudyPlan(memory: StudentMemory): { today: StudyTask[]; thisWeek: string[]; revisionQueue: string[] } {
