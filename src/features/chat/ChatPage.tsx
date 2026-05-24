@@ -45,35 +45,73 @@ const CONTEXT_QUESTION =
     'Which grade and subject are you studying? 🎓\n\nநீங்கள் எந்த வகுப்பு படிக்கிறீர்கள்? எந்த பாடம்?';
 const HISTORY_PAGE_SIZE = 15;
 
+// Goal-aware welcome sets (selected based on learningGoal, with fallback to random general sets)
+const WELCOME_BY_GOAL: Record<string, { text: string }[][]> = {
+    'NEET': [
+        [
+            { text: `வணக்கம் {name} 🩺\nNEET preparation-க்கு FeelEd AI உங்களுடன் இருக்கும்.` },
+            { text: `Biology fundamentals-ஐ NCERT level-ல் master பண்ணுவதுதான் NEET-க்கு strongest foundation 🧬\nChemistry mechanisms, Physics numericals — step by step நாம் cover பண்ணலாம்.` },
+            { text: `இன்று Biology-ல் எந்த chapter-ல் தொடங்கலாம்? 🔬` },
+        ],
+        [
+            { text: `ஹாய் {name} ⚕️\nNEET ஒரு marathon — daily consistent revision wins it.` },
+            { text: `Biology conceptual clarity + Chemistry organic reactions + Physics numericals — இந்த மூன்றும் NEET score-ஐ decide பண்ணும் 📊\nReal NEET questions என்னிடம் இருக்கின்றன.` },
+            { text: `எந்த subject-ல் இப்போது focus செய்கிறீர்கள்? 🎯` },
+        ],
+    ],
+    'JEE': [
+        [
+            { text: `வணக்கம் {name} ⚙️\nJEE preparation-க்கு problem-solving speed மிக முக்கியம்.` },
+            { text: `Mathematics daily practice + Physics numericals + Chemistry mechanisms — இந்த pattern-ல் JEE crack ஆகும் 📐\nTimed practice-க்கு நான் உதவுவேன்.` },
+            { text: `இன்று Maths-ல் எந்த topic practice பண்ணலாம்? 🔢` },
+        ],
+    ],
+    '10th Board': [
+        [
+            { text: `வணக்கம் {name} 📘\nTN Board 10th exams-க்கு high-weightage topics-ஐ target பண்ணலாம்.` },
+            { text: `Electricity, Algebra, Democracy — இந்த chapters public exams-ல் repeatedly வருகின்றன 📝\nReal exam questions + structured answers என்னிடம் இருக்கிறது.` },
+            { text: `இன்று எந்த subject-ல் revision தொடங்கலாம்? 🎯` },
+        ],
+        [
+            { text: `ஹாய் {name} ✏️\nBoard exams-ல் definition + formula + conclusion structure முக்கியம்.` },
+            { text: `5-mark answers-ல் right structure follow பண்ணினால் full marks possible 📋\nPast 5 years repeated questions நான் track பண்ணி வைத்திருக்கிறேன்.` },
+            { text: `எந்த chapter preparation-ல் தொடங்கலாம்? 📚` },
+        ],
+    ],
+    '12th Board': [
+        [
+            { text: `வணக்கம் {name} 📗\n12th Board-க்கு conceptual depth மிக முக்கியம்.` },
+            { text: `Derivations, proof-based questions, diagram labelling — இவை 12th exams-ல் high marks வாங்கி தருகின்றன 🧪\nPhysics Electrostatics, Chemistry Coordination Compounds — let's cover these well.` },
+            { text: `இன்று எந்த subject-ல் deep dive பண்ணலாம்? 🔭` },
+        ],
+    ],
+};
+
+// General welcome sets (used when no goal is set, or as fallback)
 const WELCOME_SETS = [
-    // SET 1 — Friendly Academic
     [
         { text: `வணக்கம் {name} 👋\nநான் FeelEd AI — உங்கள் personal learning companion.` },
         { text: `கதைகள், mock tests, games, மற்றும் AI tutoring மூலம் நாம் சேர்ந்து கற்றுக்கொள்ளலாம் 📚\nTN Samacheer syllabus முழுவதும் நான் உங்களுக்கு உதவுவேன்.` },
         { text: `இன்று என்ன topic-ல் தொடங்கலாம்? ✨` },
     ],
-    // SET 2 — Exam Mentor
     [
         { text: `ஹாய் {name} ✨\nBoard exams-க்கு smart-ஆக prepare செய்ய FeelEd AI உங்களுடன் இருக்கும்.` },
         { text: `Important questions, revision tricks, மற்றும் practice tests மூலம் step-by-step முன்னேறலாம் 📝\nReal TN Board questions (2021-2026) என்னிடம் இருக்கின்றன!` },
         { text: `இப்போது எந்த subject பார்க்க விரும்புகிறீர்கள்? 🎯` },
     ],
-    // SET 3 — Curiosity Style
     [
         { text: `வணக்கம் {name} 🚀\nஒரு topic-ஐ story-ஆகவும், game-ஆகவும், exam practice-ஆகவும் கற்றுக்கொள்ள முடியும்!` },
-        { text: `அதற்காகதான் FeelEd AI உருவாக்கப்பட்டது.\nகேள்விகள் கேளுங்கள், stories கேளுங்கள், mock tests எழுதுங்கள் — எல்லாம் ஒரே இடத்தில் 🌟` },
+        { text: `கேள்விகள் கேளுங்கள், stories கேளுங்கள், mock tests எழுதுங்கள் — எல்லாம் ஒரே இடத்தில் 🌟` },
         { text: `இன்று என்ன explore செய்யலாம்? 💡` },
     ],
-    // SET 4 — Calm Supportive
     [
         { text: `ஹாய் {name} 🌱\nஒவ்வொருவரும் வெவ்வேறு விதமாக கற்கிறார்கள் — அது சரிதான்.` },
-        { text: `FeelEd AI உங்கள் pace-க்கு ஏற்ற மாதிரி explanations, stories, மற்றும் practice வழங்கும் 📖\nஒவ்வொரு கேள்வியும் முக்கியமானது — தயங்காமல் கேளுங்கள்.` },
+        { text: `FeelEd AI உங்கள் pace-க்கு ஏற்ற மாதிரி explanations, stories, மற்றும் practice வழங்கும் 📖` },
         { text: `Ready to start learning today? 😊` },
     ],
-    // SET 5 — Future-Oriented
     [
-        { text: `வணக்கம் {name} ⚡\nநீங்கள் இன்று கற்கும் concepts தான் உங்கள் future exams மற்றும் career-க்கான அடித்தளம்.` },
-        { text: `FeelEd AI மூலம் NEET, JEE, Board exams — எதற்கும் smart-ஆக prepare செய்யலாம் 🎓\nReal questions, AI explanations, stories — எல்லாம் இங்கே இருக்கிறது.` },
+        { text: `வணக்கம் {name} ⚡\nநீங்கள் இன்று கற்கும் concepts தான் உங்கள் future exams-க்கான அடித்தளம்.` },
+        { text: `FeelEd AI மூலம் NEET, JEE, Board exams — எதற்கும் smart-ஆக prepare செய்யலாம் 🎓` },
         { text: `முதலில் எந்த பாடத்தில் தொடங்கலாம்? 📚` },
     ],
 ];
@@ -615,11 +653,14 @@ const ChatPage: React.FC = () => {
         }
     };
 
-    // First-time welcome message sequence
+    // First-time welcome message sequence — goal-aware
     const triggerWelcome = async (memory: StudentMemory, uid: string, displayName: string | null) => {
-        const variant = Math.floor(Math.random() * 5); // 0-4
         const firstName = (displayName || 'Student').split(' ')[0];
-        const selectedSet = WELCOME_SETS[variant].map(msg => ({
+        // Pick goal-specific set if available, otherwise fall back to general sets
+        const goalSets = memory.learningGoal ? WELCOME_BY_GOAL[memory.learningGoal] : null;
+        const pool = goalSets && goalSets.length > 0 ? goalSets : WELCOME_SETS;
+        const variant = Math.floor(Math.random() * pool.length);
+        const selectedSet = pool[variant].map(msg => ({
             text: msg.text.replace('{name}', firstName),
         }));
         setWelcomeMessages(selectedSet);

@@ -9,8 +9,9 @@ import {
     generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule,
     generateSmartRevisionPlan, detectLearningPatterns,
     buildLearningJourney, generateProgressInsights,
+    generateExamStrategyTips,
 } from '../services/mentorEngine';
-import type { StudyTask, RevisionItem, RevisionPriority, LearningPattern, JourneyDay, ProgressInsight } from '../services/mentorEngine';
+import type { StudyTask, RevisionItem, RevisionPriority, LearningPattern, JourneyDay, ProgressInsight, ExamStrategyTip } from '../services/mentorEngine';
 
 interface SavedStory {
     id: string;
@@ -107,6 +108,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [learningPatterns, setLearningPatterns] = useState<LearningPattern[]>([]);
     const [journeyDays, setJourneyDays] = useState<JourneyDay[]>([]);
     const [progressInsights, setProgressInsights] = useState<ProgressInsight[]>([]);
+    const [examTips, setExamTips] = useState<ExamStrategyTip[]>([]);
 
     useEffect(() => {
         if (!selectedStory) return;
@@ -218,6 +220,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                         setLearningPatterns(detectLearningPatterns(mem));
                         setJourneyDays(buildLearningJourney(mem));
                         setProgressInsights(generateProgressInsights(mem));
+                        setExamTips(generateExamStrategyTips(mem));
                     }
                 });
 
@@ -646,6 +649,33 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     <p className="text-xs text-slate-400 dark:text-slate-600 mt-3 border-t border-slate-100 dark:border-slate-800 pt-3">
                         Patterns are based on your recent activity and update as you learn.
                     </p>
+                </div>
+            )}
+
+            {/* Exam Strategy Tips */}
+            {examTips.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <span className="text-lg">🎯</span>
+                        <h2 className="text-base font-bold text-slate-900 dark:text-white">Exam Strategy Tips</h2>
+                        {studentMemory?.learningGoal && (
+                            <span className="ml-auto text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-2.5 py-0.5 rounded-full">
+                                {studentMemory.learningGoal}
+                            </span>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {examTips.map((tip, i) => (
+                            <div key={i} className={`flex items-start gap-2.5 p-3 rounded-xl ${
+                                tip.category === 'goal-specific'
+                                    ? 'bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40'
+                                    : 'bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800'
+                            }`}>
+                                <span className="text-base flex-shrink-0 mt-0.5">{tip.icon}</span>
+                                <p className="text-sm text-slate-700 dark:text-slate-300 leading-snug">{tip.tip}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 

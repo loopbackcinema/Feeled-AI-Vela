@@ -712,6 +712,113 @@ export function generateProgressInsights(memory: StudentMemory): ProgressInsight
     return insights.slice(0, 4);
 }
 
+// ── Part 10: Exam Strategy Tips ───────────────────────────────────────────────
+
+export interface ExamStrategyTip {
+    icon: string;
+    tip: string;
+    category: 'general' | 'goal-specific';
+}
+
+export function generateExamStrategyTips(memory: StudentMemory): ExamStrategyTip[] {
+    const general: ExamStrategyTip[] = [
+        { icon: '✅', tip: 'Answer easy questions first — build momentum before tackling hard ones', category: 'general' },
+        { icon: '🖊️', tip: 'Underline keywords in each question before writing your answer', category: 'general' },
+        { icon: '📐', tip: 'Memorize formulas separately from theory — they often carry direct marks', category: 'general' },
+        { icon: '⏱️', tip: 'Practice time management: roughly 1 minute per mark as a guide', category: 'general' },
+        { icon: '📋', tip: '5-mark structure: Definition → Formula → Diagram → Application → Conclusion', category: 'general' },
+        { icon: '✏️', tip: 'Review answers in the last 5 minutes — catch spelling and label errors', category: 'general' },
+    ];
+
+    const goalSpecific: ExamStrategyTip[] = [];
+    const goal = memory.learningGoal;
+
+    if (goal === 'NEET') {
+        goalSpecific.push(
+            { icon: '🔬', tip: 'Eliminate obviously wrong MCQ options first — improves accuracy under time pressure', category: 'goal-specific' },
+            { icon: '🧬', tip: 'NEET Biology: NCERT line-by-line accuracy is more valuable than extra reading', category: 'goal-specific' },
+            { icon: '⚗️', tip: 'Organic Chemistry: focus on reaction mechanisms, not memorizing products', category: 'goal-specific' },
+        );
+    } else if (goal === 'JEE') {
+        goalSpecific.push(
+            { icon: '📊', tip: "Don't spend more than 2 minutes on a single JEE MCQ — move on and return", category: 'goal-specific' },
+            { icon: '🔢', tip: 'JEE Maths: solve at least 5 problems daily from each chapter under test conditions', category: 'goal-specific' },
+            { icon: '⚡', tip: 'Physics numericals: write down knowns and unknowns before applying any formula', category: 'goal-specific' },
+        );
+    } else if (goal === '10th Board' || goal === '12th Board') {
+        goalSpecific.push(
+            { icon: '📝', tip: 'Definitions in exact wording score full marks — paraphrasing sometimes loses marks', category: 'goal-specific' },
+            { icon: '📊', tip: 'Study the past 5 years\' question papers — most questions repeat with minor changes', category: 'goal-specific' },
+            { icon: '🎨', tip: 'Diagrams must be labelled — an unlabelled diagram earns 0 marks for that section', category: 'goal-specific' },
+        );
+    }
+
+    return [...goalSpecific, ...general].slice(0, 6);
+}
+
+// ── Part 10: Chapter Weightage ────────────────────────────────────────────────
+
+export interface ChapterWeightage {
+    subject: string;
+    chapters: { name: string; importance: 'high' | 'medium'; reason: string }[];
+}
+
+export function getHighWeightageChapters(memory: StudentMemory): ChapterWeightage[] {
+    const goal = memory.learningGoal;
+
+    const tnBoard: ChapterWeightage[] = [
+        {
+            subject: 'Science',
+            chapters: [
+                { name: 'Electricity', importance: 'high', reason: 'Appears in almost every TN Board paper' },
+                { name: 'Chemical Reactions', importance: 'high', reason: 'Frequently tested definitions and equations' },
+                { name: 'Light & Optics', importance: 'high', reason: 'Diagram-based questions are common' },
+                { name: 'Heredity & Evolution', importance: 'medium', reason: 'Conceptual questions recur' },
+                { name: 'Human Body Systems', importance: 'medium', reason: 'Labelling diagrams is standard' },
+            ],
+        },
+        {
+            subject: 'Maths',
+            chapters: [
+                { name: 'Algebra', importance: 'high', reason: 'Equations and polynomials appear every year' },
+                { name: 'Statistics', importance: 'high', reason: 'Direct calculation questions with high marks' },
+                { name: 'Trigonometry', importance: 'high', reason: 'Formulae application is consistently tested' },
+                { name: 'Coordinate Geometry', importance: 'medium', reason: 'Graphical and formula questions both appear' },
+            ],
+        },
+    ];
+
+    if (goal === 'NEET') {
+        return [
+            {
+                subject: 'Biology',
+                chapters: [
+                    { name: 'Cell Biology & Division', importance: 'high', reason: 'Foundational for all NEET Biology sections' },
+                    { name: 'Genetics & Heredity', importance: 'high', reason: 'High question frequency in NEET' },
+                    { name: 'Plant Physiology', importance: 'medium', reason: 'Photosynthesis and respiration are recurring' },
+                ],
+            },
+            tnBoard[0],
+        ];
+    }
+
+    if (goal === 'JEE') {
+        return [
+            {
+                subject: 'Physics',
+                chapters: [
+                    { name: 'Mechanics', importance: 'high', reason: 'Highest weightage in JEE Physics' },
+                    { name: 'Electrostatics', importance: 'high', reason: 'Numerical-heavy, frequently tested' },
+                    { name: 'Optics', importance: 'medium', reason: 'Derivation and numerical mix' },
+                ],
+            },
+            tnBoard[1],
+        ];
+    }
+
+    return tnBoard;
+}
+
 export function generateStudyPlan(memory: StudentMemory): { today: StudyTask[]; thisWeek: string[]; revisionQueue: string[] } {
     const today = generateDailyLearningGoals(memory);
 
