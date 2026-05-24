@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X, Zap, Brain } from 'lucide-react';
-import { getStudentMemory, StudentMemory } from '../services/memoryService';
+import { getStudentMemory, updateGoalTracking, StudentMemory } from '../services/memoryService';
 import { generateExamReadiness, generateCrossModeSuggestions, generateStudyInsights } from '../services/intelligenceEngine';
 import {
     generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule,
@@ -260,8 +260,9 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
         setSavingGoal(true);
         setLearningGoal(goal);
         try {
-            await updateDoc(doc(db, 'students_memory', user.uid), { learningGoal: goal });
-            setStudentMemory(prev => prev ? { ...prev, learningGoal: goal } : prev);
+            await updateGoalTracking(user.uid, goal);
+            const updated = await getStudentMemory(user.uid, true);
+            if (updated) setStudentMemory(updated);
         } catch (e) {
             console.warn('handleSaveGoal error:', e);
         } finally {
