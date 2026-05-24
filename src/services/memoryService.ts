@@ -1,18 +1,32 @@
 import { db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
+import { logMemoryError } from './errorLogger';
 
-const MAX_RECENT_TOPICS    = 25;
-const MAX_EXAM_PERFORMANCE = 20;
-const MAX_RECENT_MODES     = 15;
+const MAX_RECENT_TOPICS      = 25;
+const MAX_EXAM_PERFORMANCE   = 20;
+const MAX_RECENT_MODES       = 15;
 const MAX_MENTOR_SUGGESTIONS = 20;
-const MAX_REVISION_CYCLES  = 30;
-const MAX_LEARNING_INSIGHTS = 15;
+const MAX_REVISION_CYCLES    = 30;
+const MAX_LEARNING_INSIGHTS  = 15;
+
+// ── Fix 2 / Fix 4: Time-window constants ─────────────────────────────────────
+const THIRTY_MINUTES = 30 * 60 * 1000;
+const FIVE_MINUTES   =  5 * 60 * 1000;
+const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+function withinLast24Hours(timestamp: number): boolean {
+    return Date.now() - timestamp < TWENTY_FOUR_HOURS;
+}
+
+// ── Fix 3: Write counter helper ───────────────────────────────────────────────
+// Returns fields to spread into every updateDoc payload for write auditing.
+function _writeAudit() {
+    return { writeCount: increment(1) as unknown as number, lastWriteAt: Date.now() };
+}
 
 // ── Part 14: In-memory read cache ─────────────────────────────────────────────
-// Prevents repeated Firestore reads within the same session.
-// Writes update the cache optimistically so subsequent reads stay fast.
 const _cache = new Map<string, { data: StudentMemory; ts: number }>();
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 function _cacheGet(uid: string): StudentMemory | null {
     const entry = _cache.get(uid);
@@ -43,6 +57,10 @@ export interface StudentMemory {
     learningGoal:      null | '10th Board' | '12th Board' | 'NEET' | 'JEE';
     welcomeShown:      boolean;
     welcomeVariant:    number;
+
+    // Fix 3: Write frequency tracking
+    writeCount:  number;
+    lastWriteAt: number;
 
     streak: {
         current:        number;
@@ -80,19 +98,19 @@ export interface StudentMemory {
     // ── Part 13 extensions ───────────────────────────────────────────────────
 
     studyPlans: Array<{
-        date:        string;                 // ISO date YYYY-MM-DD
+        date:        string;
         tasks:       Array<{ icon: string; text: string; mode: string; topic?: string }>;
-        completed:   string[];               // task.text values the student acted on
+        completed:   string[];
         generatedAt: number;
     }>;
 
     revisionCycles: Array<{
-        topic:             string;
-        subject:           string;
-        cycleCount:        number;
-        lastRevised:       number;           // timestamp
-        nextRevisionDue:   number;           // timestamp (spaced-repetition)
-        masteryScore:      number;           // 0–1
+        topic:           string;
+        subject:         string;
+        cycleCount:      number;
+        lastRevised:     number;
+        nextRevisionDue: number;
+        masteryScore:    number;
     }>;
 
     learningInsights: Array<{
@@ -104,23 +122,23 @@ export interface StudentMemory {
 
     subjectStrengths: Array<{
         subject:       string;
-        avgScore:      number;               // 0–1
+        avgScore:      number;
         topicsStudied: number;
         lastUpdated:   number;
     }>;
 
     goalTracking: {
-        goal:                  StudentMemory['learningGoal'];
-        startDate:             string;
-        milestonesCompleted:   string[];
-        currentProgress:       number;       // 0–100
+        goal:                StudentMemory['learningGoal'];
+        startDate:           string;
+        milestonesCompleted: string[];
+        currentProgress:     number;
     } | null;
 
     conceptConnections: Array<{
         from:       string;
         to:         string;
         link:       string;
-        reinforced: number;                  // times this pair was surfaced
+        reinforced: number;
     }>;
 
     mentorSuggestions: Array<{
@@ -146,7 +164,7 @@ export async function getStudentMemory(uid: string, forceRefresh = false): Promi
         _cacheSet(uid, data);
         return data;
     } catch (e) {
-        console.warn('getStudentMemory error:', e);
+        logMemoryError('getStudentMemory', e, { uid });
         return null;
     }
 }
@@ -158,7 +176,6 @@ export async function initializeStudentMemory(user: {
         const ref  = doc(db, 'students_memory', user.uid);
         const snap = await getDoc(ref);
         if (snap.exists()) {
-            // Warm the cache even if doc already exists
             _cacheSet(user.uid, snap.data() as StudentMemory);
             return;
         }
@@ -172,12 +189,13 @@ export async function initializeStudentMemory(user: {
             learningGoal:      null,
             welcomeShown:      false,
             welcomeVariant:    0,
+            writeCount:  0,
+            lastWriteAt: 0,
             streak: { current: 1, longest: 1, lastActiveDate: new Date().toISOString().split('T')[0] },
             recentTopics:          [],
             weakTopics:            [],
             recentExamPerformance: [],
             recentModes:           [],
-            // Part 13 extensions
             studyPlans:         [],
             revisionCycles:     [],
             learningInsights:   [],
@@ -189,11 +207,11 @@ export async function initializeStudentMemory(user: {
         await setDoc(ref, initial);
         _cacheSet(user.uid, initial as StudentMemory);
     } catch (e) {
-        console.warn('initializeStudentMemory error:', e);
+        logMemoryError('initializeStudentMemory', e, { uid: user.uid });
     }
 }
 
-// ── Write helpers (all update cache optimistically) ───────────────────────────
+// ── Write helpers ─────────────────────────────────────────────────────────────
 
 export async function updateRecentTopic({
     uid, topic, subject, source,
@@ -201,14 +219,27 @@ export async function updateRecentTopic({
     try {
         const memory = await getStudentMemory(uid);
         if (!memory) return;
+
+        // Fix 2: Skip if same topic+source was logged within 30 minutes
+        const recentDuplicate = memory.recentTopics.find(t =>
+            t.topic.toLowerCase() === topic.toLowerCase() &&
+            t.source === source &&
+            Date.now() - t.timestamp < THIRTY_MINUTES
+        );
+        if (recentDuplicate) return;
+
         const filtered = memory.recentTopics
             .filter(t => t.topic.toLowerCase() !== topic.toLowerCase())
             .slice(0, MAX_RECENT_TOPICS - 1);
         const newTopics = [{ topic, subject, source, timestamp: Date.now() }, ...filtered];
-        await updateDoc(doc(db, 'students_memory', uid), { recentTopics: newTopics, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            recentTopics: newTopics,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { recentTopics: newTopics });
     } catch (e) {
-        console.warn('updateRecentTopic error:', e);
+        logMemoryError('updateRecentTopic', e, { uid, topic });
     }
 }
 
@@ -226,10 +257,14 @@ export async function updateWeakTopic({
                     : w
             )
             : [...memory.weakTopics, { topic, subject, weaknessScore: weaknessIncrement, lastDetected: Date.now() }];
-        await updateDoc(doc(db, 'students_memory', uid), { weakTopics: updated, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            weakTopics: updated,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { weakTopics: updated });
     } catch (e) {
-        console.warn('updateWeakTopic error:', e);
+        logMemoryError('updateWeakTopic', e, { uid, topic });
     }
 }
 
@@ -247,7 +282,6 @@ export async function updateExamPerformance({
             ...memory.recentExamPerformance,
         ].slice(0, MAX_EXAM_PERFORMANCE);
 
-        // Update subjectStrengths inline
         const existing = memory.subjectStrengths.find(s => s.subject === subject);
         const allForSubject = newPerformance.filter(p => p.subject === subject);
         const avgScore = allForSubject.length > 0
@@ -265,10 +299,11 @@ export async function updateExamPerformance({
             recentExamPerformance: newPerformance,
             subjectStrengths:      newStrengths,
             updatedAt:             serverTimestamp(),
+            ..._writeAudit(),
         });
         _cachePatch(uid, { recentExamPerformance: newPerformance, subjectStrengths: newStrengths });
     } catch (e) {
-        console.warn('updateExamPerformance error:', e);
+        logMemoryError('updateExamPerformance', e, { uid, chapter, subject });
     }
 }
 
@@ -278,11 +313,23 @@ export async function updateRecentMode({
     try {
         const memory = await getStudentMemory(uid);
         if (!memory) return;
+
+        // Fix 4: Skip if same mode logged within 5 minutes
+        const recentMode = memory.recentModes.find(m =>
+            m.mode === mode &&
+            Date.now() - m.timestamp < FIVE_MINUTES
+        );
+        if (recentMode) return;
+
         const newModes = [{ mode, timestamp: Date.now() }, ...memory.recentModes].slice(0, MAX_RECENT_MODES);
-        await updateDoc(doc(db, 'students_memory', uid), { recentModes: newModes, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            recentModes: newModes,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { recentModes: newModes });
     } catch (e) {
-        console.warn('updateRecentMode error:', e);
+        logMemoryError('updateRecentMode', e, { uid, mode });
     }
 }
 
@@ -290,17 +337,22 @@ export async function updateLearningStreak(uid: string): Promise<void> {
     try {
         const memory = await getStudentMemory(uid);
         if (!memory) return;
-        const today     = new Date().toISOString().split('T')[0];
-        const lastDate  = memory.streak.lastActiveDate;
+        // Fix 5: Exit immediately if streak already counted today (no Firestore write needed)
+        const today    = new Date().toISOString().split('T')[0];
+        const lastDate = memory.streak.lastActiveDate;
         if (lastDate === today) return;
         const yesterday  = new Date(Date.now() - 86_400_000).toISOString().split('T')[0];
         const newCurrent = lastDate === yesterday ? memory.streak.current + 1 : 1;
         const newLongest = Math.max(newCurrent, memory.streak.longest);
         const streak     = { current: newCurrent, longest: newLongest, lastActiveDate: today };
-        await updateDoc(doc(db, 'students_memory', uid), { streak, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            streak,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { streak });
     } catch (e) {
-        console.warn('updateLearningStreak error:', e);
+        logMemoryError('updateLearningStreak', e, { uid });
     }
 }
 
@@ -310,10 +362,11 @@ export async function markWelcomeShown(uid: string, variant: number): Promise<vo
             welcomeShown:   true,
             welcomeVariant: variant,
             updatedAt:      serverTimestamp(),
+            ..._writeAudit(),
         });
         _cachePatch(uid, { welcomeShown: true, welcomeVariant: variant });
     } catch (e) {
-        console.warn('markWelcomeShown error:', e);
+        logMemoryError('markWelcomeShown', e, { uid });
     }
 }
 
@@ -325,12 +378,24 @@ export async function saveMentorSuggestion({
     try {
         const memory = await getStudentMemory(uid);
         if (!memory) return;
+
+        // Fix 1: Skip if identical suggestion shown within 24h
+        const isDuplicate = memory.mentorSuggestions.some(s =>
+            s.suggestion === suggestion &&
+            withinLast24Hours(s.generatedAt)
+        );
+        if (isDuplicate) return;
+
         const newEntry = { suggestion, mode, topic, generatedAt: Date.now(), acted: false };
         const updated = [newEntry, ...memory.mentorSuggestions].slice(0, MAX_MENTOR_SUGGESTIONS);
-        await updateDoc(doc(db, 'students_memory', uid), { mentorSuggestions: updated, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            mentorSuggestions: updated,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { mentorSuggestions: updated });
     } catch (e) {
-        console.warn('saveMentorSuggestion error:', e);
+        logMemoryError('saveMentorSuggestion', e, { uid });
     }
 }
 
@@ -340,10 +405,17 @@ export async function saveRevisionCycle({
     try {
         const memory = await getStudentMemory(uid);
         if (!memory) return;
-        const now  = Date.now();
+
+        // Fix 1: Skip if same topic already has an active cycle revised within 24h
+        const hasActiveCycle = memory.revisionCycles.some(c =>
+            c.topic.toLowerCase() === topic.toLowerCase() &&
+            withinLast24Hours(c.lastRevised)
+        );
+        if (hasActiveCycle) return;
+
+        const now      = Date.now();
         const existing = memory.revisionCycles.find(r => r.topic.toLowerCase() === topic.toLowerCase());
-        // Spaced repetition: next due = cycleCount 1→2d, 2→4d, 3→7d, 4+→14d
-        const gaps = [2, 4, 7, 14];
+        const gaps     = [2, 4, 7, 14];
         const nextCycle = existing ? existing.cycleCount + 1 : 1;
         const daysUntilNext = gaps[Math.min(nextCycle - 1, gaps.length - 1)];
         const nextDue = now + daysUntilNext * 24 * 60 * 60 * 1000;
@@ -355,10 +427,14 @@ export async function saveRevisionCycle({
             )
             : [...memory.revisionCycles, { topic, subject, cycleCount: 1, lastRevised: now, nextRevisionDue: nextDue, masteryScore: 0.5 }];
         const capped = updated.slice(0, MAX_REVISION_CYCLES);
-        await updateDoc(doc(db, 'students_memory', uid), { revisionCycles: capped, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            revisionCycles: capped,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { revisionCycles: capped });
     } catch (e) {
-        console.warn('saveRevisionCycle error:', e);
+        logMemoryError('saveRevisionCycle', e, { uid, topic });
     }
 }
 
@@ -368,14 +444,26 @@ export async function saveLearningInsight({
     try {
         const memory = await getStudentMemory(uid);
         if (!memory) return;
+
+        // Fix 1: Skip if identical insight saved within 24h
+        const isDuplicate = memory.learningInsights.some(i =>
+            i.insight === insight &&
+            withinLast24Hours(i.generatedAt)
+        );
+        if (isDuplicate) return;
+
         const updated = [
             { insight, type, generatedAt: Date.now(), acknowledged: false },
             ...memory.learningInsights,
         ].slice(0, MAX_LEARNING_INSIGHTS);
-        await updateDoc(doc(db, 'students_memory', uid), { learningInsights: updated, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            learningInsights: updated,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { learningInsights: updated });
     } catch (e) {
-        console.warn('saveLearningInsight error:', e);
+        logMemoryError('saveLearningInsight', e, { uid });
     }
 }
 
@@ -386,10 +474,15 @@ export async function updateGoalTracking(uid: string, goal: StudentMemory['learn
         const goalTracking = memory.goalTracking?.goal === goal
             ? memory.goalTracking
             : { goal, startDate: new Date().toISOString().split('T')[0], milestonesCompleted: [], currentProgress: 0 };
-        await updateDoc(doc(db, 'students_memory', uid), { goalTracking, learningGoal: goal, updatedAt: serverTimestamp() });
+        await updateDoc(doc(db, 'students_memory', uid), {
+            goalTracking,
+            learningGoal: goal,
+            updatedAt: serverTimestamp(),
+            ..._writeAudit(),
+        });
         _cachePatch(uid, { goalTracking, learningGoal: goal });
     } catch (e) {
-        console.warn('updateGoalTracking error:', e);
+        logMemoryError('updateGoalTracking', e, { uid });
     }
 }
 
@@ -397,7 +490,7 @@ export async function updateGoalTracking(uid: string, goal: StudentMemory['learn
 
 export async function getPersonalizedContext(uid: string): Promise<string> {
     try {
-        const memory = await getStudentMemory(uid); // cache hit in normal flow
+        const memory = await getStudentMemory(uid);
         if (!memory) return '';
 
         const recentTopicNames = memory.recentTopics
@@ -410,7 +503,7 @@ export async function getPersonalizedContext(uid: string): Promise<string> {
         const recentScores = memory.recentExamPerformance
             .slice(0, 3).map(p => `${p.subject} ${p.score}/${p.total}`).join(', ') || 'No exams taken yet';
 
-        const goalLine = memory.learningGoal ? `\n- Learning goal: ${memory.learningGoal}` : '';
+        const goalLine     = memory.learningGoal ? `\n- Learning goal: ${memory.learningGoal}` : '';
         const progressLine = memory.goalTracking?.currentProgress
             ? `\n- Goal progress: ${memory.goalTracking.currentProgress}%`
             : '';
@@ -423,7 +516,7 @@ export async function getPersonalizedContext(uid: string): Promise<string> {
 - Preferred language: ${memory.preferredLanguage}
 - Current streak: ${memory.streak.current} days${goalLine}${progressLine}`.trim();
     } catch (e) {
-        console.warn('getPersonalizedContext error:', e);
+        logMemoryError('getPersonalizedContext', e, { uid });
         return '';
     }
 }

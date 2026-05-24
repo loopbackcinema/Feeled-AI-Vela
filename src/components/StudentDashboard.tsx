@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
@@ -110,6 +110,9 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [progressInsights, setProgressInsights] = useState<ProgressInsight[]>([]);
     const [examTips, setExamTips] = useState<ExamStrategyTip[]>([]);
 
+    // Fix 7: Prevent redundant fetches — track which uid we last fetched for
+    const fetchedForUid = useRef<string | null>(null);
+
     useEffect(() => {
         if (!selectedStory) return;
         const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedStory(null); };
@@ -140,6 +143,9 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     useEffect(() => {
         const fetchDashboardData = async () => {
             if (!user) return;
+            // Fix 7: Skip if already fetched for this uid in this session
+            if (fetchedForUid.current === user.uid) return;
+            fetchedForUid.current = user.uid;
             try {
                 // Fetch recent activities
                 const activityQ = query(collection(db, 'study_activity'), where('userId', '==', user.uid));
