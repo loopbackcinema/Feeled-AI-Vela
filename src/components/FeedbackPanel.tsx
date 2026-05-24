@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -7,76 +7,39 @@ interface FeedbackPanelProps {
 }
 
 const TYPES = [
-    { id: 'wrong',    label: '🐞 Response felt wrong' },
-    { id: 'suggest',  label: '💡 Suggest improvement' },
+    { id: 'wrong',     label: '🐞 Response felt wrong' },
+    { id: 'suggest',   label: '💡 Suggest improvement' },
     { id: 'confusing', label: '😕 Confusing explanation' },
 ];
 
-const s = {
-    triggerBtn: {
-        position:     'fixed' as const,
-        bottom:       80,
-        right:        16,
-        width:        40,
-        height:       40,
-        borderRadius: '50%',
-        background:   '#1a1040',
-        border:       '0.5px solid #4f46e5',
-        color:        '#818cf8',
-        fontSize:     18,
-        zIndex:       999,
-        boxShadow:    '0 0 12px #4f46e530',
-        cursor:       'pointer',
-        display:      'flex',
-        alignItems:   'center',
-        justifyContent: 'center',
-        lineHeight:   1,
-    },
-    panel: {
-        position:     'fixed' as const,
-        bottom:       130,
-        right:        16,
-        width:        280,
-        background:   '#0d0d1c',
-        border:       '0.5px solid #1e1e35',
-        borderRadius: 16,
-        padding:      16,
-        zIndex:       1000,
-        boxShadow:    '0 8px 32px rgba(0,0,0,0.5)',
-        animation:    'feedbackFadeSlide 0.3s ease-out',
-    },
-    pillSelected: {
-        background:   '#1a1040',
-        border:       '1px solid #4f46e5',
-        color:        '#c4b5fd',
-        borderRadius: 20,
-        padding:      '6px 10px',
-        fontSize:     11,
-        cursor:       'pointer',
-        textAlign:    'left' as const,
-        width:        '100%',
-        marginBottom: 6,
-    },
-    pillUnselected: {
-        background:   '#060610',
-        border:       '1px solid #1e1e35',
-        color:        '#5a5a8a',
-        borderRadius: 20,
-        padding:      '6px 10px',
-        fontSize:     11,
-        cursor:       'pointer',
-        textAlign:    'left' as const,
-        width:        '100%',
-        marginBottom: 6,
-    },
+const pillBase: React.CSSProperties = {
+    borderRadius: 20,
+    padding:      '6px 10px',
+    fontSize:     11,
+    cursor:       'pointer',
+    textAlign:    'left',
+    width:        '100%',
+    marginBottom: 6,
 };
 
 export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({ user }) => {
-    const [open, setOpen]       = useState(false);
-    const [type, setType]       = useState('');
-    const [message, setMessage] = useState('');
-    const [sent, setSent]       = useState(false);
-    const [saving, setSaving]   = useState(false);
+    const [open, setOpen]             = useState(false);
+    const [type, setType]             = useState('');
+    const [message, setMessage]       = useState('');
+    const [sent, setSent]             = useState(false);
+    const [saving, setSaving]         = useState(false);
+    const [bottomOffset, setBottomOffset] = useState('80px');
+
+    useEffect(() => {
+        const updateOffset = () => {
+            setBottomOffset(window.innerWidth >= 768 ? '24px' : '80px');
+        };
+        updateOffset();
+        window.addEventListener('resize', updateOffset);
+        return () => window.removeEventListener('resize', updateOffset);
+    }, []);
+
+    const panelBottom = `calc(${bottomOffset} + 60px)`;
 
     const handleSubmit = async () => {
         if (!type || saving) return;
@@ -114,16 +77,50 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({ user }) => {
                 }
             `}</style>
 
+            {/* Trigger button */}
             <button
-                style={s.triggerBtn}
                 onClick={() => setOpen(o => !o)}
                 aria-label="Open feedback"
+                style={{
+                    position:        'fixed',
+                    bottom:          bottomOffset,
+                    right:           '24px',
+                    width:           44,
+                    height:          44,
+                    borderRadius:    '50%',
+                    background:      'linear-gradient(135deg, #4f46e5, #7c3aed)',
+                    border:          'none',
+                    color:           'white',
+                    fontSize:        20,
+                    zIndex:          9999,
+                    boxShadow:       '0 4px 16px #4f46e560',
+                    cursor:          'pointer',
+                    display:         'flex',
+                    alignItems:      'center',
+                    justifyContent:  'center',
+                    lineHeight:      1,
+                }}
             >
                 💬
             </button>
 
+            {/* Panel */}
             {open && (
-                <div style={s.panel}>
+                <div
+                    style={{
+                        position:     'fixed',
+                        bottom:       panelBottom,
+                        right:        '24px',
+                        width:        280,
+                        background:   '#0d0d1c',
+                        border:       '0.5px solid #1e1e35',
+                        borderRadius: 16,
+                        padding:      16,
+                        zIndex:       9999,
+                        boxShadow:    '0 8px 32px rgba(0,0,0,0.5)',
+                        animation:    'feedbackFadeSlide 0.3s ease-out',
+                    }}
+                >
                     {/* Header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                         <span style={{ color: '#eeeef8', fontSize: 13, fontWeight: 700 }}>Share Feedback</span>
@@ -140,18 +137,26 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({ user }) => {
                         </div>
                     ) : (
                         <>
-                            {/* Type selector */}
                             {TYPES.map(t => (
                                 <button
                                     key={t.id}
-                                    style={type === t.id ? s.pillSelected : s.pillUnselected}
                                     onClick={() => setType(t.id)}
+                                    style={type === t.id ? {
+                                        ...pillBase,
+                                        background: '#1a1040',
+                                        border:     '1px solid #4f46e5',
+                                        color:      '#c4b5fd',
+                                    } : {
+                                        ...pillBase,
+                                        background: '#060610',
+                                        border:     '1px solid #1e1e35',
+                                        color:      '#5a5a8a',
+                                    }}
                                 >
                                     {t.label}
                                 </button>
                             ))}
 
-                            {/* Textarea — shown after type chosen */}
                             {type && (
                                 <textarea
                                     rows={3}
@@ -175,7 +180,6 @@ export const FeedbackPanel: React.FC<FeedbackPanelProps> = ({ user }) => {
                                 />
                             )}
 
-                            {/* Submit */}
                             {type && (
                                 <button
                                     onClick={handleSubmit}
