@@ -1402,7 +1402,7 @@ const callAPI = useCallback(async (
                                             {/* 🔊 Read aloud */}
                                             <button
                                                 onClick={() => playTts(msg.text)}
-                                                title="Read aloud"
+                                                data-tooltip="Read aloud"
                                                 style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center' }}
                                                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#818cf8'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; }}
                                                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
@@ -1413,7 +1413,7 @@ const callAPI = useCallback(async (
                                             {/* 📤 Share */}
                                             <button
                                                 onClick={() => handleShare(msg)}
-                                                title="Share"
+                                                data-tooltip="Share"
                                                 style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
                                                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#34d399'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; }}
                                                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
@@ -1424,7 +1424,7 @@ const callAPI = useCallback(async (
                                             {/* 👍 Thumbs up */}
                                             <button
                                                 onClick={() => handleRating(msg.id, 'up')}
-                                                title="Helpful"
+                                                data-tooltip="Helpful"
                                                 style={{ background: messageRatings[msg.id] === 'up' ? '#1a1040' : 'transparent', border: `0.5px solid ${messageRatings[msg.id] === 'up' ? '#4f46e5' : 'transparent'}`, borderRadius: 6, padding: '3px 7px', cursor: messageRatings[msg.id] ? 'default' : 'pointer', fontSize: 13, color: messageRatings[msg.id] === 'up' ? '#818cf8' : isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
                                                 onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#818cf8'; }}
                                                 onMouseLeave={e => { if (messageRatings[msg.id] !== 'up') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
@@ -1433,7 +1433,7 @@ const callAPI = useCallback(async (
                                             {/* 👎 Thumbs down */}
                                             <button
                                                 onClick={() => handleRating(msg.id, 'down')}
-                                                title="Not helpful"
+                                                data-tooltip="Not helpful"
                                                 style={{ background: messageRatings[msg.id] === 'down' ? '#1a0010' : 'transparent', border: `0.5px solid ${messageRatings[msg.id] === 'down' ? '#dc2626' : 'transparent'}`, borderRadius: 6, padding: '3px 7px', cursor: messageRatings[msg.id] ? 'default' : 'pointer', fontSize: 13, color: messageRatings[msg.id] === 'down' ? '#ef4444' : isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
                                                 onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}
                                                 onMouseLeave={e => { if (messageRatings[msg.id] !== 'down') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
