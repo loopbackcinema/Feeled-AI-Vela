@@ -24,3 +24,11 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+// DEV-only: expose simulation helpers on window for console testing
+// Usage: __sim.runUserSimulation('<uid>')
+if (import.meta.env.DEV) {
+  import('./services/simulationTest').then(m => {
+    (window as any).__sim = m;
+  });
+}
