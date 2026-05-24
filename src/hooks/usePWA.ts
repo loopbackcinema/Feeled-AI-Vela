@@ -19,7 +19,7 @@ export function usePWA() {
     setIsIOS(ios);
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
 
     const handler = (e: Event) => {

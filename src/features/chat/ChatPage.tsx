@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Menu, X, Plus, Mic, Send, Loader2, BookOpen, Volume2,
+    Menu, X, Plus, Mic, Send, Loader2, BookOpen,
     LogIn, LogOut, SquarePen, Image as ImageIcon, Settings2, ChevronRight, ChevronLeft,
     LayoutDashboard, BookMarked, FlaskConical, User, Lock, Globe, ArrowLeft, Sun, Moon,
 } from 'lucide-react';

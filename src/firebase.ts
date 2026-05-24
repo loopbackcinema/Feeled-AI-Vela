@@ -19,9 +19,7 @@ export const db = getFirestore(app, import.meta.env.VITE_FIREBASE_DATABASE_ID);
 export const auth = getAuth(app);
 
 // Set persistence to local
-setPersistence(auth, browserLocalPersistence).catch((err) => {
-  console.error("Failed to set auth persistence:", err);
-});
+setPersistence(auth, browserLocalPersistence).catch(() => {});
 
 export const googleProvider = new GoogleAuthProvider();
 
@@ -34,8 +32,8 @@ export const signInWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider);
     return result;
   } catch (error: any) {
-    console.error("Firebase Auth Error:", error.code, error.message);
-    
+    if (import.meta.env.DEV) { console.error("Firebase Auth Error:", error.code, error.message); }
+
     let friendlyMessage = "Login failed. ";
     
     switch (error.code) {
@@ -82,12 +80,12 @@ async function testConnection() {
     await getDocFromServer(doc(db, 'test', 'connection'));
     if (import.meta.env.DEV) { console.log("Firebase connection verified."); }
   } catch (error: any) {
-    if (error.message && error.message.includes('the client is offline')) {
-      console.error("CRITICAL: Firebase Client is Offline.");
-      console.error("This usually means the Firestore Database has not been created in the Firebase Console yet.");
-      console.error("Action Required: Go to Firebase Console > Firestore Database > Create Database.");
-    } else {
-      console.warn("Firebase connection test notice:", error.message);
+    if (import.meta.env.DEV) {
+      if (error.message?.includes('the client is offline')) {
+        console.error("Firebase offline — check Firestore DB is created in Console.");
+      } else {
+        console.warn("Firebase connection test:", error.message);
+      }
     }
   }
 }
