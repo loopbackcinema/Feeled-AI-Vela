@@ -26,6 +26,7 @@ import {
 } from '../../services/memoryService';
 import type { StudentMemory } from '../../services/memoryService';
 import { generateStudyInsights, generateNextTopicSuggestions, generateWeaknessRecommendations } from '../../services/intelligenceEngine';
+import { generateFuturePathSuggestions, generateExamPriorityRecommendations, generateLearningHabitInsights } from '../../services/mentorEngine';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
@@ -760,10 +761,17 @@ const callAPI = useCallback(async (
                 const questionToAsk = pendingQuestion
                     ? `The student is in grade ${actualGrade} studying ${actualSubject}. They originally asked: "${pendingQuestion}". Please answer that question now.`
                     : trimmed;
-                const studentCtx = user ? await Promise.race([
+                const baseCtx = user ? await Promise.race([
                     getPersonalizedContext(user.uid),
                     new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
                 ]) : '';
+                const studentCtx = studentMemory
+                    ? [
+                        baseCtx,
+                        generateFuturePathSuggestions(studentMemory).slice(0, 2).join(' '),
+                        `Exam priorities: ${generateExamPriorityRecommendations(studentMemory).slice(0, 2).join(', ')}`,
+                    ].filter(Boolean).join('\n')
+                    : baseCtx;
                 const data = await callAPI(questionToAsk, newMessages, {
                     board: actualBoard,
                     grade: actualGrade.replace(/\D/g, '') || '10',
@@ -791,10 +799,17 @@ const callAPI = useCallback(async (
         setIsLoading(true);
 
         try {
-            const studentCtx = user ? await Promise.race([
+            const baseCtx = user ? await Promise.race([
                 getPersonalizedContext(user.uid),
                 new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
             ]) : '';
+            const studentCtx = studentMemory
+                ? [
+                    baseCtx,
+                    generateFuturePathSuggestions(studentMemory).slice(0, 2).join(' '),
+                    `Exam priorities: ${generateExamPriorityRecommendations(studentMemory).slice(0, 2).join(', ')}`,
+                ].filter(Boolean).join('\n')
+                : baseCtx;
             const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime, studentCtx);
             const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
             const finalMsgs = [...updated, aiMsg];

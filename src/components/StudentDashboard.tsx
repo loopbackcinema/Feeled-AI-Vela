@@ -5,6 +5,8 @@ import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Time
 import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X, Zap, Brain } from 'lucide-react';
 import { getStudentMemory, StudentMemory } from '../services/memoryService';
 import { generateExamReadiness, generateCrossModeSuggestions, generateStudyInsights } from '../services/intelligenceEngine';
+import { generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule } from '../services/mentorEngine';
+import type { StudyTask, RevisionItem } from '../services/mentorEngine';
 
 interface SavedStory {
     id: string;
@@ -94,6 +96,9 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [studentMemory, setStudentMemory] = useState<StudentMemory | null>(null);
     const [learningGoal, setLearningGoal] = useState<StudentMemory['learningGoal']>(null);
     const [savingGoal, setSavingGoal] = useState(false);
+    const [dailyTasks, setDailyTasks] = useState<StudyTask[]>([]);
+    const [revisionQueue, setRevisionQueue] = useState<RevisionItem[]>([]);
+    const [mentorNote, setMentorNote] = useState('');
 
     useEffect(() => {
         if (!selectedStory) return;
@@ -198,6 +203,9 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     if (mem) {
                         setStudentMemory(mem);
                         setLearningGoal(mem.learningGoal);
+                        setDailyTasks(generateDailyLearningGoals(mem));
+                        setRevisionQueue(generateRevisionSchedule(mem));
+                        setMentorNote(generateMotivationalGuidance(mem));
                     }
                 });
 
@@ -417,6 +425,60 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     </div>
                 );
             })()}
+
+            {/* Today's Learning Plan */}
+            {studentMemory && dailyTasks.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg">📅</span>
+                            <h2 className="text-base font-bold text-slate-900 dark:text-white">Today's Learning Plan</h2>
+                        </div>
+                        {mentorNote && (
+                            <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium max-w-[200px] text-right hidden sm:block">
+                                {mentorNote}
+                            </span>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        {dailyTasks.map((task, i) => (
+                            <button
+                                key={i}
+                                onClick={() => {
+                                    if (task.mode === 'story') onNavigate('story');
+                                    else if (task.mode === 'exam') onNavigate('exam-mock');
+                                    else if (task.mode === 'game') onNavigate('game');
+                                    else onNavigate('home');
+                                }}
+                                className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all text-left group"
+                            >
+                                <span className="text-lg flex-shrink-0">{task.icon}</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{task.text}</p>
+                                    <p className="text-xs text-slate-400 dark:text-slate-600 capitalize">{task.mode} mode</p>
+                                </div>
+                                <span className="text-slate-300 dark:text-slate-700 group-hover:text-indigo-400 dark:group-hover:text-indigo-500 transition-colors text-sm font-bold">→</span>
+                            </button>
+                        ))}
+                    </div>
+                    {revisionQueue.length > 0 && (
+                        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                            <p className="text-xs font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider mb-2">Revision Queue</p>
+                            <div className="flex flex-wrap gap-2">
+                                {revisionQueue.map((item, i) => (
+                                    <span key={i} className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                                        item.priority === 'urgent'
+                                            ? 'bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900'
+                                            : 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900'
+                                    }`}>
+                                        {item.priority === 'urgent' ? '🔴' : '🟡'} {item.topic}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Cross-Mode: What to do next */}
             {studentMemory && (() => {
