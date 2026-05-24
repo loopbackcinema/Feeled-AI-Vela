@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X, Zap, Brain } from 'lucide-react';
-import { getStudentMemory, updateGoalTracking, StudentMemory } from '../services/memoryService';
+import { getStudentMemory, updateGoalTracking, saveLearningInsight, saveRevisionCycle, saveMentorSuggestion, StudentMemory } from '../services/memoryService';
 import { generateExamReadiness, generateCrossModeSuggestions, generateStudyInsights } from '../services/intelligenceEngine';
 import {
     generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule,
@@ -214,13 +214,35 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                         setStudentMemory(mem);
                         setLearningGoal(mem.learningGoal);
                         setDailyTasks(generateDailyLearningGoals(mem));
-                        setRevisionQueue(generateRevisionSchedule(mem));
+
+                        // Fix 3: saveRevisionCycle for top revision item (fire-and-forget)
+                        const revQueue = generateRevisionSchedule(mem);
+                        setRevisionQueue(revQueue);
+                        if (revQueue.length > 0 && user) {
+                            saveRevisionCycle({ uid: user.uid, topic: revQueue[0].topic, subject: revQueue[0].subject }).catch(() => {});
+                        }
+
                         setMentorNote(generateMotivationalGuidance(mem));
                         setSmartRevision(generateSmartRevisionPlan(mem));
-                        setLearningPatterns(detectLearningPatterns(mem));
+
+                        // Fix 2: saveLearningInsight from top detected pattern (fire-and-forget)
+                        const patterns = detectLearningPatterns(mem);
+                        setLearningPatterns(patterns);
+                        if (patterns.length > 0 && user) {
+                            saveLearningInsight({ uid: user.uid, insight: patterns[0].observation, type: patterns[0].type }).catch(() => {});
+                        }
+
                         setJourneyDays(buildLearningJourney(mem));
                         setProgressInsights(generateProgressInsights(mem));
                         setExamTips(generateExamStrategyTips(mem));
+
+                        // Fix 4: saveMentorSuggestion from top cross-mode suggestion (fire-and-forget)
+                        if (user) {
+                            const crossSugg = generateCrossModeSuggestions(mem);
+                            if (crossSugg.length > 0) {
+                                saveMentorSuggestion({ uid: user.uid, suggestion: crossSugg[0].action, mode: crossSugg[0].mode as any, topic: crossSugg[0].topic }).catch(() => {});
+                            }
+                        }
                     }
                 });
 
