@@ -499,6 +499,7 @@ const ChatPage: React.FC = () => {
     const [messageRatings, setMessageRatings]       = useState<Record<string, 'up' | 'down' | null>>({});
     const [showFeedbackInput, setShowFeedbackInput] = useState<string | null>(null);
     const [feedbackText, setFeedbackText]           = useState('');
+    const [toastMsg, setToastMsg]                   = useState('');
 
     // Chat history
     const [chatHistory, setChatHistory]           = useState<ChatHistoryItem[]>([]);
@@ -800,6 +801,27 @@ const callAPI = useCallback(async (
             resolved:     false,
         }).catch(() => {});
         setFeedbackText('');
+    };
+
+    const showToast = (msg: string) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(''), 3000);
+    };
+
+    const handleShare = async (msg: StudyChatMessage) => {
+        const shareText = `📚 FeelEd AI — Learning Note\n\n${msg.text}\n\n🔗 Learn more at feeledai.com`;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'FeelEd AI — Study Note', text: shareText });
+                return;
+            } catch { /* user cancelled or unsupported */ }
+        }
+        try {
+            await navigator.clipboard.writeText(shareText);
+            showToast('Copied to clipboard! Paste in WhatsApp or any app 📋');
+        } catch {
+            prompt('Copy this text:', shareText);
+        }
     };
 
     // Core send function
@@ -1340,11 +1362,6 @@ const callAPI = useCallback(async (
                                         )}
                                     </div>
 
-                                    {msg.role === 'model' && (
-                                        <button onClick={() => playTts(msg.text)} className="ml-1 mt-1 p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all" title="Listen">
-                                            <Volume2 className="w-4 h-4" />
-                                        </button>
-                                    )}
                                     {/* Suggestion chips below AI messages */}
                                     {msg.role === 'model' && msg.suggestions && msg.suggestions.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
@@ -1378,41 +1395,46 @@ const callAPI = useCallback(async (
                                         );
                                     })()}
 
-                                    {/* Thumbs up/down — only on completed AI messages */}
+                                    {/* Unified action bar — only on completed AI messages */}
                                     {msg.role === 'model' && !(isLoading && i === lastAiIndex) && (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                                            {/* Thumbs up */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+
+                                            {/* 🔊 Read aloud */}
+                                            <button
+                                                onClick={() => playTts(msg.text)}
+                                                title="Read aloud"
+                                                style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#818cf8'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
+                                            >🔊</button>
+
+                                            <div style={{ width: '0.5px', height: 14, background: isDarkMode ? '#1e1e35' : '#e5e7eb' }} />
+
+                                            {/* 📤 Share */}
+                                            <button
+                                                onClick={() => handleShare(msg)}
+                                                title="Share"
+                                                style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#34d399'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
+                                            >📤</button>
+
+                                            <div style={{ width: '0.5px', height: 14, background: isDarkMode ? '#1e1e35' : '#e5e7eb' }} />
+
+                                            {/* 👍 Thumbs up */}
                                             <button
                                                 onClick={() => handleRating(msg.id, 'up')}
                                                 title="Helpful"
-                                                style={{
-                                                    background:   messageRatings[msg.id] === 'up' ? '#1a1040' : 'transparent',
-                                                    border:       `0.5px solid ${messageRatings[msg.id] === 'up' ? '#4f46e5' : 'transparent'}`,
-                                                    borderRadius: 6,
-                                                    padding:      '3px 7px',
-                                                    cursor:       messageRatings[msg.id] ? 'default' : 'pointer',
-                                                    fontSize:     13,
-                                                    color:        messageRatings[msg.id] === 'up' ? '#818cf8' : isDarkMode ? '#3a3a5a' : '#9ca3af',
-                                                    transition:   'all 0.15s ease',
-                                                }}
+                                                style={{ background: messageRatings[msg.id] === 'up' ? '#1a1040' : 'transparent', border: `0.5px solid ${messageRatings[msg.id] === 'up' ? '#4f46e5' : 'transparent'}`, borderRadius: 6, padding: '3px 7px', cursor: messageRatings[msg.id] ? 'default' : 'pointer', fontSize: 13, color: messageRatings[msg.id] === 'up' ? '#818cf8' : isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
                                                 onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#818cf8'; }}
                                                 onMouseLeave={e => { if (messageRatings[msg.id] !== 'up') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
                                             >👍</button>
 
-                                            {/* Thumbs down */}
+                                            {/* 👎 Thumbs down */}
                                             <button
                                                 onClick={() => handleRating(msg.id, 'down')}
                                                 title="Not helpful"
-                                                style={{
-                                                    background:   messageRatings[msg.id] === 'down' ? '#1a0010' : 'transparent',
-                                                    border:       `0.5px solid ${messageRatings[msg.id] === 'down' ? '#dc2626' : 'transparent'}`,
-                                                    borderRadius: 6,
-                                                    padding:      '3px 7px',
-                                                    cursor:       messageRatings[msg.id] ? 'default' : 'pointer',
-                                                    fontSize:     13,
-                                                    color:        messageRatings[msg.id] === 'down' ? '#ef4444' : isDarkMode ? '#3a3a5a' : '#9ca3af',
-                                                    transition:   'all 0.15s ease',
-                                                }}
+                                                style={{ background: messageRatings[msg.id] === 'down' ? '#1a0010' : 'transparent', border: `0.5px solid ${messageRatings[msg.id] === 'down' ? '#dc2626' : 'transparent'}`, borderRadius: 6, padding: '3px 7px', cursor: messageRatings[msg.id] ? 'default' : 'pointer', fontSize: 13, color: messageRatings[msg.id] === 'down' ? '#ef4444' : isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
                                                 onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}
                                                 onMouseLeave={e => { if (messageRatings[msg.id] !== 'down') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
                                             >👎</button>
@@ -1426,26 +1448,11 @@ const callAPI = useCallback(async (
                                                         onChange={e => setFeedbackText(e.target.value)}
                                                         placeholder="What was wrong? (optional)"
                                                         autoFocus
-                                                        style={{
-                                                            background:   '#0d0d1c',
-                                                            border:       '0.5px solid #2a2a4a',
-                                                            borderRadius: 8,
-                                                            padding:      '4px 10px',
-                                                            color:        '#eeeef8',
-                                                            fontSize:     11,
-                                                            width:        160,
-                                                            outline:      'none',
-                                                        }}
+                                                        style={{ background: '#0d0d1c', border: '0.5px solid #2a2a4a', borderRadius: 8, padding: '4px 10px', color: '#eeeef8', fontSize: 11, width: 160, outline: 'none' }}
                                                         onKeyDown={e => { if (e.key === 'Enter') submitFeedback(msg.id); }}
                                                     />
-                                                    <button
-                                                        onClick={() => submitFeedback(msg.id)}
-                                                        style={{ background: '#4f46e5', border: 'none', borderRadius: 6, padding: '4px 10px', color: 'white', fontSize: 11, cursor: 'pointer' }}
-                                                    >Send</button>
-                                                    <button
-                                                        onClick={() => setShowFeedbackInput(null)}
-                                                        style={{ background: 'none', border: 'none', color: '#3a3a5a', cursor: 'pointer', fontSize: 14, padding: 0 }}
-                                                    >×</button>
+                                                    <button onClick={() => submitFeedback(msg.id)} style={{ background: '#4f46e5', border: 'none', borderRadius: 6, padding: '4px 10px', color: 'white', fontSize: 11, cursor: 'pointer' }}>Send</button>
+                                                    <button onClick={() => setShowFeedbackInput(null)} style={{ background: 'none', border: 'none', color: '#3a3a5a', cursor: 'pointer', fontSize: 14, padding: 0 }}>×</button>
                                                 </div>
                                             )}
 
@@ -1563,6 +1570,12 @@ const callAPI = useCallback(async (
                 )}
             </div>
 
+            {/* Clipboard toast */}
+            {toastMsg && (
+                <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)', background: '#1a1040', border: '0.5px solid #4f46e5', borderRadius: 10, padding: '8px 16px', color: '#c4b5fd', fontSize: 12, zIndex: 9999, boxShadow: '0 4px 16px #4f46e540', whiteSpace: 'nowrap' }}>
+                    {toastMsg}
+                </div>
+            )}
         </div>
     );
 };
