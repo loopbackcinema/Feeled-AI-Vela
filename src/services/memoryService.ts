@@ -1,6 +1,7 @@
 import { db } from '../firebase';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { logMemoryError } from './errorLogger';
+import { buildCompactContext } from './contextSelector';
 
 const MAX_RECENT_TOPICS      = 25;
 const MAX_EXAM_PERFORMANCE   = 20;
@@ -486,35 +487,13 @@ export async function updateGoalTracking(uid: string, goal: StudentMemory['learn
     }
 }
 
-// ── Personalized context (uses cache — no extra Firestore read) ───────────────
+// ── Personalized context — subject-aware, compact, 400-char max ──────────────
 
-export async function getPersonalizedContext(uid: string): Promise<string> {
+export async function getPersonalizedContext(uid: string, currentQuery = ''): Promise<string> {
     try {
         const memory = await getStudentMemory(uid);
         if (!memory) return '';
-
-        const recentTopicNames = memory.recentTopics
-            .slice(0, 5).map(t => t.topic).join(', ') || 'None yet';
-
-        const weakTopicNames = memory.weakTopics
-            .sort((a, b) => b.weaknessScore - a.weaknessScore)
-            .slice(0, 3).map(t => t.topic).join(', ') || 'None detected yet';
-
-        const recentScores = memory.recentExamPerformance
-            .slice(0, 3).map(p => `${p.subject} ${p.score}/${p.total}`).join(', ') || 'No exams taken yet';
-
-        const goalLine     = memory.learningGoal ? `\n- Learning goal: ${memory.learningGoal}` : '';
-        const progressLine = memory.goalTracking?.currentProgress
-            ? `\n- Goal progress: ${memory.goalTracking.currentProgress}%`
-            : '';
-
-        return `STUDENT MEMORY CONTEXT:
-- Student name: ${memory.name}
-- Recently studied: ${recentTopicNames}
-- Weak topics: ${weakTopicNames}
-- Recent exam scores: ${recentScores}
-- Preferred language: ${memory.preferredLanguage}
-- Current streak: ${memory.streak.current} days${goalLine}${progressLine}`.trim();
+        return buildCompactContext(memory, currentQuery);
     } catch (e) {
         logMemoryError('getPersonalizedContext', e, { uid });
         return '';

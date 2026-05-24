@@ -804,7 +804,7 @@ const callAPI = useCallback(async (
                     ? `The student is in grade ${actualGrade} studying ${actualSubject}. They originally asked: "${pendingQuestion}". Please answer that question now.`
                     : trimmed;
                 const baseCtx = user ? await Promise.race([
-                    getPersonalizedContext(user.uid),
+                    getPersonalizedContext(user.uid, trimmed),
                     new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
                 ]) : '';
                 const studentCtx = studentMemory
@@ -843,7 +843,7 @@ const callAPI = useCallback(async (
 
         try {
             const baseCtx = user ? await Promise.race([
-                getPersonalizedContext(user.uid),
+                getPersonalizedContext(user.uid, trimmed),
                 new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
             ]) : '';
             const studentCtx = studentMemory
