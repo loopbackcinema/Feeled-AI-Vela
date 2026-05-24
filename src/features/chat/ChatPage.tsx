@@ -14,7 +14,7 @@ import { signInWithGoogle, logOut, db } from '../../firebase';
 import {
     collection, query, where, orderBy, limit, getDocs,
     doc, setDoc, serverTimestamp, Timestamp, startAfter,
-    QueryDocumentSnapshot,
+    QueryDocumentSnapshot, addDoc,
 } from 'firebase/firestore';
 import {
     getPersonalizedContext,
@@ -32,7 +32,6 @@ import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
 import { useTranslation } from 'react-i18next';
-import FeedbackPanel from '../../components/FeedbackPanel';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -496,6 +495,11 @@ const ChatPage: React.FC = () => {
     const [pendingQuestion, setPendingQuestion] = useState('');
     const [uploadedImage, setUploadedImage] = useState<{ base64: string; mime: string } | null>(null);
 
+    // Message ratings (thumbs up/down)
+    const [messageRatings, setMessageRatings]       = useState<Record<string, 'up' | 'down' | null>>({});
+    const [showFeedbackInput, setShowFeedbackInput] = useState<string | null>(null);
+    const [feedbackText, setFeedbackText]           = useState('');
+
     // Chat history
     const [chatHistory, setChatHistory]           = useState<ChatHistoryItem[]>([]);
     const [hasMoreHistory, setHasMoreHistory]     = useState(false);
@@ -764,6 +768,39 @@ const callAPI = useCallback(async (
     }
     return { reply: fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, ''), ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], streamingId };
 }, [setSession]);
+
+    // Message rating handlers
+    const handleRating = async (msgId: string, rating: 'up' | 'down') => {
+        if (messageRatings[msgId]) return; // prevent re-rating
+        setMessageRatings(prev => ({ ...prev, [msgId]: rating }));
+        if (rating === 'down') setShowFeedbackInput(msgId);
+        const msg = chatMessages.find(m => m.id === msgId);
+        addDoc(collection(db, 'message_feedback'), {
+            uid:            user?.uid ?? null,
+            msgId,
+            rating,
+            messagePreview: msg?.text?.substring(0, 100) ?? '',
+            url:            window.location.href,
+            timestamp:      serverTimestamp(),
+            feedbackText:   '',
+            resolved:       false,
+        }).catch(() => {});
+    };
+
+    const submitFeedback = async (msgId: string) => {
+        setShowFeedbackInput(null);
+        if (!feedbackText.trim()) { setFeedbackText(''); return; }
+        addDoc(collection(db, 'message_feedback'), {
+            uid:          user?.uid ?? null,
+            msgId,
+            rating:       messageRatings[msgId] ?? 'down',
+            feedbackText: feedbackText.trim(),
+            url:          window.location.href,
+            timestamp:    serverTimestamp(),
+            resolved:     false,
+        }).catch(() => {});
+        setFeedbackText('');
+    };
 
     // Core send function
     const sendMessage = useCallback(async (text: string) => {
@@ -1340,6 +1377,86 @@ const callAPI = useCallback(async (
                                             </div>
                                         );
                                     })()}
+
+                                    {/* Thumbs up/down — only on completed AI messages */}
+                                    {msg.role === 'model' && !(isLoading && i === lastAiIndex) && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                                            {/* Thumbs up */}
+                                            <button
+                                                onClick={() => handleRating(msg.id, 'up')}
+                                                title="Helpful"
+                                                style={{
+                                                    background:   messageRatings[msg.id] === 'up' ? '#1a1040' : 'transparent',
+                                                    border:       `0.5px solid ${messageRatings[msg.id] === 'up' ? '#4f46e5' : 'transparent'}`,
+                                                    borderRadius: 6,
+                                                    padding:      '3px 7px',
+                                                    cursor:       messageRatings[msg.id] ? 'default' : 'pointer',
+                                                    fontSize:     13,
+                                                    color:        messageRatings[msg.id] === 'up' ? '#818cf8' : isDarkMode ? '#3a3a5a' : '#9ca3af',
+                                                    transition:   'all 0.15s ease',
+                                                }}
+                                                onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#818cf8'; }}
+                                                onMouseLeave={e => { if (messageRatings[msg.id] !== 'up') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
+                                            >👍</button>
+
+                                            {/* Thumbs down */}
+                                            <button
+                                                onClick={() => handleRating(msg.id, 'down')}
+                                                title="Not helpful"
+                                                style={{
+                                                    background:   messageRatings[msg.id] === 'down' ? '#1a0010' : 'transparent',
+                                                    border:       `0.5px solid ${messageRatings[msg.id] === 'down' ? '#dc2626' : 'transparent'}`,
+                                                    borderRadius: 6,
+                                                    padding:      '3px 7px',
+                                                    cursor:       messageRatings[msg.id] ? 'default' : 'pointer',
+                                                    fontSize:     13,
+                                                    color:        messageRatings[msg.id] === 'down' ? '#ef4444' : isDarkMode ? '#3a3a5a' : '#9ca3af',
+                                                    transition:   'all 0.15s ease',
+                                                }}
+                                                onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}
+                                                onMouseLeave={e => { if (messageRatings[msg.id] !== 'down') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
+                                            >👎</button>
+
+                                            {/* Inline feedback input after thumbs down */}
+                                            {showFeedbackInput === msg.id && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <input
+                                                        type="text"
+                                                        value={feedbackText}
+                                                        onChange={e => setFeedbackText(e.target.value)}
+                                                        placeholder="What was wrong? (optional)"
+                                                        autoFocus
+                                                        style={{
+                                                            background:   '#0d0d1c',
+                                                            border:       '0.5px solid #2a2a4a',
+                                                            borderRadius: 8,
+                                                            padding:      '4px 10px',
+                                                            color:        '#eeeef8',
+                                                            fontSize:     11,
+                                                            width:        160,
+                                                            outline:      'none',
+                                                        }}
+                                                        onKeyDown={e => { if (e.key === 'Enter') submitFeedback(msg.id); }}
+                                                    />
+                                                    <button
+                                                        onClick={() => submitFeedback(msg.id)}
+                                                        style={{ background: '#4f46e5', border: 'none', borderRadius: 6, padding: '4px 10px', color: 'white', fontSize: 11, cursor: 'pointer' }}
+                                                    >Send</button>
+                                                    <button
+                                                        onClick={() => setShowFeedbackInput(null)}
+                                                        style={{ background: 'none', border: 'none', color: '#3a3a5a', cursor: 'pointer', fontSize: 14, padding: 0 }}
+                                                    >×</button>
+                                                </div>
+                                            )}
+
+                                            {/* Confirmation label */}
+                                            {messageRatings[msg.id] && showFeedbackInput !== msg.id && (
+                                                <span style={{ color: isDarkMode ? '#3a3a5a' : '#9ca3af', fontSize: 10, marginLeft: 2 }}>
+                                                    {messageRatings[msg.id] === 'up' ? 'Thanks!' : 'Thanks for the feedback'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 {msg.role === 'user' && (
                                     <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-white text-xs font-black select-none">
@@ -1446,7 +1563,6 @@ const callAPI = useCallback(async (
                 )}
             </div>
 
-            <FeedbackPanel user={user} />
         </div>
     );
 };
