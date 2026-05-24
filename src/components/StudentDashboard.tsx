@@ -8,8 +8,9 @@ import { generateExamReadiness, generateCrossModeSuggestions, generateStudyInsig
 import {
     generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule,
     generateSmartRevisionPlan, detectLearningPatterns,
+    buildLearningJourney, generateProgressInsights,
 } from '../services/mentorEngine';
-import type { StudyTask, RevisionItem, RevisionPriority, LearningPattern } from '../services/mentorEngine';
+import type { StudyTask, RevisionItem, RevisionPriority, LearningPattern, JourneyDay, ProgressInsight } from '../services/mentorEngine';
 
 interface SavedStory {
     id: string;
@@ -104,6 +105,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [mentorNote, setMentorNote] = useState('');
     const [smartRevision, setSmartRevision] = useState<RevisionPriority[]>([]);
     const [learningPatterns, setLearningPatterns] = useState<LearningPattern[]>([]);
+    const [journeyDays, setJourneyDays] = useState<JourneyDay[]>([]);
+    const [progressInsights, setProgressInsights] = useState<ProgressInsight[]>([]);
 
     useEffect(() => {
         if (!selectedStory) return;
@@ -213,6 +216,8 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                         setMentorNote(generateMotivationalGuidance(mem));
                         setSmartRevision(generateSmartRevisionPlan(mem));
                         setLearningPatterns(detectLearningPatterns(mem));
+                        setJourneyDays(buildLearningJourney(mem));
+                        setProgressInsights(generateProgressInsights(mem));
                     }
                 });
 
@@ -641,6 +646,56 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     <p className="text-xs text-slate-400 dark:text-slate-600 mt-3 border-t border-slate-100 dark:border-slate-800 pt-3">
                         Patterns are based on your recent activity and update as you learn.
                     </p>
+                </div>
+            )}
+
+            {/* Learning Journey Timeline */}
+            {journeyDays.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm mb-8">
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg">🗓️</span>
+                            <h2 className="text-base font-bold text-slate-900 dark:text-white">Your Learning Journey</h2>
+                        </div>
+                        {progressInsights.length > 0 && (
+                            <div className="flex gap-2 flex-wrap justify-end">
+                                {progressInsights.slice(0, 3).map((ins, i) => (
+                                    <span key={i} className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                                        ins.trend === 'improving'
+                                            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
+                                            : ins.trend === 'needs-revision'
+                                            ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                                    }`}>
+                                        {ins.trend === 'improving' ? '📈' : ins.trend === 'needs-revision' ? '⚡' : '→'} {ins.note}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <div className="relative">
+                        {/* Vertical line */}
+                        <div className="absolute left-3.5 top-0 bottom-0 w-px bg-slate-100 dark:bg-slate-800" />
+                        <div className="space-y-6">
+                            {journeyDays.map((day, di) => (
+                                <div key={day.dateKey} className="relative pl-10">
+                                    {/* Day dot */}
+                                    <div className="absolute left-0 w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-950/60 border-2 border-indigo-300 dark:border-indigo-800 flex items-center justify-center text-xs">
+                                        {di === 0 ? '📍' : '·'}
+                                    </div>
+                                    <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-2">{day.dateLabel}</p>
+                                    <div className="space-y-1.5">
+                                        {day.entries.map((entry, ei) => (
+                                            <div key={ei} className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                <span className="text-base flex-shrink-0">{entry.icon}</span>
+                                                <span>{entry.text}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
 

@@ -26,7 +26,8 @@ import {
 } from '../../services/memoryService';
 import type { StudentMemory } from '../../services/memoryService';
 import { generateStudyInsights, generateNextTopicSuggestions, generateWeaknessRecommendations } from '../../services/intelligenceEngine';
-import { generateFuturePathSuggestions, generateExamPriorityRecommendations, generateLearningHabitInsights, generateCrossModeContext } from '../../services/mentorEngine';
+import { generateFuturePathSuggestions, generateExamPriorityRecommendations, generateLearningHabitInsights, generateCrossModeContext, generateInsightCards } from '../../services/mentorEngine';
+import type { InsightCard } from '../../services/mentorEngine';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
@@ -1101,6 +1102,40 @@ const callAPI = useCallback(async (
                         <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 16 }}>
                             {t('home.subtitle')}
                         </p>
+
+                        {/* AI-Powered Insight Cards */}
+                        {studentMemory && (() => {
+                            const cards: InsightCard[] = generateInsightCards(studentMemory);
+                            if (!cards.length) return null;
+                            return (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
+                                    {cards.map((card, i) => (
+                                        <div
+                                            key={i}
+                                            onClick={() => {
+                                                if (card.mode === 'story') navigate('/story');
+                                                else if (card.mode === 'exam') navigate('/exam-mock');
+                                                else if (card.mode === 'game') navigate('/game');
+                                                else if (card.actionTopic) { setInput(card.actionTopic); inputRef.current?.focus(); }
+                                            }}
+                                            style={{
+                                                background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                                border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)'}`,
+                                                borderRadius: 14, padding: '10px 12px',
+                                                textAlign: 'left', cursor: card.mode || card.actionTopic ? 'pointer' : 'default',
+                                                transition: 'border-color 0.15s',
+                                            }}
+                                            onMouseEnter={e => card.actionTopic && ((e.currentTarget as HTMLElement).style.borderColor = card.color + '60')}
+                                            onMouseLeave={e => card.actionTopic && ((e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)')}
+                                        >
+                                            <div style={{ fontSize: 18, marginBottom: 4 }}>{card.icon}</div>
+                                            <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: isDarkMode ? '#4a4a6a' : '#9ca3af', marginBottom: 2 }}>{card.label}</div>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: card.color, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
 
                         {/* 3 Mode Cards */}
                         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>

@@ -519,6 +519,199 @@ export function generateCrossModeContext(memory: StudentMemory): string {
     return parts.length > 0 ? `CROSS-MODE CONTEXT:\n${parts.join('\n')}` : '';
 }
 
+// ── Part 9: AI-Powered Insight Cards ─────────────────────────────────────────
+
+export interface InsightCard {
+    icon: string;
+    label: string;
+    value: string;
+    color: string;         // CSS color for accent
+    mode?: 'chat' | 'story' | 'exam' | 'game';
+    actionTopic?: string;
+}
+
+export function generateInsightCards(memory: StudentMemory): InsightCard[] {
+    const cards: InsightCard[] = [];
+
+    // 🔥 Current Streak
+    const streak = memory.streak?.current || 0;
+    cards.push({
+        icon: streak >= 3 ? '🔥' : '🌱',
+        label: 'Current Streak',
+        value: streak > 0 ? `${streak} Day${streak > 1 ? 's' : ''}` : 'Start Today',
+        color: '#f59e0b',
+    });
+
+    // 📚 Strong Topic (subject with best avg exam score)
+    const scoresBySubject: Record<string, number[]> = {};
+    for (const p of (memory.recentExamPerformance || [])) {
+        if (!scoresBySubject[p.subject]) scoresBySubject[p.subject] = [];
+        scoresBySubject[p.subject].push(p.total > 0 ? p.score / p.total : 0);
+    }
+    let strongSubject = '';
+    let bestAvg = 0;
+    for (const [subj, scores] of Object.entries(scoresBySubject)) {
+        const avg = scores.reduce((s, n) => s + n, 0) / scores.length;
+        if (avg > bestAvg) { bestAvg = avg; strongSubject = subj; }
+    }
+    if (!strongSubject && memory.recentTopics?.length > 0) {
+        // Fall back to most-studied subject
+        const subjectCounts: Record<string, number> = {};
+        for (const t of memory.recentTopics) subjectCounts[t.subject] = (subjectCounts[t.subject] || 0) + 1;
+        strongSubject = Object.entries(subjectCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '';
+    }
+    if (strongSubject) {
+        cards.push({ icon: '📚', label: 'Strong Area', value: strongSubject, color: '#22c55e' });
+    }
+
+    // ⚡ Needs Revision (top weak topic)
+    const topWeak = (memory.weakTopics || []).sort((a, b) => b.weaknessScore - a.weaknessScore)[0];
+    if (topWeak) {
+        cards.push({
+            icon: '⚡', label: 'Needs Revision', value: topWeak.topic,
+            color: '#ef4444', mode: 'exam', actionTopic: topWeak.topic,
+        });
+    }
+
+    // 🎯 Recommended Today (first daily task topic)
+    const dailyTasks = generateDailyLearningGoals(memory);
+    const firstTask = dailyTasks[0];
+    if (firstTask) {
+        cards.push({
+            icon: '🎯', label: 'Recommended Today',
+            value: firstTask.topic || firstTask.text.slice(0, 30),
+            color: '#6366f1', mode: firstTask.mode, actionTopic: firstTask.topic,
+        });
+    }
+
+    return cards.slice(0, 4);
+}
+
+// ── Part 8: Learning Journey Builder ─────────────────────────────────────────
+
+export interface JourneyEntry {
+    type: 'topic' | 'exam' | 'milestone';
+    icon: string;
+    text: string;
+    timestamp: number;
+}
+
+export interface JourneyDay {
+    dateLabel: string;
+    dateKey: string;
+    entries: JourneyEntry[];
+}
+
+export function buildLearningJourney(memory: StudentMemory): JourneyDay[] {
+    const dayMap: Record<string, JourneyEntry[]> = {};
+
+    const modeIcons: Record<string, string> = { chat: '💬', story: '✨', exam: '📝', game: '🎮' };
+
+    // Topics
+    for (const t of (memory.recentTopics || []).slice(0, 30)) {
+        const key = new Date(t.timestamp).toISOString().split('T')[0];
+        if (!dayMap[key]) dayMap[key] = [];
+        dayMap[key].push({
+            type: 'topic',
+            icon: modeIcons[t.source] || '📖',
+            text: t.source === 'story'
+                ? `Completed ${t.topic} Story`
+                : t.source === 'game'
+                ? `Practiced ${t.topic} via Game`
+                : `Explored ${t.topic} (${t.subject})`,
+            timestamp: t.timestamp,
+        });
+    }
+
+    // Exam performance
+    for (const p of (memory.recentExamPerformance || []).slice(0, 10)) {
+        const key = new Date(p.timestamp).toISOString().split('T')[0];
+        if (!dayMap[key]) dayMap[key] = [];
+        const pct = p.total > 0 ? Math.round((p.score / p.total) * 100) : 0;
+        dayMap[key].push({
+            type: 'exam',
+            icon: pct >= 70 ? '🏆' : pct >= 50 ? '📊' : '📉',
+            text: `Scored ${p.score}/${p.total} in ${p.chapter}`,
+            timestamp: p.timestamp,
+        });
+    }
+
+    // Milestones (streak achievements)
+    const streak = memory.streak?.current || 0;
+    if (streak >= 5) {
+        const today = new Date().toISOString().split('T')[0];
+        if (!dayMap[today]) dayMap[today] = [];
+        dayMap[today].push({
+            type: 'milestone',
+            icon: '⭐',
+            text: `${streak}-day learning streak achieved`,
+            timestamp: Date.now(),
+        });
+    }
+
+    // Sort days desc, cap at 5 days
+    const sorted = Object.entries(dayMap)
+        .sort(([a], [b]) => b.localeCompare(a))
+        .slice(0, 5);
+
+    return sorted.map(([key, entries]) => {
+        const d = new Date(key);
+        const dateLabel = d.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
+        return {
+            dateKey: key,
+            dateLabel,
+            entries: entries
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .slice(0, 4),
+        };
+    });
+}
+
+// ── Part 8: Progress Insights ─────────────────────────────────────────────────
+
+export interface ProgressInsight {
+    subject: string;
+    trend: 'improving' | 'needs-revision' | 'stable';
+    note: string;
+}
+
+export function generateProgressInsights(memory: StudentMemory): ProgressInsight[] {
+    const insights: ProgressInsight[] = [];
+    const seen = new Set<string>();
+
+    // Check exam score trends per subject
+    const scoresBySubject: Record<string, { score: number; total: number; timestamp: number }[]> = {};
+    for (const p of (memory.recentExamPerformance || [])) {
+        if (!scoresBySubject[p.subject]) scoresBySubject[p.subject] = [];
+        scoresBySubject[p.subject].push({ score: p.score, total: p.total, timestamp: p.timestamp });
+    }
+
+    for (const [subject, scores] of Object.entries(scoresBySubject)) {
+        if (seen.has(subject) || scores.length < 2) continue;
+        const sorted = scores.sort((a, b) => b.timestamp - a.timestamp);
+        const latest = sorted[0].score / sorted[0].total;
+        const prev   = sorted[1].score / sorted[1].total;
+        seen.add(subject);
+
+        if (latest > prev && latest >= 0.6) {
+            insights.push({ subject, trend: 'improving', note: `${subject} improving steadily` });
+        } else if (latest < 0.5) {
+            insights.push({ subject, trend: 'needs-revision', note: `${subject} revision needed` });
+        } else {
+            insights.push({ subject, trend: 'stable', note: `${subject} at steady level` });
+        }
+    }
+
+    // Weak topics → needs-revision subjects
+    for (const wt of (memory.weakTopics || []).slice(0, 2)) {
+        if (seen.has(wt.subject)) continue;
+        seen.add(wt.subject);
+        insights.push({ subject: wt.subject, trend: 'needs-revision', note: `${wt.topic} revision needed` });
+    }
+
+    return insights.slice(0, 4);
+}
+
 export function generateStudyPlan(memory: StudentMemory): { today: StudyTask[]; thisWeek: string[]; revisionQueue: string[] } {
     const today = generateDailyLearningGoals(memory);
 
