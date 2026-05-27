@@ -1,4 +1,4 @@
-import React, { useState, useCallback, lazy, Suspense } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ChatPage from './features/chat/ChatPage';
 import AnswerScreen from './components/AnswerScreen';
@@ -8,27 +8,22 @@ import { generateStory, generateVoice, generateImage, generateConcept, generateP
 import { StoryRequest, Page, StudentContext } from './types';
 import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
+import AboutUs from './pages/AboutUs';
+import Contact from './pages/Contact';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Founder from './pages/Founder';
+import Research from './pages/Research';
+import PilotProgram from './pages/PilotProgram';
+import InclusiveResearch from './pages/InclusiveResearch';
+import Teachers from './pages/Teachers';
+import Parents from './pages/Parents';
+import MyStories from './components/MyStories';
+import GameMode from './pages/GameMode';
+import ExamMock from './pages/ExamMock';
+import StudentDashboard from './components/StudentDashboard';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import ProtectedRoute from './components/ProtectedRoute';
-import ErrorBoundary from './components/ErrorBoundary';
-import BottomNav from './components/BottomNav';
-
-// Lazy-loaded pages — only fetched when the route is first visited
-const AboutUs          = lazy(() => import('./pages/AboutUs'));
-const Contact          = lazy(() => import('./pages/Contact'));
-const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
-const TermsOfUse       = lazy(() => import('./pages/TermsOfUse'));
-const Founder          = lazy(() => import('./pages/Founder'));
-const Research         = lazy(() => import('./pages/Research'));
-const PilotProgram     = lazy(() => import('./pages/PilotProgram'));
-const InclusiveResearch = lazy(() => import('./pages/InclusiveResearch'));
-const FAQ              = lazy(() => import('./pages/FAQ'));
-const Teachers         = lazy(() => import('./pages/Teachers'));
-const Parents          = lazy(() => import('./pages/Parents'));
-const MyStories        = lazy(() => import('./components/MyStories'));
-const GameMode         = lazy(() => import('./pages/GameMode'));
-const ExamMock         = lazy(() => import('./pages/ExamMock'));
-const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -62,7 +57,7 @@ const PAGE_TO_PATH: Record<Page, string> = {
 const PageShell: React.FC<{ children: React.ReactNode; showNav?: boolean }> = ({ children, showNav }) => {
     const nav = useNavigate();
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors md:pb-0 pb-[80px]">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors">
             {showNav && (
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
                     <button
@@ -116,7 +111,7 @@ const App: React.FC = () => {
     const formatError = (err: any): string => {
         if (typeof err === 'string') return err;
         if (err?.message) {
-            try { const p = JSON.parse(err.message); if (p?.error?.message) return p.error.message; } catch (e) { console.warn('FeelEd:', e); }
+            try { const p = JSON.parse(err.message); if (p?.error?.message) return p.error.message; } catch { /* not JSON */ }
             return err.message;
         }
         return 'An unexpected error occurred.';
@@ -126,7 +121,7 @@ const App: React.FC = () => {
         if (!user) return;
         try {
             await addDoc(collection(db, 'study_activity'), { userId: user.uid, type, topic, subject: subj, createdAt: serverTimestamp() });
-        } catch (e) { console.warn('FeelEd:', e); }
+        } catch { /* ignore */ }
     };
 
     const handleGenerateStory = useCallback(async (request: StoryRequest) => {
@@ -146,7 +141,7 @@ const App: React.FC = () => {
                     content: `${story.introduction}\n\n${story.concept_explanation}\n\n${story.resolution}`,
                     language: request.language, topic: request.topic, createdAt: serverTimestamp(),
                 });
-            } catch (e) { console.warn('FeelEd:', e); }
+            } catch { /* ignore */ }
             setIsAudioLoading(true);
             setIsImageLoading(true);
             generateVoice(story, request)
@@ -209,16 +204,8 @@ const App: React.FC = () => {
         finally { setIsLoading(false); }
     };
 
-    const PageLoader = () => (
-        <div className="min-h-screen flex items-center justify-center" style={{ background: '#060610' }}>
-            <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-        </div>
-    );
-
     return (
-        <>
-            <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
+        <SubscriptionProvider>
             <Routes>
                 {/* ── Protected core app routes ── */}
                 <Route path="/" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
@@ -240,7 +227,11 @@ const App: React.FC = () => {
                 } />
                 <Route path="/generator" element={
                     <ProtectedRoute>
-                        <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
+                        <PageShell>
+                            <div className="container mx-auto px-4 py-8 md:py-16 max-w-7xl">
+                                <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
+                            </div>
+                        </PageShell>
                     </ProtectedRoute>
                 } />
                 <Route path="/exam" element={
@@ -269,6 +260,16 @@ const App: React.FC = () => {
                 } />
                 <Route path="/game"      element={<ProtectedRoute><GameMode /></ProtectedRoute>} />
                 <Route path="/exam-mock" element={<ProtectedRoute><ExamMock /></ProtectedRoute>} />
+                <Route path="/admin"     element={
+                    <ProtectedRoute>
+                        <PageShell showNav>
+                            <div className="p-8 text-center">
+                                <h2 className="text-2xl font-bold mb-4 text-red-600">Admin Dashboard</h2>
+                                <p>Coming soon: Student analytics and story review.</p>
+                            </div>
+                        </PageShell>
+                    </ProtectedRoute>
+                } />
 
                 {/* ── Public informational pages (no login required) ── */}
                 <Route path="/about"     element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
@@ -279,17 +280,12 @@ const App: React.FC = () => {
                 <Route path="/contact"   element={<PageShell showNav><Contact onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/founder"   element={<PageShell showNav><Founder onNavigate={navigateTo} /></PageShell>} />
                 <Route path="/privacy"   element={<PageShell showNav><PrivacyPolicy onNavigate={navigateTo} /></PageShell>} />
-                <Route path="/terms"    element={<PageShell showNav><TermsOfUse onNavigate={navigateTo} /></PageShell>} />
-                <Route path="/inclusive" element={<PageShell showNav><InclusiveResearch onNavigate={navigate} /></PageShell>} />
-                <Route path="/faq"      element={<PageShell showNav><FAQ onNavigate={navigate} /></PageShell>} />
+                <Route path="/inclusive" element={<PageShell showNav><InclusiveResearch onNavigate={navigateTo} /></PageShell>} />
 
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
-            </Suspense>
-            </ErrorBoundary>
             <PWAInstallBanner />
-            <BottomNav />
-        </>
+        </SubscriptionProvider>
     );
 };
 
