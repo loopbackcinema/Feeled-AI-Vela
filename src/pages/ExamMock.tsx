@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { canUseFeature, incrementUsage } from '../services/subscriptionService';
-import { useSubscription } from '../context/SubscriptionContext';
+import { updateRecentMode, updateExamPerformance } from '../services/memoryService';
 
 interface QuestionOption {
     a: string;
@@ -50,7 +49,6 @@ const SESSION_KEY = 'feeled_exam_session';
 export default function ExamMock() {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { isPlus, dailyUsage, showUpgrade } = useSubscription();
 
     // Setup state
     const [subject, setSubject] = useState('Mathematics');
@@ -125,13 +123,10 @@ export default function ExamMock() {
 
     const startExam = async () => {
         if (!chapter.trim()) { setError('Please enter a chapter name'); return; }
-        if (user) {
-            const { allowed } = await canUseFeature(user.uid, 'exams');
-            if (!allowed) { showUpgrade('exams'); return; }
-            incrementUsage(user.uid, 'exams').catch(() => {});
-        }
         setError('');
         setPhase('loading');
+        // Fire-and-forget mode tracking
+        if (user) updateRecentMode({ uid: user.uid, mode: 'exam' });
         setLoadingStep(0);
 
         const stepInterval = setInterval(() => {
@@ -190,6 +185,7 @@ export default function ExamMock() {
         setResults(newResults);
         setPhase('results');
 
+        console.log('[exam] user:', user?.uid, 'questions:', questions.length);
         if (user) {
             try {
                 const mcqQuestions = questions.filter(q => q.questionType === 'MCQ');
@@ -210,6 +206,14 @@ export default function ExamMock() {
                     topic: chapter,
                     subject,
                     createdAt: serverTimestamp(),
+                });
+                // Memory engine — fire-and-forget
+                updateExamPerformance({
+                    uid:     user.uid,
+                    chapter,
+                    subject,
+                    score:   mcqCorrect,
+                    total:   mcqQuestions.length || 1,
                 });
             } catch (err) {
                 console.error('Failed to save exam score:', err);
@@ -359,11 +363,6 @@ export default function ExamMock() {
                                 >
                                     Start Mock Test →
                                 </button>
-                                {user && !isPlus && (
-                                    <p className="text-center text-xs text-slate-400 dark:text-slate-600">
-                                        {Math.max(0, 2 - (dailyUsage?.exams ?? 0))} / 2 free mock tests remaining today
-                                    </p>
-                                )}
                             </>
                         )}
                     </div>

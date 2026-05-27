@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Menu, X, Plus, Mic, Send, Loader2, BookOpen, Volume2,
+    Menu, X, Plus, Mic, Send, Loader2, BookOpen,
     LogIn, LogOut, SquarePen, Image as ImageIcon, Settings2, ChevronRight, ChevronLeft,
     LayoutDashboard, BookMarked, FlaskConical, User, Lock, Globe, ArrowLeft, Sun, Moon,
 } from 'lucide-react';
@@ -14,11 +14,24 @@ import { signInWithGoogle, logOut, db } from '../../firebase';
 import {
     collection, query, where, orderBy, limit, getDocs,
     doc, setDoc, serverTimestamp, Timestamp, startAfter,
-    QueryDocumentSnapshot,
+    QueryDocumentSnapshot, addDoc,
 } from 'firebase/firestore';
+import {
+    getPersonalizedContext,
+    getStudentMemory,
+    updateRecentTopic,
+    updateRecentMode,
+    updateLearningStreak,
+    markWelcomeShown,
+} from '../../services/memoryService';
+import type { StudentMemory } from '../../services/memoryService';
+import { generateStudyInsights, generateNextTopicSuggestions, generateWeaknessRecommendations } from '../../services/intelligenceEngine';
+import { generateFuturePathSuggestions, generateExamPriorityRecommendations, generateLearningHabitInsights, generateCrossModeContext, generateInsightCards } from '../../services/mentorEngine';
+import type { InsightCard } from '../../services/mentorEngine';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
-import { useSubscription } from '../../context/SubscriptionContext';
+import PushNotificationSetup from '../../components/PushNotificationSetup';
+import { useTranslation } from 'react-i18next';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -31,6 +44,77 @@ const STT_LANG: Record<string, string> = {
 const CONTEXT_QUESTION =
     'Which grade and subject are you studying? 🎓\n\nநீங்கள் எந்த வகுப்பு படிக்கிறீர்கள்? எந்த பாடம்?';
 const HISTORY_PAGE_SIZE = 15;
+
+// Goal-aware welcome sets (selected based on learningGoal, with fallback to random general sets)
+const WELCOME_BY_GOAL: Record<string, { text: string }[][]> = {
+    'NEET': [
+        [
+            { text: `வணக்கம் {name} 🩺\nNEET preparation-க்கு FeelEd AI உங்களுடன் இருக்கும்.` },
+            { text: `Biology fundamentals-ஐ NCERT level-ல் master பண்ணுவதுதான் NEET-க்கு strongest foundation 🧬\nChemistry mechanisms, Physics numericals — step by step நாம் cover பண்ணலாம்.` },
+            { text: `இன்று Biology-ல் எந்த chapter-ல் தொடங்கலாம்? 🔬` },
+        ],
+        [
+            { text: `ஹாய் {name} ⚕️\nNEET ஒரு marathon — daily consistent revision wins it.` },
+            { text: `Biology conceptual clarity + Chemistry organic reactions + Physics numericals — இந்த மூன்றும் NEET score-ஐ decide பண்ணும் 📊\nReal NEET questions என்னிடம் இருக்கின்றன.` },
+            { text: `எந்த subject-ல் இப்போது focus செய்கிறீர்கள்? 🎯` },
+        ],
+    ],
+    'JEE': [
+        [
+            { text: `வணக்கம் {name} ⚙️\nJEE preparation-க்கு problem-solving speed மிக முக்கியம்.` },
+            { text: `Mathematics daily practice + Physics numericals + Chemistry mechanisms — இந்த pattern-ல் JEE crack ஆகும் 📐\nTimed practice-க்கு நான் உதவுவேன்.` },
+            { text: `இன்று Maths-ல் எந்த topic practice பண்ணலாம்? 🔢` },
+        ],
+    ],
+    '10th Board': [
+        [
+            { text: `வணக்கம் {name} 📘\nTN Board 10th exams-க்கு high-weightage topics-ஐ target பண்ணலாம்.` },
+            { text: `Electricity, Algebra, Democracy — இந்த chapters public exams-ல் repeatedly வருகின்றன 📝\nReal exam questions + structured answers என்னிடம் இருக்கிறது.` },
+            { text: `இன்று எந்த subject-ல் revision தொடங்கலாம்? 🎯` },
+        ],
+        [
+            { text: `ஹாய் {name} ✏️\nBoard exams-ல் definition + formula + conclusion structure முக்கியம்.` },
+            { text: `5-mark answers-ல் right structure follow பண்ணினால் full marks possible 📋\nPast 5 years repeated questions நான் track பண்ணி வைத்திருக்கிறேன்.` },
+            { text: `எந்த chapter preparation-ல் தொடங்கலாம்? 📚` },
+        ],
+    ],
+    '12th Board': [
+        [
+            { text: `வணக்கம் {name} 📗\n12th Board-க்கு conceptual depth மிக முக்கியம்.` },
+            { text: `Derivations, proof-based questions, diagram labelling — இவை 12th exams-ல் high marks வாங்கி தருகின்றன 🧪\nPhysics Electrostatics, Chemistry Coordination Compounds — let's cover these well.` },
+            { text: `இன்று எந்த subject-ல் deep dive பண்ணலாம்? 🔭` },
+        ],
+    ],
+};
+
+// General welcome sets (used when no goal is set, or as fallback)
+const WELCOME_SETS = [
+    [
+        { text: `வணக்கம் {name} 👋\nநான் FeelEd AI — உங்கள் personal learning companion.` },
+        { text: `கதைகள், mock tests, games, மற்றும் AI tutoring மூலம் நாம் சேர்ந்து கற்றுக்கொள்ளலாம் 📚\nTN Samacheer syllabus முழுவதும் நான் உங்களுக்கு உதவுவேன்.` },
+        { text: `இன்று என்ன topic-ல் தொடங்கலாம்? ✨` },
+    ],
+    [
+        { text: `ஹாய் {name} ✨\nBoard exams-க்கு smart-ஆக prepare செய்ய FeelEd AI உங்களுடன் இருக்கும்.` },
+        { text: `Important questions, revision tricks, மற்றும் practice tests மூலம் step-by-step முன்னேறலாம் 📝\nReal TN Board questions (2021-2026) என்னிடம் இருக்கின்றன!` },
+        { text: `இப்போது எந்த subject பார்க்க விரும்புகிறீர்கள்? 🎯` },
+    ],
+    [
+        { text: `வணக்கம் {name} 🚀\nஒரு topic-ஐ story-ஆகவும், game-ஆகவும், exam practice-ஆகவும் கற்றுக்கொள்ள முடியும்!` },
+        { text: `கேள்விகள் கேளுங்கள், stories கேளுங்கள், mock tests எழுதுங்கள் — எல்லாம் ஒரே இடத்தில் 🌟` },
+        { text: `இன்று என்ன explore செய்யலாம்? 💡` },
+    ],
+    [
+        { text: `ஹாய் {name} 🌱\nஒவ்வொருவரும் வெவ்வேறு விதமாக கற்கிறார்கள் — அது சரிதான்.` },
+        { text: `FeelEd AI உங்கள் pace-க்கு ஏற்ற மாதிரி explanations, stories, மற்றும் practice வழங்கும் 📖` },
+        { text: `Ready to start learning today? 😊` },
+    ],
+    [
+        { text: `வணக்கம் {name} ⚡\nநீங்கள் இன்று கற்கும் concepts தான் உங்கள் future exams-க்கான அடித்தளம்.` },
+        { text: `FeelEd AI மூலம் NEET, JEE, Board exams — எதற்கும் smart-ஆக prepare செய்யலாம் 🎓` },
+        { text: `முதலில் எந்த பாடத்தில் தொடங்கலாம்? 📚` },
+    ],
+];
 
 function getSubjectsForGrade(grade: string): string[] {
     const n = parseInt(grade);
@@ -96,9 +180,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     open, onClose, desktopOpen, onToggle, user, chatHistory, hasMoreHistory, isLoadingHistory,
     onLoadMore, onNewChat, onAuth, onNavigate, onSelectSession,
 }) => {
-    const { isPlus, showUpgrade } = useSubscription();
+    const { t } = useTranslation();
     const historyRef = useRef<HTMLDivElement>(null);
     const [researchOpen, setResearchOpen] = useState(false);
+    const [socialOpen, setSocialOpen] = useState(false);
 
     const handleHistoryScroll = () => {
         const el = historyRef.current;
@@ -123,7 +208,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm md:hidden" onClick={onClose} />
             )}
             <div
-                className={`dark fixed top-0 left-0 h-full w-72 z-50 flex flex-col border-r transition-all duration-300 ease-in-out
+                className={`dark fixed top-0 left-0 h-full w-[200px] z-50 flex flex-col border-r transition-all duration-300 ease-in-out
                     ${open ? 'translate-x-0' : '-translate-x-full'}
                     ${desktopOpen ? 'md:translate-x-0' : 'md:-translate-x-full'}`}
                 style={{ background: '#07070f', borderColor: '#12122a' }}
@@ -133,13 +218,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <button onClick={onClose} className="md:hidden p-1 rounded-md transition-colors" style={{ color: '#3a3a5a' }}>
                         <X className="w-5 h-5" />
                     </button>
-                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-7 h-7 object-contain" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-10 h-10 object-contain" />
                     <span className="font-black text-base tracking-tight flex-1" style={{ color: '#9090b8' }}>FeelEd AI</span>
                     {/* Desktop collapse toggle */}
                     <button
                         onClick={onToggle}
-                        className="hidden md:flex p-1.5 rounded-lg transition-colors"
-                        style={{ color: '#3a3a5a' }}
+                        className="hidden md:flex"
+                        style={{ background: '#1a1a2e', border: '1px solid #4f46e5', color: '#818cf8', borderRadius: '50%', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 8px #4f46e540', cursor: 'pointer', flexShrink: 0 }}
                         title="Collapse sidebar"
                     >
                         <ChevronLeft className="w-4 h-4" />
@@ -157,24 +242,19 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <div className="min-w-0">
                                 <p className="text-gray-900 dark:text-white font-bold text-sm truncate">{user.displayName || 'Student'}</p>
                                 <p className="text-gray-500 dark:text-[#666] text-xs truncate">{user.email}</p>
-                                {isPlus ? (
-                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 mt-0.5">✨ Plus</span>
-                                ) : (
-                                    <button onClick={() => showUpgrade()} className="text-[10px] font-semibold text-indigo-500 hover:text-indigo-400 mt-0.5 block">Upgrade to Plus ✨</button>
-                                )}
                             </div>
                         </div>
                     )}
                     <button onClick={onAuth} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-[#1E1E1E] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-sm font-semibold text-gray-700 dark:text-[#CCCCCC] transition-colors">
                         {user ? <LogOut className="w-4 h-4 flex-shrink-0" /> : <LogIn className="w-4 h-4 flex-shrink-0" />}
-                        {user ? 'Sign Out' : 'Student Login'}
+                        {user ? t('nav.signOut') : 'Student Login'}
                     </button>
                 </div>
 
                 {/* New Chat */}
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-[#222]">
                     <button onClick={onNewChat} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors">
-                        <SquarePen className="w-4 h-4" /> New Chat
+                        <SquarePen className="w-4 h-4" /> {t('nav.newChat')}
                     </button>
                 </div>
 
@@ -208,12 +288,12 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <div className={groupWrap}>
                         <span className={groupLabel}>Learn</span>
                         <div className="space-y-0.5">
-                            <button onClick={() => onNavigate('/dashboard')}  className={navBtn('/dashboard')}><span>📊</span> Dashboard</button>
+                            <button onClick={() => onNavigate('/dashboard')}  className={navBtn('/dashboard')}><span>📊</span> {t('nav.dashboard')}</button>
                             <button onClick={() => onNavigate('/')}            className={navBtn('/')}><span>💬</span> Chat Tutor</button>
                             <button onClick={() => onNavigate('/story')}       className={navBtn('/story')}><span>✨</span> Story Mode</button>
                             <button onClick={() => onNavigate('/game')}        className={navBtn('/game')}><span>🎮</span> Game Mode</button>
                             <button onClick={() => onNavigate('/exam-mock')}   className={navBtn('/exam-mock')}><span>📝</span> Exam Mode</button>
-                            <button onClick={() => onNavigate('/my-stories')}  className={navBtn('/my-stories')}><span>📖</span> My Stories</button>
+                            <button onClick={() => onNavigate('/my-stories')}  className={navBtn('/my-stories')}><span>📖</span> {t('nav.myStories')}</button>
                         </div>
                     </div>
 
@@ -221,8 +301,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <div className={groupWrap}>
                         <span className={groupLabel}>Support</span>
                         <div className="space-y-0.5">
-                            <button onClick={() => onNavigate('/parents')}  className={navBtn('/parents')}><span>👨‍👩‍👧</span> For Parents</button>
-                            <button onClick={() => onNavigate('/teachers')} className={navBtn('/teachers')}><span>👨‍🏫</span> For Teachers</button>
+                            <button onClick={() => onNavigate('/parents')}  className={navBtn('/parents')}><span>👨‍👩‍👧</span> {t('nav.forParents')}</button>
+                            <button onClick={() => onNavigate('/teachers')} className={navBtn('/teachers')}><span>👨‍🏫</span> {t('nav.forTeachers')}</button>
                             <button onClick={() => onNavigate('/pilot')}    className={navBtn('/pilot')}><span>🚀</span> Pilot Program</button>
                             <button onClick={() => onNavigate('/faq')}      className={navBtn('/faq')}><span>❓</span> FAQ</button>
                         </div>
@@ -244,8 +324,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </button>
                         <div style={{ maxHeight: researchOpen ? '200px' : '0', overflow: 'hidden', transition: 'max-height 0.25s ease' }}>
                             <div className="space-y-0.5">
-                                <button onClick={() => onNavigate('/research')}  className={navBtn('/research')}><span>🔬</span> Research Lab</button>
-                                <button onClick={() => onNavigate('/research')}  className={navBtn('/scientific-portfolio')}><span>📋</span> Scientific Portfolio</button>
+                                <button onClick={() => onNavigate('/founder')}   className={navBtn('/founder')}><span>👤</span> Founder</button>
+                                <button onClick={() => onNavigate('/research')}  className={navBtn('/research')}><span>📋</span> Scientific Portfolio</button>
                                 <button onClick={() => onNavigate('/inclusive')} className={navBtn('/inclusive')}><span>♿</span> Accessibility Research</button>
                             </div>
                         </div>
@@ -260,31 +340,56 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <button onClick={() => onNavigate('/privacy')} className={navBtn('/privacy')}><span>🔒</span> Privacy Policy</button>
                             <button onClick={() => onNavigate('/terms')}   className={navBtn('/terms')}><span>📄</span> Terms of Use</button>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Social icons */}
-                        <div className="flex items-center gap-4 pt-4 mt-3 border-t border-gray-100 dark:border-[#222] px-1">
-                            <a href="https://www.facebook.com/profile.php?id=61584338379138" target="_blank" rel="noopener noreferrer" title="Facebook" className="text-gray-400 dark:text-[#555] hover:text-[#1877F2] transition-colors">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                {/* Social fan-out — outside scroll area so it can overflow upward freely */}
+                <div style={{ position: 'relative', overflow: 'visible', flexShrink: 0 }}>
+                    {/* Fan icons — positioned relative to toggle button */}
+                    {([
+                        { label: 'Facebook',  icon: 'f',   svgIcon: null, bg: '#1877f2', url: 'https://www.facebook.com/profile.php?id=61584338379138' },
+                        { label: 'Instagram', icon: '✦',  svgIcon: null, bg: 'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', url: 'https://www.instagram.com/feeledai/' },
+                        { label: 'X',         icon: '𝕏',   svgIcon: null, bg: '#000',    url: 'https://x.com/FeelEdAI' },
+                        { label: 'LinkedIn',  icon: 'in',  svgIcon: null, bg: '#0077b5', url: 'https://www.linkedin.com/company/feeled-ai/' },
+                        { label: 'YouTube',   icon: '▶',   svgIcon: null, bg: '#ff0000', url: 'https://www.youtube.com/@FeelEdAI' },
+                        { label: 'Scholar',   icon: '🎓',  svgIcon: null, bg: '#4285f4', url: 'https://scholar.google.com/citations?view_op=list_works&hl=en&user=pvT3c7UAAAAJ' },
+                        { label: 'GitHub',    icon: null,  svgIcon: '<svg viewBox="0 0 16 16" width="14" height="14" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>', bg: '#24292e', url: 'https://github.com/loopbackcinema/Velayutham-S' },
+                        { label: 'ORCID',     icon: 'iD',  svgIcon: null, bg: '#a6ce39', url: 'https://orcid.org/0009-0005-6518-9291' },
+                    ] as { label: string; icon: string | null; svgIcon: string | null; bg: string; url: string }[]).map((item, i, arr) => {
+                        const angle = 180 - (i * (180 / (arr.length - 1)));
+                        const rad = angle * Math.PI / 180;
+                        const x = Math.cos(rad) * 65;
+                        const y = -Math.sin(rad) * 65;
+                        return (
+                            <a
+                                key={item.label}
+                                href={item.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title={item.label}
+                                style={{ position: 'absolute', bottom: 44, left: '50%', width: 30, height: 30, borderRadius: '50%', background: item.bg, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: item.label === 'ORCID' ? 9 : 10, fontWeight: 800, textDecoration: 'none', transform: socialOpen ? `translate(calc(-50% + ${x}px), ${y}px) scale(1)` : 'translate(-50%, 0) scale(0)', opacity: socialOpen ? 1 : 0, transition: `all 0.4s cubic-bezier(0.34,1.56,0.64,1) ${i * 0.04}s`, boxShadow: '0 3px 10px rgba(0,0,0,0.4)', zIndex: 20, pointerEvents: socialOpen ? 'auto' : 'none' }}
+                            >
+                                {item.svgIcon
+                                    ? <span dangerouslySetInnerHTML={{ __html: item.svgIcon }} />
+                                    : item.icon}
                             </a>
-                            <a href="https://www.instagram.com/feeledai/" target="_blank" rel="noopener noreferrer" title="Instagram" className="text-gray-400 dark:text-[#555] hover:text-[#E4405F] transition-colors">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                            </a>
-                            <a href="https://x.com/FeelEdAI" target="_blank" rel="noopener noreferrer" title="X / Twitter" className="text-gray-400 dark:text-[#555] hover:text-gray-900 dark:hover:text-white transition-colors">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                            </a>
-                            <a href="https://www.linkedin.com/company/feeled-ai/" target="_blank" rel="noopener noreferrer" title="LinkedIn" className="text-gray-400 dark:text-[#555] hover:text-[#0A66C2] transition-colors">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452z"/></svg>
-                            </a>
-                            <a href="https://www.youtube.com/@FeelEdAI" target="_blank" rel="noopener noreferrer" title="YouTube" className="text-gray-400 dark:text-[#555] hover:text-[#FF0000] transition-colors">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                            </a>
-                        </div>
+                        );
+                    })}
+                    {/* Toggle button */}
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '8px', borderTop: '0.5px solid #1a1a2e' }}>
+                        <button
+                            onClick={() => setSocialOpen(o => !o)}
+                            style={{ width: 36, height: 36, borderRadius: '50%', background: socialOpen ? 'linear-gradient(135deg,#4f46e5,#7c3aed)' : '#0d0d1c', border: `1px solid ${socialOpen ? '#818cf8' : '#2a2a4a'}`, color: socialOpen ? '#fff' : '#5a5a8a', fontSize: 14, cursor: 'pointer', transition: 'all 0.3s ease', transform: socialOpen ? 'rotate(45deg)' : 'rotate(0deg)', boxShadow: socialOpen ? '0 0 16px #4f46e560' : 'none', zIndex: 21, position: 'relative', flexShrink: 0 }}
+                            title="Follow us"
+                        >
+                            {socialOpen ? '×' : '🔗'}
+                        </button>
                     </div>
                 </div>
 
                 {/* Footer */}
                 <div className="px-4 py-3 border-t border-gray-200 dark:border-[#222]">
-                    <p className="text-gray-400 dark:text-[#444] text-xs text-center">Powered by Sarvam</p>
+                    <p className="text-gray-400 dark:text-[#444] text-xs text-center">© 2026 FeelEd AI · Alteridea Web Services Pvt. Ltd.</p>
                 </div>
             </div>
         </>
@@ -365,12 +470,20 @@ const ChatPage: React.FC = () => {
     const { board, standard, subject, language, setContext } = useStudentStore();
     const chatMessages = useSessionStore(s => s.chatMessages);
     const setSession = useSessionStore(s => s.set);
+    const { t, i18n } = useTranslation();
+
+    const toggleLanguage = () => {
+        const next = i18n.language === 'en' ? 'ta' : 'en';
+        i18n.changeLanguage(next);
+        localStorage.setItem('feeled-lang', next);
+    };
 
     // Session tracking
     const sessionRef = useRef({ id: crypto.randomUUID(), createdAt: Date.now() });
 
     // UI state
     const [input, setInput]               = useState('');
+    const [inputFocused, setInputFocused] = useState(false);
     const [isLoading, setIsLoading]       = useState(false);
     const [sidebarOpen, setSidebarOpen]   = useState(false);
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
@@ -381,6 +494,12 @@ const ChatPage: React.FC = () => {
     const [awaitingContext, setAwaitingContext] = useState(false);
     const [pendingQuestion, setPendingQuestion] = useState('');
     const [uploadedImage, setUploadedImage] = useState<{ base64: string; mime: string } | null>(null);
+
+    // Message ratings (thumbs up/down)
+    const [messageRatings, setMessageRatings]       = useState<Record<string, 'up' | 'down' | null>>({});
+    const [showFeedbackInput, setShowFeedbackInput] = useState<string | null>(null);
+    const [feedbackText, setFeedbackText]           = useState('');
+    const [toastMsg, setToastMsg]                   = useState('');
 
     // Chat history
     const [chatHistory, setChatHistory]           = useState<ChatHistoryItem[]>([]);
@@ -407,23 +526,38 @@ const ChatPage: React.FC = () => {
     const lastAiIndex  = chatMessages.reduceRight((acc, m, i) => (acc === -1 && m.role === 'model' ? i : acc), -1);
 
     const suggestionChips = [
-        { emoji: '⚡', label: 'Electricity' },
-        { emoji: '🌍', label: 'Geography' },
-        { emoji: '➗', label: 'Algebra' },
-        { emoji: '🧪', label: 'Acids & Bases' },
-        { emoji: '🧬', label: 'Cell Biology' },
-        { emoji: '🏛️', label: 'History' },
+        { emoji: '⚡', label: t('chips.electricity') },
+        { emoji: '🌍', label: t('chips.geography') },
+        { emoji: '➗', label: t('chips.algebra') },
+        { emoji: '🧪', label: t('chips.acids') },
+        { emoji: '🧬', label: t('chips.biology') },
+        { emoji: '🏛️', label: t('chips.history') },
     ];
 
     const PLACEHOLDERS = [
-        'Explain photosynthesis simply...',
-        'Create a story about gravity...',
-        'Start a Science mock test...',
-        'Help me learn fractions...',
+        t('input.placeholder1'),
+        t('input.placeholder2'),
+        t('input.placeholder3'),
+        t('input.placeholder4'),
     ];
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
+    const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
+    const [studentMemory, setStudentMemory] = useState<StudentMemory | null>(null);
+    const [welcomeStep, setWelcomeStep] = useState(0);
+    const [welcomeMessages, setWelcomeMessages] = useState<{ text: string }[]>([]);
+    const [showingWelcome, setShowingWelcome] = useState(false);
 
-    // Sync dark mode preference with document class + localStorage
+    // Offline/online detection
+    useEffect(() => {
+        const handleOffline = () => setIsOffline(true);
+        const handleOnline  = () => setIsOffline(false);
+        window.addEventListener('offline', handleOffline);
+        window.addEventListener('online',  handleOnline);
+        return () => {
+            window.removeEventListener('offline', handleOffline);
+            window.removeEventListener('online',  handleOnline);
+        };
+    }, []);
     useEffect(() => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
@@ -464,10 +598,24 @@ const ChatPage: React.FC = () => {
         return () => document.removeEventListener('mousedown', handle);
     }, [plusOpen]);
 
-    // Load initial chat history
+    // Load initial chat history + fire mode/streak tracking
     useEffect(() => {
         if (!user) { setChatHistory([]); return; }
         loadHistory(false);
+        // Fire-and-forget — never blocks UI
+        updateRecentMode({ uid: user.uid, mode: 'chat' });
+        updateLearningStreak(user.uid);
+        // Load memory for personalized empty state (2s timeout)
+        Promise.race([
+            getStudentMemory(user.uid),
+            new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
+        ]).then(mem => {
+            if (!mem) return;
+            setStudentMemory(mem);
+            if (!mem.welcomeShown && chatMessages.length === 0) {
+                triggerWelcome(mem, user.uid, user.displayName);
+            }
+        });
     }, [user]);
 
     const loadHistory = async (loadMore: boolean) => {
@@ -509,6 +657,30 @@ const ChatPage: React.FC = () => {
         } catch { /* ignore */ } finally {
             setIsLoadingHistory(false);
         }
+    };
+
+    // First-time welcome message sequence — goal-aware
+    const triggerWelcome = async (memory: StudentMemory, uid: string, displayName: string | null) => {
+        const firstName = (displayName || 'Student').split(' ')[0];
+        // Pick goal-specific set if available, otherwise fall back to general sets
+        const goalSets = memory.learningGoal ? WELCOME_BY_GOAL[memory.learningGoal] : null;
+        const pool = goalSets && goalSets.length > 0 ? goalSets : WELCOME_SETS;
+        const variant = Math.floor(Math.random() * pool.length);
+        const selectedSet = pool[variant].map(msg => ({
+            text: msg.text.replace('{name}', firstName),
+        }));
+        setWelcomeMessages(selectedSet);
+        setShowingWelcome(true);
+        setWelcomeStep(0);
+        // Mark shown immediately — fire-and-forget
+        markWelcomeShown(uid, variant + 1);
+        // Reveal messages one by one
+        for (let i = 0; i < selectedSet.length; i++) {
+            await new Promise<void>(resolve => setTimeout(resolve, 900));
+            setWelcomeStep(i + 1);
+        }
+        await new Promise<void>(resolve => setTimeout(resolve, 500));
+        setShowingWelcome(false);
     };
 
     // Save session to Firestore
@@ -553,16 +725,18 @@ const callAPI = useCallback(async (
     ctx: { board: string; grade: string; subject: string; language: string; medium: string },
     imgBase64?: string,
     imgMime?: string,
+    studentCtx?: string,
 ) => {
     const res = await fetch('/api/chat-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            message: text,
-            history: history.slice(-12).map(m => ({ role: m.role, text: m.text })),
-            context: ctx,
-            imageBase64: imgBase64 || undefined,
-            imageMimeType: imgMime || undefined,
+            message:       text,
+            history:       history.slice(-12).map(m => ({ role: m.role, text: m.text })),
+            context:       ctx,
+            imageBase64:   imgBase64  || undefined,
+            imageMimeType: imgMime    || undefined,
+            studentContext: studentCtx || undefined,
         }),
     });
     if (!res.ok) throw new Error('API error');
@@ -595,6 +769,60 @@ const callAPI = useCallback(async (
     }
     return { reply: fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, ''), ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], streamingId };
 }, [setSession]);
+
+    // Message rating handlers
+    const handleRating = async (msgId: string, rating: 'up' | 'down') => {
+        if (messageRatings[msgId]) return; // prevent re-rating
+        setMessageRatings(prev => ({ ...prev, [msgId]: rating }));
+        if (rating === 'down') setShowFeedbackInput(msgId);
+        const msg = chatMessages.find(m => m.id === msgId);
+        addDoc(collection(db, 'message_feedback'), {
+            uid:            user?.uid ?? null,
+            msgId,
+            rating,
+            messagePreview: msg?.text?.substring(0, 100) ?? '',
+            url:            window.location.href,
+            timestamp:      serverTimestamp(),
+            feedbackText:   '',
+            resolved:       false,
+        }).catch(() => {});
+    };
+
+    const submitFeedback = async (msgId: string) => {
+        setShowFeedbackInput(null);
+        if (!feedbackText.trim()) { setFeedbackText(''); return; }
+        addDoc(collection(db, 'message_feedback'), {
+            uid:          user?.uid ?? null,
+            msgId,
+            rating:       messageRatings[msgId] ?? 'down',
+            feedbackText: feedbackText.trim(),
+            url:          window.location.href,
+            timestamp:    serverTimestamp(),
+            resolved:     false,
+        }).catch(() => {});
+        setFeedbackText('');
+    };
+
+    const showToast = (msg: string) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(''), 3000);
+    };
+
+    const handleShare = async (msg: StudyChatMessage) => {
+        const shareText = `📚 FeelEd AI — Learning Note\n\n${msg.text}\n\n🔗 Learn more at feeledai.com`;
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: 'FeelEd AI — Study Note', text: shareText });
+                return;
+            } catch { /* user cancelled or unsupported */ }
+        }
+        try {
+            await navigator.clipboard.writeText(shareText);
+            showToast('Copied to clipboard! Paste in WhatsApp or any app 📋');
+        } catch {
+            prompt('Copy this text:', shareText);
+        }
+    };
 
     // Core send function
     const sendMessage = useCallback(async (text: string) => {
@@ -635,13 +863,25 @@ const callAPI = useCallback(async (
                 const questionToAsk = pendingQuestion
                     ? `The student is in grade ${actualGrade} studying ${actualSubject}. They originally asked: "${pendingQuestion}". Please answer that question now.`
                     : trimmed;
+                const baseCtx = user ? await Promise.race([
+                    getPersonalizedContext(user.uid, trimmed),
+                    new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
+                ]) : '';
+                const studentCtx = studentMemory
+                    ? [
+                        baseCtx,
+                        generateFuturePathSuggestions(studentMemory).slice(0, 2).join(' '),
+                        `Exam priorities: ${generateExamPriorityRecommendations(studentMemory).slice(0, 2).join(', ')}`,
+                        generateCrossModeContext(studentMemory),
+                    ].filter(Boolean).join('\n')
+                    : baseCtx;
                 const data = await callAPI(questionToAsk, newMessages, {
                     board: actualBoard,
                     grade: actualGrade.replace(/\D/g, '') || '10',
                     subject: actualSubject,
                     language: actualLang,
                     medium: actualLang === 'Tamil' ? 'Tamil' : 'English',
-                });
+                }, undefined, undefined, studentCtx);
                 const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
                 const finalMsgs = [...newMessages, aiMsg];
                 setSession({ chatMessages: finalMsgs });
@@ -662,18 +902,33 @@ const callAPI = useCallback(async (
         setIsLoading(true);
 
         try {
-            const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime);
+            const baseCtx = user ? await Promise.race([
+                getPersonalizedContext(user.uid, trimmed),
+                new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
+            ]) : '';
+            const studentCtx = studentMemory
+                ? [
+                    baseCtx,
+                    generateFuturePathSuggestions(studentMemory).slice(0, 2).join(' '),
+                    `Exam priorities: ${generateExamPriorityRecommendations(studentMemory).slice(0, 2).join(', ')}`,
+                ].filter(Boolean).join('\n')
+                : baseCtx;
+            const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime, studentCtx);
             const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
+            // Update memory — fire-and-forget, never blocks UI
+            if (user) {
+                updateRecentTopic({ uid: user.uid, topic: trimmed.slice(0, 60), subject: subject || 'General', source: 'chat' });
+            }
         } catch {
             setSession({ chatMessages: [...updated, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
         } finally {
             setIsLoading(false);
             setUploadedImage(null);
         }
-    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession]);
+    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession, user]);
 
     // TTS
     const playTts = async (text: string) => {
@@ -773,8 +1028,18 @@ const callAPI = useCallback(async (
 
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
-        <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[288px]' : ''}`}
+        <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[200px]' : ''}`}
             style={{ background: isDarkMode ? '#060610' : '#ffffff', color: isDarkMode ? '#eeeef8' : '#111111' }}>
+
+            {/* Push notification subscription (renders nothing) */}
+            <PushNotificationSetup />
+
+            {/* Offline banner */}
+            {isOffline && (
+                <div style={{ background: '#7c2d12', color: '#fed7aa', textAlign: 'center', padding: '8px', fontSize: '12px', fontWeight: 500, flexShrink: 0, zIndex: 60 }}>
+                    📡 {t('offline.banner')}
+                </div>
+            )}
 
             {/* Sidebar */}
             <Sidebar
@@ -798,7 +1063,7 @@ const callAPI = useCallback(async (
                 <button
                     onClick={() => setDesktopSidebarOpen(true)}
                     className="hidden md:flex fixed left-0 top-1/2 -translate-y-1/2 z-50 flex-col items-center justify-center"
-                    style={{ background: '#12122a', border: '0.5px solid #252545', borderLeft: 'none', borderRadius: '0 8px 8px 0', padding: '10px 6px', color: '#6060a0' }}
+                    style={{ background: '#1a1a2e', border: '1px solid #4f46e5', borderLeft: 'none', borderRadius: '0 8px 8px 0', padding: '10px 6px', color: '#818cf8', boxShadow: '0 0 8px #4f46e540' }}
                     title="Open sidebar"
                 >
                     <ChevronRight className="w-4 h-4" />
@@ -814,6 +1079,13 @@ const callAPI = useCallback(async (
                 </button>
                 <span className="font-bold text-sm tracking-tight" style={{ color: isDarkMode ? '#9090b8' : '#374151' }}>FeelEd AI</span>
                 <div className="flex items-center gap-1">
+                    <button
+                        onClick={toggleLanguage}
+                        style={{ background: isDarkMode ? '#0d0d1c' : '#f3f4f6', border: `0.5px solid ${isDarkMode ? '#1e1e35' : '#e5e7eb'}`, borderRadius: 8, padding: '5px 10px', color: isDarkMode ? '#9090b8' : '#6b7280', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+                        aria-label="Toggle language"
+                    >
+                        {i18n.language === 'en' ? '🌐 தமிழ்' : '🌐 English'}
+                    </button>
                     <button
                         onClick={() => setIsDarkMode(d => !d)}
                         className="p-2 rounded-xl transition-colors"
@@ -836,6 +1108,8 @@ const callAPI = useCallback(async (
                         @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
                         @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
                         @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+                        @keyframes logoFloat{0%,100%{transform:translateY(0px);filter:drop-shadow(0 0 15px #4f46e540)}50%{transform:translateY(-8px);filter:drop-shadow(0 0 25px #4f46e570)}}
+                        @keyframes fadeSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
                         .fc-card{transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer}
                         .fc-card:hover{transform:translateY(-2px) scale(1.04)!important}
                         .fc-chip{transition:border-color 0.15s,background 0.15s;cursor:pointer}
@@ -843,42 +1117,205 @@ const callAPI = useCallback(async (
                         .fs-noscroll::-webkit-scrollbar{display:none}
                     ` }} />
 
-                    <div style={{ maxWidth: 680, margin: '0 auto', padding: '15vh 20px 40px', textAlign: 'center' }}>
+                    {/* Welcome message sequence */}
+                    {welcomeStep > 0 && (
+                        <div style={{ maxWidth: 480, margin: '24px auto 0', padding: '0 20px' }}>
+                            {welcomeMessages.slice(0, welcomeStep).map((msg, i) => (
+                                <div key={i} style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12,
+                                    animation: 'fadeSlide 0.4s ease-out both',
+                                }}>
+                                    <div style={{
+                                        width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                                        background: '#1a1040', border: '0.5px solid #4c3a99',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+                                    }}>🤖</div>
+                                    <div style={{
+                                        background: isDarkMode ? '#0d0d1c' : '#f5f3ff',
+                                        border: `0.5px solid ${isDarkMode ? '#1e1e35' : '#ddd6fe'}`,
+                                        borderRadius: 16, borderTopLeftRadius: 4,
+                                        padding: '10px 14px',
+                                        color: isDarkMode ? '#eeeef8' : '#1e1b4b',
+                                        fontSize: 13, lineHeight: 1.6, whiteSpace: 'pre-line',
+                                        textAlign: 'left',
+                                    }}>
+                                        {msg.text}
+                                    </div>
+                                </div>
+                            ))}
+
+                            {/* Quick-action chips after all messages are shown */}
+                            {!showingWelcome && welcomeStep >= 3 && (
+                                <div style={{
+                                    display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
+                                    marginTop: 4, marginBottom: 20,
+                                    animation: 'fadeSlide 0.4s ease-out both',
+                                }}>
+                                    {([
+                                        { icon: '📖', label: 'Create a Story', path: '/story' },
+                                        { icon: '📝', label: 'Start Mock Test', path: '/exam-mock' },
+                                        { icon: '🎮', label: 'Play & Practice', path: '/game' },
+                                        { icon: '💬', label: 'Ask a Doubt',     path: null },
+                                    ] as { icon: string; label: string; path: string | null }[]).map((item, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => item.path ? navigate(item.path) : inputRef.current?.focus()}
+                                            style={{
+                                                background: isDarkMode ? '#0d0d1c' : '#f5f3ff',
+                                                border: `0.5px solid ${isDarkMode ? '#2a2a4a' : '#ddd6fe'}`,
+                                                borderRadius: 20, padding: '7px 13px',
+                                                color: isDarkMode ? '#9090b8' : '#5b21b6',
+                                                fontSize: 12, cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', gap: 5,
+                                                transition: 'all 0.15s ease',
+                                            }}
+                                            onMouseEnter={e => {
+                                                (e.currentTarget as HTMLElement).style.borderColor = '#4f46e5';
+                                                (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#c4b5fd' : '#4338ca';
+                                            }}
+                                            onMouseLeave={e => {
+                                                (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#ddd6fe';
+                                                (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#9090b8' : '#5b21b6';
+                                            }}
+                                        >
+                                            {item.icon} {item.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div style={{ maxWidth: 680, margin: '0 auto', padding: '5vh 20px 24px', textAlign: 'center' }}>
+                        {/* Animated logo */}
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                            <img
+                                src="/feeled-logo.webp"
+                                alt="FeelEd AI"
+                                style={{ width: 120, height: 120, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
+                            />
+                        </div>
+
                         {/* Hero */}
-                        <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.6rem)', fontWeight: 700, letterSpacing: '-0.5px', lineHeight: 1.2, marginBottom: 10, color: isDarkMode ? '#eeeef8' : '#111111' }}>
-                            What would you like to learn today?
+                        <h1 style={{ fontSize: 'clamp(1.75rem, 4vw, 2.6rem)', fontWeight: 700, letterSpacing: '-0.5px', lineHeight: 1.2, marginBottom: 4, color: isDarkMode ? '#eeeef8' : '#111111' }}>
+                            {t('home.title')}
                         </h1>
-                        <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 36 }}>
-                            Your personal Samacheer tutor
+                        <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 16 }}>
+                            {t('home.subtitle')}
                         </p>
 
+                        {/* AI-Powered Insight Cards */}
+                        {studentMemory && (() => {
+                            const cards: InsightCard[] = generateInsightCards(studentMemory);
+                            if (!cards.length) return null;
+                            return (
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20, maxWidth: 420, margin: '0 auto 20px' }}>
+                                    {cards.map((card, i) => (
+                                        <div
+                                            key={i}
+                                            onClick={() => {
+                                                if (card.mode === 'story') navigate('/story');
+                                                else if (card.mode === 'exam') navigate('/exam-mock');
+                                                else if (card.mode === 'game') navigate('/game');
+                                                else if (card.actionTopic) { setInput(card.actionTopic); inputRef.current?.focus(); }
+                                            }}
+                                            style={{
+                                                background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                                border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)'}`,
+                                                borderRadius: 14, padding: '10px 12px',
+                                                textAlign: 'left', cursor: card.mode || card.actionTopic ? 'pointer' : 'default',
+                                                transition: 'border-color 0.15s',
+                                            }}
+                                            onMouseEnter={e => card.actionTopic && ((e.currentTarget as HTMLElement).style.borderColor = card.color + '60')}
+                                            onMouseLeave={e => card.actionTopic && ((e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)')}
+                                        >
+                                            <div style={{ fontSize: 18, marginBottom: 4 }}>{card.icon}</div>
+                                            <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: isDarkMode ? '#4a4a6a' : '#9ca3af', marginBottom: 2 }}>{card.label}</div>
+                                            <div style={{ fontSize: 12, fontWeight: 700, color: card.color, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
+
                         {/* 3 Mode Cards */}
-                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
                             <div className="fc-card" onClick={() => navigate('/story')}
                                 style={{ width: 160, background: 'linear-gradient(135deg, #1a0b40, #2d1b69)', border: '1px solid #4c3a99', borderRadius: 16, padding: 16, animation: 'floatA 4s ease-in-out infinite', textAlign: 'left' }}>
                                 <div style={{ fontSize: 22, marginBottom: 8 }}>✨</div>
-                                <div style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Story Mode</div>
+                                <div style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.story')}</div>
                                 <div style={{ color: '#7c6aad', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Turn lessons into stories</div>
                                 <span style={{ background: '#2d1b69', borderRadius: 4, color: '#a78bfa', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>✦ POPULAR</span>
                             </div>
                             <div className="fc-card" onClick={() => navigate('/game')}
                                 style={{ width: 160, background: 'linear-gradient(135deg, #052010, #0a3520)', border: '1px solid #1a6b45', borderRadius: 16, padding: 16, animation: 'floatB 4.8s ease-in-out infinite', textAlign: 'left' }}>
                                 <div style={{ fontSize: 22, marginBottom: 8 }}>🎮</div>
-                                <div style={{ color: '#6ee7b7', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Game Mode</div>
+                                <div style={{ color: '#6ee7b7', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.game')}</div>
                                 <div style={{ color: '#2d7a56', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Practice through play</div>
                                 <span style={{ background: '#0a3520', borderRadius: 4, color: '#34d399', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🔥 FUN</span>
                             </div>
                             <div className="fc-card" onClick={() => navigate('/exam-mock')}
                                 style={{ width: 160, background: 'linear-gradient(135deg, #1c0e04, #3d2010)', border: '1px solid #7a4a1a', borderRadius: 16, padding: 16, animation: 'floatC 3.8s ease-in-out infinite', textAlign: 'left' }}>
                                 <div style={{ fontSize: 22, marginBottom: 8 }}>📝</div>
-                                <div style={{ color: '#fcd34d', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>Exam Mode</div>
+                                <div style={{ color: '#fcd34d', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.exam')}</div>
                                 <div style={{ color: '#a07030', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Mock tests & revision</div>
                                 <span style={{ background: '#3d2010', borderRadius: 4, color: '#f59e0b', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🎯 REAL PAPERS</span>
                             </div>
                         </div>
 
+                        {/* Personalized insights + recommended topics */}
+                        {studentMemory && (() => {
+                            const insights = generateStudyInsights(studentMemory);
+                            const nextTopics = generateNextTopicSuggestions(studentMemory);
+                            const weakRec = generateWeaknessRecommendations(studentMemory);
+                            const recommended = [...nextTopics, ...weakRec].slice(0, 4);
+                            if (!insights.length && !recommended.length) return null;
+                            return (
+                                <div style={{ marginBottom: 12 }}>
+                                    {insights.length > 0 && (
+                                        <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+                                            {insights.map((insight, i) => (
+                                                <span key={i} style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                                                    padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                                                    background: isDarkMode ? 'rgba(79,70,229,0.12)' : 'rgba(99,102,241,0.08)',
+                                                    border: `1px solid ${isDarkMode ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.2)'}`,
+                                                    color: isDarkMode ? '#a5b4fc' : '#4f46e5',
+                                                    whiteSpace: 'nowrap',
+                                                }}>
+                                                    {insight}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {recommended.length > 0 && (
+                                        <div>
+                                            <p style={{ fontSize: 10, fontWeight: 700, color: isDarkMode ? '#3a3a5a' : '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>
+                                                Recommended for you
+                                            </p>
+                                            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
+                                                {recommended.map((topic, i) => (
+                                                    <button key={i} className="fc-chip"
+                                                        onClick={() => { setInput(topic); inputRef.current?.focus(); }}
+                                                        style={{
+                                                            padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 600,
+                                                            background: isDarkMode ? '#0d0d20' : '#f0f0ff',
+                                                            border: `1px solid ${isDarkMode ? '#2a2a50' : '#c7d2fe'}`,
+                                                            color: isDarkMode ? '#818cf8' : '#4338ca',
+                                                            cursor: 'pointer',
+                                                        }}>
+                                                        ✦ {topic}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+
                         {/* Topic Chips */}
-                        <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 10 }}>
                             {suggestionChips.map(chip => (
                                 <button key={chip.label} className="fc-chip"
                                     onClick={() => { setInput(chip.label); inputRef.current?.focus(); }}
@@ -925,11 +1362,6 @@ const callAPI = useCallback(async (
                                         )}
                                     </div>
 
-                                    {msg.role === 'model' && (
-                                        <button onClick={() => playTts(msg.text)} className="ml-1 mt-1 p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] transition-all" title="Listen">
-                                            <Volume2 className="w-4 h-4" />
-                                        </button>
-                                    )}
                                     {/* Suggestion chips below AI messages */}
                                     {msg.role === 'model' && msg.suggestions && msg.suggestions.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
@@ -962,6 +1394,76 @@ const callAPI = useCallback(async (
                                             </div>
                                         );
                                     })()}
+
+                                    {/* Unified action bar — only on completed AI messages */}
+                                    {msg.role === 'model' && !(isLoading && i === lastAiIndex) && (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
+
+                                            {/* 🔊 Read aloud */}
+                                            <button
+                                                onClick={() => playTts(msg.text)}
+                                                data-tooltip="Read aloud"
+                                                style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#818cf8'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
+                                            >🔊</button>
+
+                                            <div style={{ width: '0.5px', height: 14, background: isDarkMode ? '#1e1e35' : '#e5e7eb' }} />
+
+                                            {/* 📤 Share */}
+                                            <button
+                                                onClick={() => handleShare(msg)}
+                                                data-tooltip="Share"
+                                                style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#34d399'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
+                                            >📤</button>
+
+                                            <div style={{ width: '0.5px', height: 14, background: isDarkMode ? '#1e1e35' : '#e5e7eb' }} />
+
+                                            {/* 👍 Thumbs up */}
+                                            <button
+                                                onClick={() => handleRating(msg.id, 'up')}
+                                                data-tooltip="Helpful"
+                                                style={{ background: messageRatings[msg.id] === 'up' ? '#1a1040' : 'transparent', border: `0.5px solid ${messageRatings[msg.id] === 'up' ? '#4f46e5' : 'transparent'}`, borderRadius: 6, padding: '3px 7px', cursor: messageRatings[msg.id] ? 'default' : 'pointer', fontSize: 13, color: messageRatings[msg.id] === 'up' ? '#818cf8' : isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
+                                                onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#818cf8'; }}
+                                                onMouseLeave={e => { if (messageRatings[msg.id] !== 'up') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
+                                            >👍</button>
+
+                                            {/* 👎 Thumbs down */}
+                                            <button
+                                                onClick={() => handleRating(msg.id, 'down')}
+                                                data-tooltip="Not helpful"
+                                                style={{ background: messageRatings[msg.id] === 'down' ? '#1a0010' : 'transparent', border: `0.5px solid ${messageRatings[msg.id] === 'down' ? '#dc2626' : 'transparent'}`, borderRadius: 6, padding: '3px 7px', cursor: messageRatings[msg.id] ? 'default' : 'pointer', fontSize: 13, color: messageRatings[msg.id] === 'down' ? '#ef4444' : isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease' }}
+                                                onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}
+                                                onMouseLeave={e => { if (messageRatings[msg.id] !== 'down') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
+                                            >👎</button>
+
+                                            {/* Inline feedback input after thumbs down */}
+                                            {showFeedbackInput === msg.id && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <input
+                                                        type="text"
+                                                        value={feedbackText}
+                                                        onChange={e => setFeedbackText(e.target.value)}
+                                                        placeholder="What was wrong? (optional)"
+                                                        autoFocus
+                                                        style={{ background: '#0d0d1c', border: '0.5px solid #2a2a4a', borderRadius: 8, padding: '4px 10px', color: '#eeeef8', fontSize: 11, width: 160, outline: 'none' }}
+                                                        onKeyDown={e => { if (e.key === 'Enter') submitFeedback(msg.id); }}
+                                                    />
+                                                    <button onClick={() => submitFeedback(msg.id)} style={{ background: '#4f46e5', border: 'none', borderRadius: 6, padding: '4px 10px', color: 'white', fontSize: 11, cursor: 'pointer' }}>Send</button>
+                                                    <button onClick={() => setShowFeedbackInput(null)} style={{ background: 'none', border: 'none', color: '#3a3a5a', cursor: 'pointer', fontSize: 14, padding: 0 }}>×</button>
+                                                </div>
+                                            )}
+
+                                            {/* Confirmation label */}
+                                            {messageRatings[msg.id] && showFeedbackInput !== msg.id && (
+                                                <span style={{ color: isDarkMode ? '#3a3a5a' : '#9ca3af', fontSize: 10, marginLeft: 2 }}>
+                                                    {messageRatings[msg.id] === 'up' ? 'Thanks!' : 'Thanks for the feedback'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 {msg.role === 'user' && (
                                     <div className="w-8 h-8 rounded-full bg-indigo-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-white text-xs font-black select-none">
@@ -988,8 +1490,8 @@ const callAPI = useCallback(async (
                 </div>
             )}
 
-            {/* Bottom area — fixed at bottom, safe-area aware */}
-            <div className="flex-shrink-0 px-4 pt-2"
+            {/* Bottom area — clears mobile bottom nav via mb-[70px] on mobile only */}
+            <div className="flex-shrink-0 px-4 pt-2 mb-[70px] md:mb-0"
                 style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)',
                     background: isDarkMode ? '#060610' : '#ffffff',
                     borderTop: `1px solid ${isDarkMode ? '#1a1a30' : '#e5e7eb'}` }}>
@@ -1019,8 +1521,18 @@ const callAPI = useCallback(async (
 
                     <form
                         onSubmit={e => { e.preventDefault(); sendMessage(input); }}
-                        className="flex items-center gap-1.5 rounded-2xl px-2 py-2 transition-colors"
-                        style={{ background: isDarkMode ? '#0c0c1c' : '#f9fafb', border: `0.5px solid ${isDarkMode ? '#252535' : '#e5e7eb'}` }}
+                        className={`flex items-center gap-1.5 rounded-2xl px-2 py-2 transition-all ${inputFocused ? 'feeled-input-focused' : ''}`}
+                        style={{
+                            background: isDarkMode ? '#0c0c1c' : '#f0f0ff',
+                            border: `1.5px solid ${
+                                inputFocused
+                                    ? '#4f46e5'
+                                    : isDarkMode ? '#3b3b6a' : '#4f46e5'
+                            }`,
+                            boxShadow: inputFocused
+                                ? (isDarkMode ? '0 0 20px #4f46e540' : '0 0 0 3px #4f46e525')
+                                : (isDarkMode ? '0 0 16px #4f46e520' : '0 0 0 3px #4f46e515'),
+                        }}
                     >
                         <button type="button" onClick={() => setPlusOpen(!plusOpen)}
                             className={`flex-shrink-0 p-2 rounded-xl transition-all ${plusOpen ? 'bg-indigo-600 text-white' : ''}`}
@@ -1033,6 +1545,8 @@ const callAPI = useCallback(async (
                             type="text"
                             value={input}
                             onChange={e => setInput(e.target.value)}
+                            onFocus={() => setInputFocused(true)}
+                            onBlur={() => setInputFocused(false)}
                             placeholder={PLACEHOLDERS[placeholderIdx]}
                             disabled={isLoading}
                             className="flex-1 bg-transparent text-sm focus:outline-none px-2 disabled:opacity-60 min-w-0"
@@ -1051,10 +1565,17 @@ const callAPI = useCallback(async (
 
                 {!hasMessages && (
                     <p className="text-center text-xs mt-3" style={{ color: isDarkMode ? '#888888' : '#9ca3af' }}>
-                        Powered by Sarvam • © 2026 FeelEd AI
+                        © 2026 FeelEd AI · Alteridea Web Services Pvt. Ltd.
                     </p>
                 )}
             </div>
+
+            {/* Clipboard toast */}
+            {toastMsg && (
+                <div style={{ position: 'fixed', bottom: 90, left: '50%', transform: 'translateX(-50%)', background: '#1a1040', border: '0.5px solid #4f46e5', borderRadius: 10, padding: '8px 16px', color: '#c4b5fd', fontSize: 12, zIndex: 9999, boxShadow: '0 4px 16px #4f46e540', whiteSpace: 'nowrap' }}>
+                    {toastMsg}
+                </div>
+            )}
         </div>
     );
 };
