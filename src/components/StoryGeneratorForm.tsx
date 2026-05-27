@@ -6,6 +6,8 @@ import { STD_OPTIONS, LANGUAGE_OPTIONS, NARRATOR_VOICE_OPTIONS, EMOTION_TONE_OPT
 import LoadingIndicator from './LoadingIndicator';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle } from '../firebase';
+import { canUseFeature, incrementUsage } from '../services/subscriptionService';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface StoryGeneratorFormProps {
     onSubmit: (request: StoryRequest) => void;
@@ -16,6 +18,7 @@ interface StoryGeneratorFormProps {
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { isPlus, dailyUsage, showUpgrade } = useSubscription();
     const [topic, setTopic] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [std, setStd] = useState(STD_OPTIONS[4]);
@@ -27,10 +30,12 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user) return;
-        if (!topic.trim()) return;
+        if (!user || !topic.trim()) return;
+        const { allowed } = await canUseFeature(user.uid, 'stories');
+        if (!allowed) { showUpgrade('stories'); return; }
+        incrementUsage(user.uid, 'stories').catch(() => {});
         const request = { topic, std, language, narratorVoice, emotionTone };
         setSubmittedRequest(request);
         onSubmit(request);
@@ -124,14 +129,20 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                         </div>
 
                         {/* ── Primary CTA ──────────────────────────────────── */}
-                        {user ? (
+                        {user && (
                             <button
                                 type="submit"
                                 className="w-full py-6 rounded-2xl bg-slate-900 dark:bg-blue-600 text-white text-lg font-black tracking-tight hover:bg-slate-800 dark:hover:bg-blue-700 transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95"
                             >
                                 Generate Story ✨
                             </button>
-                        ) : (
+                        )}
+                        {user && !isPlus && (
+                            <p className="text-center text-xs text-slate-400 dark:text-slate-600 mt-1">
+                                {Math.max(0, 3 - (dailyUsage?.stories ?? 0))} / 3 free stories remaining today
+                            </p>
+                        )}
+                        {!user && (
                             <button
                                 type="button"
                                 disabled={isLoggingIn}

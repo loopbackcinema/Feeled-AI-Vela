@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
+import { useSubscription } from '../../context/SubscriptionContext';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -95,6 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     open, onClose, desktopOpen, onToggle, user, chatHistory, hasMoreHistory, isLoadingHistory,
     onLoadMore, onNewChat, onAuth, onNavigate, onSelectSession,
 }) => {
+    const { isPlus, showUpgrade } = useSubscription();
     const historyRef = useRef<HTMLDivElement>(null);
     const [researchOpen, setResearchOpen] = useState(false);
 
@@ -155,6 +157,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <div className="min-w-0">
                                 <p className="text-gray-900 dark:text-white font-bold text-sm truncate">{user.displayName || 'Student'}</p>
                                 <p className="text-gray-500 dark:text-[#666] text-xs truncate">{user.email}</p>
+                                {isPlus ? (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 mt-0.5">✨ Plus</span>
+                                ) : (
+                                    <button onClick={() => showUpgrade()} className="text-[10px] font-semibold text-indigo-500 hover:text-indigo-400 mt-0.5 block">Upgrade to Plus ✨</button>
+                                )}
                             </div>
                         </div>
                     )}

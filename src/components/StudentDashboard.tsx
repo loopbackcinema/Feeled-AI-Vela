@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare } from 'lucide-react';
+import { useSubscription } from '../context/SubscriptionContext';
+import PremiumLock from './PremiumLock';
 
 interface ActivityLog {
     id: string;
@@ -67,6 +69,7 @@ function findImprovingSubject(allScores: PracticeScore[]): string | null {
 
 const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNavigate }) => {
     const { user, userProfile } = useAuth();
+    const { isPlus, showUpgrade } = useSubscription();
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     
@@ -450,6 +453,54 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                                 <p className="font-medium">Ask me anything about your Samacheer syllabus! 🎓</p>
                                 <button onClick={() => onNavigate('home')} className="text-indigo-600 font-bold mt-2 hover:underline">Start learning</button>
                             </div>
+                        )}
+                    </div>
+
+                    {/* Smart Revision Plan — Plus only */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                            🔁 Smart Revision Plan
+                        </h2>
+                        {isPlus ? (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">AI revision schedule will appear after your first exam sessions.</p>
+                        ) : (
+                            <PremiumLock
+                                feature="Smart Revision Plan"
+                                description="AI-powered revision schedule based on your exam performance"
+                                onUpgrade={() => showUpgrade('feature')}
+                            />
+                        )}
+                    </div>
+
+                    {/* Learning Pattern Analysis — Plus only */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                            🧠 Learning Pattern Analysis
+                        </h2>
+                        {isPlus ? (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Your learning patterns will be detected after consistent usage.</p>
+                        ) : (
+                            <PremiumLock
+                                feature="Learning Pattern Analysis"
+                                description="Discover your study habits, strengths, and improvement areas"
+                                onUpgrade={() => showUpgrade('feature')}
+                            />
+                        )}
+                    </div>
+
+                    {/* Exam Strategy Tips — Plus only */}
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                            🎯 Exam Strategy Tips
+                        </h2>
+                        {isPlus ? (
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Strategic tips will appear based on your learning goal.</p>
+                        ) : (
+                            <PremiumLock
+                                feature="Exam Strategy Tips"
+                                description="NEET/JEE strategic guidance and deep weakness analysis"
+                                onUpgrade={() => showUpgrade('feature')}
+                            />
                         )}
                     </div>
 

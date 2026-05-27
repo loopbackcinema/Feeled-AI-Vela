@@ -23,6 +23,7 @@ import ExamMock from './pages/ExamMock';
 import StudentDashboard from './components/StudentDashboard';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import ProtectedRoute from './components/ProtectedRoute';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 import { useAuth } from './context/AuthContext';
 import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -204,7 +205,7 @@ const App: React.FC = () => {
     };
 
     return (
-        <>
+        <SubscriptionProvider>
             <Routes>
                 {/* ── Protected core app routes ── */}
                 <Route path="/" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
@@ -284,7 +285,7 @@ const App: React.FC = () => {
                 <Route path="*" element={<Navigate to="/" />} />
             </Routes>
             <PWAInstallBanner />
-        </>
+        </SubscriptionProvider>
     );
 };
 

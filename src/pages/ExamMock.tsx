@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { canUseFeature, incrementUsage } from '../services/subscriptionService';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface QuestionOption {
     a: string;
@@ -48,6 +50,7 @@ const SESSION_KEY = 'feeled_exam_session';
 export default function ExamMock() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { isPlus, dailyUsage, showUpgrade } = useSubscription();
 
     // Setup state
     const [subject, setSubject] = useState('Mathematics');
@@ -122,6 +125,11 @@ export default function ExamMock() {
 
     const startExam = async () => {
         if (!chapter.trim()) { setError('Please enter a chapter name'); return; }
+        if (user) {
+            const { allowed } = await canUseFeature(user.uid, 'exams');
+            if (!allowed) { showUpgrade('exams'); return; }
+            incrementUsage(user.uid, 'exams').catch(() => {});
+        }
         setError('');
         setPhase('loading');
         setLoadingStep(0);
@@ -351,6 +359,11 @@ export default function ExamMock() {
                                 >
                                     Start Mock Test →
                                 </button>
+                                {user && !isPlus && (
+                                    <p className="text-center text-xs text-slate-400 dark:text-slate-600">
+                                        {Math.max(0, 2 - (dailyUsage?.exams ?? 0))} / 2 free mock tests remaining today
+                                    </p>
+                                )}
                             </>
                         )}
                     </div>
