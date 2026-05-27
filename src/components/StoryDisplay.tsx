@@ -339,13 +339,6 @@ const StoryDisplay: React.FC<StoryDisplayProps> = ({ story, language, base64Audi
                 </button>
             </div>
 
-            {/* Quiz */}
-            <div className="no-print">
-                <QuizSection quiz={story.quiz} onQuizComplete={(score) => {
-                    setQuizScore(score);
-                }} />
-            </div>
-
             {/* Certificate Section */}
             {quizScore !== null && (
                 <div className="mt-24 no-print animate-bounce-in">
