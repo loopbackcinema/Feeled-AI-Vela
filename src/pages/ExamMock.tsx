@@ -229,7 +229,7 @@ export default function ExamMock() {
                 // Save to chat_sessions for sidebar history
                 addDoc(collection(db, 'chat_sessions'), {
                     userId: user.uid,
-                    title: `Exam: ${chapter || subject}`,
+                    title: `📝 Exam: ${chapter || subject || 'Mock Test'}`,
                     subject,
                     grade: '10',
                     board: '',

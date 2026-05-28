@@ -475,6 +475,12 @@ const ChatPage: React.FC = () => {
     const location = useLocation();
     const { user } = useAuth();
     const { board, standard, subject, language, setContext } = useStudentStore();
+    const contextIsDefault = (
+        (!board || board === 'Tamil Nadu State Board (Samacheer)') &&
+        (!standard || standard === '10th') &&
+        (!subject || subject === 'Science') &&
+        (!language || language === 'English')
+    );
     const chatMessages = useSessionStore(s => s.chatMessages);
     const setSession = useSessionStore(s => s.set);
     const { t, i18n } = useTranslation();
@@ -1227,8 +1233,8 @@ const callAPI = useCallback(async (
                         </p>
 
                         {/* Context setup prompt — show when defaults unchanged and user is logged in */}
-                        {user && board === 'TN Samacheer' && grade === '10' && subject === 'Science' && (
-                            <div style={{ background:'linear-gradient(135deg, rgba(79,70,229,0.12), rgba(124,58,237,0.08))', border:'1px solid rgba(99,102,241,0.3)', borderRadius:'16px', padding:'16px 20px', marginBottom:'20px', maxWidth:'480px', margin:'0 auto 20px', textAlign:'center', animation:'fadeSlide 0.5s ease-out both' }}>
+                        {user && contextIsDefault && (
+                            <div style={{ background:'linear-gradient(135deg, rgba(79,70,229,0.12), rgba(124,58,237,0.08))', border:'1px solid rgba(99,102,241,0.3)', borderRadius:'16px', padding:'16px 20px', margin:'0 auto 20px', maxWidth:'480px', width:'100%', textAlign:'center', animation:'fadeSlide 0.5s ease-out both' }}>
                                 <div style={{ fontSize:'24px', marginBottom:'8px' }}>📚</div>
                                 <div style={{ color:'#c4b5fd', fontSize:'14px', fontWeight:'700', marginBottom:'6px' }}>Choose Your Learning Context</div>
                                 <div style={{ color:'#5a5a8a', fontSize:'12px', marginBottom:'14px', lineHeight:'1.5' }}>Help FeelEd AI personalise your learning experience</div>
@@ -1239,7 +1245,7 @@ const callAPI = useCallback(async (
                                     📖 Set My Learning Context →
                                 </button>
                                 <div style={{ color:'#333360', fontSize:'10px', marginTop:'8px' }}>
-                                    Currently: {board} · Grade {grade} · {subject} · {language}
+                                    Currently: {board === 'Tamil Nadu State Board (Samacheer)' ? 'TN Samacheer' : (board || 'TN Samacheer')} · Grade {grade} · {subject || 'Science'} · {language || 'English'}
                                 </div>
                             </div>
                         )}
