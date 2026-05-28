@@ -702,19 +702,25 @@ const ChatPage: React.FC = () => {
     // Save session to Firestore
     const saveSession = useCallback(async (messages: StudyChatMessage[]) => {
         if (!user || messages.length < 2) return;
-        const title = messages.find(m => m.role === 'user')?.text.slice(0, 40) || 'Chat';
+        const title = messages.find(m => m.role === 'user')?.text.slice(0, 50) || 'Chat';
+        const preview = messages.find(m => m.role === 'model')?.text.slice(0, 120) || '';
+        const lastMessage = messages[messages.length - 1]?.text.slice(0, 80) || '';
         const sessionDocRef = doc(db, 'chat_sessions', sessionRef.current.id);
         await setDoc(sessionDocRef, {
-            userId:    user.uid,
-            sessionId: sessionRef.current.id,
+            userId:       user.uid,
+            sessionId:    sessionRef.current.id,
             title,
-            messages:  messages.map(m => ({ id: m.id, role: m.role, text: m.text, timestamp: m.timestamp, ragUsed: m.ragUsed || false })),
-            subject:   subject || 'General',
-            grade:     grade   || '10',
-            board:     board   || 'TN Samacheer',
-            language:  language || 'English',
-            createdAt: Timestamp.fromMillis(sessionRef.current.createdAt),
-            updatedAt: serverTimestamp(),
+            preview,
+            lastMessage,
+            mode:         'chat',
+            messageCount: messages.length,
+            messages:     messages.map(m => ({ id: m.id, role: m.role, text: m.text, timestamp: m.timestamp, ragUsed: m.ragUsed || false })),
+            subject:      subject || 'General',
+            grade:        grade   || '10',
+            board:        board   || 'TN Samacheer',
+            language:     language || 'English',
+            createdAt:    Timestamp.fromMillis(sessionRef.current.createdAt),
+            updatedAt:    serverTimestamp(),
         });
         // Refresh history
         loadHistory(false);

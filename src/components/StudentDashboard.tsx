@@ -100,6 +100,7 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
     const [improvingSubject, setImprovingSubject] = useState<string | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(true);
     const [recentStories, setRecentStories] = useState<SavedStory[]>([]);
+    const [recentChats, setRecentChats]     = useState<any[]>([]);
     const [selectedStory, setSelectedStory] = useState<SavedStory | null>(null);
     const [studentMemory, setStudentMemory] = useState<StudentMemory | null>(null);
     const [learningGoal, setLearningGoal] = useState<StudentMemory['learningGoal']>(null);
@@ -204,10 +205,30 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                     setRecentStories(fallback.slice(0, 3));
                 }
 
-                // Count chat sessions
+                // Count + fetch recent chat sessions
                 const chatsQ = query(collection(db, 'chat_sessions'), where('userId', '==', user.uid));
                 const chatsSnap = await getDocs(chatsQ);
                 setChatSessionsCount(chatsSnap.size);
+                try {
+                    const recentChatsQ = query(
+                        collection(db, 'chat_sessions'),
+                        where('userId', '==', user.uid),
+                        orderBy('createdAt', 'desc'),
+                        limit(3)
+                    );
+                    const recentChatsSnap = await getDocs(recentChatsQ);
+                    setRecentChats(recentChatsSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+                } catch {
+                    // Index may not exist yet — fall back to in-memory sort
+                    const fallback = chatsSnap.docs
+                        .map(d => ({ id: d.id, ...d.data() } as any))
+                        .sort((a: any, b: any) => {
+                            const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+                            const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+                            return tb - ta;
+                        });
+                    setRecentChats(fallback.slice(0, 3));
+                }
 
                 // Count mock tests
                 const mockTestQ = query(collection(db, 'practice_scores'), where('userId', '==', user.uid), where('examType', '==', 'mock-test'));
@@ -609,6 +630,56 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
                                 </p>
                             </button>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Recent Chats */}
+            {!isLoadingData && recentChats.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm mb-8">
+                    <div className="flex items-center justify-between mb-5">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            💬 Recent Chats
+                        </h2>
+                        <button
+                            onClick={() => onNavigate('home')}
+                            className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                        >
+                            New Chat →
+                        </button>
+                    </div>
+                    <div className="flex flex-col gap-3">
+                        {recentChats.map(chat => {
+                            const date = chat.createdAt?.toDate?.() || new Date();
+                            const dateStr = date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                            const modeIcon = chat.mode === 'story' ? '📖' : chat.mode === 'exam' ? '📝' : '💬';
+                            return (
+                                <button
+                                    key={chat.id}
+                                    type="button"
+                                    onClick={() => onNavigate('home')}
+                                    className="text-left p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 hover:border-indigo-400 dark:hover:border-indigo-600 hover:scale-[1.01] transition-all group cursor-pointer"
+                                >
+                                    <div className="flex justify-between items-start mb-1.5">
+                                        <div className="flex items-center gap-1.5 min-w-0">
+                                            <span className="text-sm flex-shrink-0">{modeIcon}</span>
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                {chat.title || 'Chat Session'}
+                                            </p>
+                                        </div>
+                                        <span className="text-[10px] text-slate-400 dark:text-slate-600 flex-shrink-0 ml-2">{dateStr}</span>
+                                    </div>
+                                    {(chat.preview || chat.lastMessage) && (
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-1.5">
+                                            {chat.preview || chat.lastMessage}
+                                        </p>
+                                    )}
+                                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+                                        Continue →
+                                    </p>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
