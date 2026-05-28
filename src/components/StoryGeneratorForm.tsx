@@ -4,7 +4,7 @@ import { StoryRequest } from '../types';
 import { STD_OPTIONS, NARRATOR_VOICE_OPTIONS } from '../constants';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle } from '../firebase';
-import { updateRecentTopic, updateRecentMode } from '../services/memoryService';
+import { updateRecentTopic, updateRecentMode, getStudentMemory } from '../services/memoryService';
 import { canUseFeature, incrementUsage } from '../services/subscriptionService';
 import { useSubscription } from '../context/SubscriptionContext';
 
@@ -86,7 +86,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [langPill, setLangPill]           = useState('English');
     const [narratorVoice, setNarratorVoice] = useState(NARRATOR_VOICE_OPTIONS.English[0]);
     const [selectedStyle, setSelectedStyle] = useState(2);
-    const [moreOpen, setMoreOpen]           = useState(false);
+    const [memoryCtx, setMemoryCtx]         = useState<{grade:string;subject:string;language:string}|null>(null);
     const [inputFocused, setInputFocused]   = useState(false);
     const [isLoggingIn, setIsLoggingIn]     = useState(false);
     const [phIdx, setPhIdx]                 = useState(0);
@@ -103,6 +103,29 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         const id = setInterval(() => setStageIdx(i => (i + 1) % LOADING_STAGES.length), 1500);
         return () => clearInterval(id);
     }, [isLoading]);
+
+    useEffect(() => {
+        if (!user) return;
+        Promise.race([
+            getStudentMemory(user.uid),
+            new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
+        ]).then(mem => {
+            if (!mem) return;
+            if (mem.preferredLanguage) {
+                setLangPill(mem.preferredLanguage);
+                const v = (mem.preferredLanguage === 'Tanglish' ? 'English' : mem.preferredLanguage) as keyof typeof NARRATOR_VOICE_OPTIONS;
+                setNarratorVoice(NARRATOR_VOICE_OPTIONS[v][0]);
+            }
+            if (mem.learningGoal) {
+                const goalToStd: Record<string, string> = { '10th Board': '10th STD', '12th Board': '12th STD', 'NEET': '12th STD', 'JEE': '12th STD' };
+                const mapped = goalToStd[mem.learningGoal];
+                if (mapped) setStd(mapped);
+            }
+            const recentSubject = mem.recentTopics?.[0]?.subject || '';
+            const gradeLabel = mem.learningGoal === '10th Board' ? 'Grade 10' : mem.learningGoal === '12th Board' ? 'Grade 12' : mem.learningGoal === 'NEET' ? 'NEET' : mem.learningGoal === 'JEE' ? 'JEE' : '';
+            setMemoryCtx({ grade: gradeLabel, subject: recentSubject, language: mem.preferredLanguage });
+        });
+    }, [user]);
 
     const apiLanguage = (langPill === 'Tanglish' ? 'English' : langPill) as keyof typeof NARRATOR_VOICE_OPTIONS;
 
@@ -165,6 +188,9 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                     50%     { box-shadow: 0 4px 40px #4f46e580, 0 0 60px #7c3aed30; }
                 }
                 @keyframes spin { to { transform: rotate(360deg); } }
+                @keyframes floatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+                @keyframes floatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+                @keyframes floatC { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-10px) rotate(10deg)} }
                 .sgf-pulse { animation: buttonPulse 2s ease-in-out infinite; }
                 .sgf-pulse:hover { transform: translateY(-2px) scale(1.01); transition: transform 0.2s ease; }
                 .sgf-card  { transition: all 0.2s ease; cursor: pointer; }
@@ -224,17 +250,33 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                     </div>
 
                     {/* Hero */}
-                    <div style={{ textAlign: 'center', paddingTop: 16, marginBottom: 12 }}>
-                        <span style={{ display: 'inline-block', background: '#1e1258', border: '0.5px solid #4c3a99', color: '#a78bfa', borderRadius: 999, padding: '5px 16px', fontSize: 12, fontWeight: 600, marginBottom: 8 }}>
-                            ✨ Story Mode
-                        </span>
-                        <h1 style={{ color: '#eeeef8', fontSize: 26, fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                            Turn any lesson into a cinematic AI story
+                    <div style={{position:'relative', textAlign:'center', padding:'24px 16px 0'}}>
+                        <div style={{position:'absolute', top:'10px', left:'10%', fontSize:'24px', animation:'floatA 4s ease-in-out infinite', opacity:0.6, pointerEvents:'none'}}>📚</div>
+                        <div style={{position:'absolute', top:'20px', right:'15%', fontSize:'20px', animation:'floatB 5s ease-in-out infinite', opacity:0.5, pointerEvents:'none'}}>✨</div>
+                        <div style={{position:'absolute', top:'40px', left:'25%', fontSize:'16px', animation:'floatC 3.5s ease-in-out infinite', opacity:0.4, pointerEvents:'none'}}>🌟</div>
+                        <div style={{position:'absolute', top:'15px', right:'30%', fontSize:'18px', animation:'floatA 4.5s ease-in-out infinite', opacity:0.5, pointerEvents:'none'}}>🎭</div>
+                        <div style={{display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(124,58,237,0.2)', border:'1px solid rgba(167,139,250,0.4)', borderRadius:'24px', padding:'6px 16px', marginBottom:'16px'}}>
+                            <span style={{fontSize:'16px'}}>✨</span>
+                            <span style={{color:'#c4b5fd', fontSize:'12px', fontWeight:'600', letterSpacing:'0.5px'}}>STORY MODE</span>
+                            <span style={{fontSize:'16px'}}>✨</span>
+                        </div>
+                        <h1 style={{fontSize:'clamp(22px, 5vw, 32px)', fontWeight:'800', background:'linear-gradient(135deg, #ffffff, #c4b5fd, #818cf8)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', margin:'0 0 8px', lineHeight:'1.2', letterSpacing:'-0.5px'}}>
+                            Turn any lesson into a<br/>
+                            <span style={{background:'linear-gradient(135deg, #f472b6, #a855f7, #6366f1)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text'}}>cinematic AI story</span>
                         </h1>
-                        <p style={{ color: '#7070a0', fontSize: 12, margin: '0 0 12px' }}>
-                            Learn through characters, emotion, and imagination.
+                        <p style={{color:'rgba(196,181,253,0.7)', fontSize:'14px', margin:'0 0 24px'}}>
+                            Learn through characters, emotion, and imagination 🎬
                         </p>
                     </div>
+
+                    {/* Memory context confirmation */}
+                    {memoryCtx && (memoryCtx.grade || memoryCtx.subject) && (
+                        <div style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', background:'rgba(79,70,229,0.08)', border:'0.5px solid rgba(99,102,241,0.2)', borderRadius:'10px', padding:'7px 14px', marginBottom:'4px', fontSize:'11px', color:'#7070a0'}}>
+                            <span>📚</span>
+                            <span>Using your learning context: {[memoryCtx.grade, memoryCtx.subject, memoryCtx.language].filter(Boolean).join(' · ')}</span>
+                            <button type="button" onClick={() => setMemoryCtx(null)} style={{color:'#4f46e5', background:'none', border:'none', cursor:'pointer', fontSize:'11px', fontWeight:600, padding:0}}>Change</button>
+                        </div>
+                    )}
 
                     {/* Error */}
                     {error && (
@@ -327,39 +369,27 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                             </div>
                         </div>
 
-                        {/* ── More options (collapsible) ────────────────── */}
-                        <div>
-                            <button
-                                type="button"
-                                onClick={() => setMoreOpen(o => !o)}
-                                style={{ background: 'none', border: 'none', color: '#4a4a6a', fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, padding: 0 }}
-                            >
-                                <span style={{ display: 'inline-block', transition: 'transform 0.2s', transform: moreOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}>▶</span>
-                                ⚙️ More options
-                            </button>
-                            <div style={{ maxHeight: moreOpen ? 160 : 0, overflow: 'hidden', transition: 'max-height 0.3s ease', marginTop: moreOpen ? 10 : 0 }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, paddingTop: 2 }}>
-                                    <div>
-                                        <label style={{ display: 'block', color: '#5a5a8a', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Target Level</label>
-                                        <select
-                                            value={std}
-                                            onChange={e => setStd(e.target.value)}
-                                            style={{ width: '100%', background: 'rgba(12,12,28,0.8)', border: '0.5px solid #3a3a5a', borderRadius: 10, color: '#9090b8', fontSize: 12, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
-                                        >
-                                            {STD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', color: '#5a5a8a', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Voice Persona</label>
-                                        <select
-                                            value={narratorVoice}
-                                            onChange={e => setNarratorVoice(e.target.value)}
-                                            style={{ width: '100%', background: 'rgba(12,12,28,0.8)', border: '0.5px solid #3a3a5a', borderRadius: 10, color: '#9090b8', fontSize: 12, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
-                                        >
-                                            {NARRATOR_VOICE_OPTIONS[apiLanguage].map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
+                        {/* ── Target Level + Voice Persona ─────────────── */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                            <div>
+                                <label style={{ display: 'block', color: '#5a5a8a', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Target Level</label>
+                                <select
+                                    value={std}
+                                    onChange={e => setStd(e.target.value)}
+                                    style={{ width: '100%', background: 'rgba(12,12,28,0.8)', border: '0.5px solid #3a3a5a', borderRadius: 10, color: '#9090b8', fontSize: 12, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
+                                >
+                                    {STD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', color: '#5a5a8a', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Voice Persona</label>
+                                <select
+                                    value={narratorVoice}
+                                    onChange={e => setNarratorVoice(e.target.value)}
+                                    style={{ width: '100%', background: 'rgba(12,12,28,0.8)', border: '0.5px solid #3a3a5a', borderRadius: 10, color: '#9090b8', fontSize: 12, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
+                                >
+                                    {NARRATOR_VOICE_OPTIONS[apiLanguage].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                </select>
                             </div>
                         </div>
 
