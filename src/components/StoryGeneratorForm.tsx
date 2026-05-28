@@ -5,6 +5,8 @@ import { STD_OPTIONS, NARRATOR_VOICE_OPTIONS } from '../constants';
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle } from '../firebase';
 import { updateRecentTopic, updateRecentMode } from '../services/memoryService';
+import { canUseFeature, incrementUsage } from '../services/subscriptionService';
+import { useSubscription } from '../context/SubscriptionContext';
 
 interface StoryGeneratorFormProps {
     onSubmit: (request: StoryRequest) => void;
@@ -76,6 +78,7 @@ const STARS = [
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { isPlus, dailyUsage, showUpgrade } = useSubscription();
 
     const [topic, setTopic]                 = useState('');
     const [isListening, setIsListening]     = useState(false);
@@ -103,9 +106,12 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
     const apiLanguage = (langPill === 'Tanglish' ? 'English' : langPill) as keyof typeof NARRATOR_VOICE_OPTIONS;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user || !topic.trim()) return;
+        const { allowed } = await canUseFeature(user.uid, 'stories');
+        if (!allowed) { showUpgrade('stories'); return; }
+        incrementUsage(user.uid, 'stories').catch(() => {});
         onSubmit({ topic, std, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
         // Memory engine — fire-and-forget
         updateRecentTopic({ uid: user.uid, topic: topic.trim(), subject: 'General', source: 'story' });
@@ -359,6 +365,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
                         {/* ── Generate / Login button ───────────────────── */}
                         {user ? (
+                            <>
                             <button
                                 type="submit"
                                 className="sgf-pulse"
@@ -367,6 +374,8 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                             >
                                 ✨ Generate AI Story
                             </button>
+                            {!isPlus && <div style={{textAlign:'center',color:'#3a3a5a',fontSize:'11px',marginTop:'8px'}}>{Math.max(0, 3 - (dailyUsage?.stories || 0))} of 3 free stories remaining today</div>}
+                            </>
                         ) : (
                             <button
                                 type="button"

@@ -12,6 +12,7 @@ import PWAInstallBanner from './components/PWAInstallBanner';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import BottomNav from './components/BottomNav';
+import { SubscriptionProvider } from './context/SubscriptionContext';
 
 // Lazy-loaded pages — only fetched when the route is first visited
 const AboutUs          = lazy(() => import('./pages/AboutUs'));
@@ -216,7 +217,7 @@ const App: React.FC = () => {
     );
 
     return (
-        <>
+        <SubscriptionProvider>
             <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -289,7 +290,7 @@ const App: React.FC = () => {
             </ErrorBoundary>
             <PWAInstallBanner />
             <BottomNav />
-        </>
+        </SubscriptionProvider>
     );
 };
 

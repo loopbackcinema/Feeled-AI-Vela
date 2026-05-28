@@ -32,6 +32,7 @@ import TypewriterMarkdown from '../../components/TypewriterMarkdown';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
 import { useTranslation } from 'react-i18next';
+import { useSubscription } from '../../context/SubscriptionContext';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
@@ -181,6 +182,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     onLoadMore, onNewChat, onAuth, onNavigate, onSelectSession,
 }) => {
     const { t } = useTranslation();
+    const { isPlus, showUpgrade } = useSubscription();
     const historyRef = useRef<HTMLDivElement>(null);
     const [researchOpen, setResearchOpen] = useState(false);
     const [socialOpen, setSocialOpen] = useState(false);
@@ -242,6 +244,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <div className="min-w-0">
                                 <p className="text-gray-900 dark:text-white font-bold text-sm truncate">{user.displayName || 'Student'}</p>
                                 <p className="text-gray-500 dark:text-[#666] text-xs truncate">{user.email}</p>
+                                {isPlus ? <span style={{fontSize:'10px',color:'#818cf8'}}>⭐ FeelEd Plus</span> : <button onClick={() => showUpgrade()} style={{fontSize:'10px',color:'#6366f1',background:'none',border:'none',cursor:'pointer'}}>Upgrade to Plus ✨</button>}
                             </div>
                         </div>
                     )}
