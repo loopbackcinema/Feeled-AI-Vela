@@ -732,6 +732,7 @@ const callAPI = useCallback(async (
     imgMime?: string,
     studentCtx?: string,
 ) => {
+    if (import.meta.env.DEV && imgBase64) console.log('[Image Upload] Sending to API with image, mime:', imgMime);
     const res = await fetch('/api/chat-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -994,8 +995,10 @@ const callAPI = useCallback(async (
     const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        if (import.meta.env.DEV) console.log('[Image Upload] File selected:', file.name, file.size, file.type);
         const b64 = await blobToBase64(file);
         setUploadedImage({ base64: b64, mime: file.type });
+        if (import.meta.env.DEV) console.log('[Image Upload] Image ready, queued for next message send');
         setPlusOpen(false);
         e.target.value = '';
     };
@@ -1327,6 +1330,21 @@ const callAPI = useCallback(async (
                                 </div>
                             );
                         })()}
+
+                        {/* Context setup prompt — show only when defaults are unchanged */}
+                        {board === 'TN Samacheer' && grade === '10' && subject === 'Science' && (
+                            <div style={{ background:'rgba(79,70,229,0.08)', border:'1px solid rgba(99,102,241,0.25)', borderRadius:'16px', padding:'16px 20px', maxWidth:'480px', margin:'0 auto 16px', textAlign:'center' }}>
+                                <div style={{ fontSize:'20px', marginBottom:'8px' }}>📚</div>
+                                <div style={{ color:'#c4b5fd', fontSize:'13px', fontWeight:'600', marginBottom:'4px' }}>Choose Your Learning Context</div>
+                                <div style={{ color:'#5a5a8a', fontSize:'11px', marginBottom:'12px' }}>Help FeelEd AI understand what you're studying</div>
+                                <button
+                                    onClick={() => setPlusOpen(true)}
+                                    style={{ background:'linear-gradient(135deg, #4f46e5, #7c3aed)', border:'none', borderRadius:'10px', padding:'8px 20px', color:'white', fontSize:'12px', fontWeight:'600', cursor:'pointer' }}
+                                >
+                                    Set My Learning Context →
+                                </button>
+                            </div>
+                        )}
 
                         {/* Topic Chips */}
                         <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 10 }}>

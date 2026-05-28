@@ -72,6 +72,8 @@ export default function ExamMock() {
     // Results state
     const [results, setResults] = useState<Record<string, ExamResult>>({});
     const [openQ, setOpenQ] = useState<string | null>(null);
+    const [prevScore, setPrevScore] = useState<{pct:number;timestamp:number}|null>(null);
+    const [showReview, setShowReview] = useState(false);
 
     // Restore session
     useEffect(() => {
@@ -180,6 +182,10 @@ export default function ExamMock() {
     const handleSubmit = async (auto = false) => {
         clearInterval(timerRef.current!);
         localStorage.removeItem(SESSION_KEY);
+        // Save prev score before overwriting
+        const scoreKey = `feeled_exam_${subject}_${chapter}`;
+        const savedPrev = localStorage.getItem(scoreKey);
+        setPrevScore(savedPrev ? JSON.parse(savedPrev) : null);
 
         const newResults: Record<string, ExamResult> = {};
         for (const q of questions) {
@@ -192,6 +198,11 @@ export default function ExamMock() {
         }
         setResults(newResults);
         setPhase('results');
+        setShowReview(false);
+        const mcqTot = questions.filter(q => q.questionType === 'MCQ').length;
+        const mcqC = questions.filter(q => q.questionType === 'MCQ' && newResults[q.id]?.correct).length;
+        const newPct = Math.round((mcqC / Math.max(mcqTot, 1)) * 100);
+        localStorage.setItem(`feeled_exam_${subject}_${chapter}`, JSON.stringify({ pct: newPct, timestamp: Date.now() }));
 
         console.log('[exam] user:', user?.uid, 'questions:', questions.length);
         if (user) {
@@ -264,6 +275,14 @@ export default function ExamMock() {
             .filter(q => results[q.id]?.correct)
             .reduce((s, q) => s + q.marks, 0);
         return { correct, mcqCorrect, marksEarned };
+    };
+
+    const getExamGrade = (pct: number) => {
+        if (pct >= 90) return { grade:'A+', emoji:'🏆', color:'#22c55e', msg:'Outstanding! You have mastered this topic.' };
+        if (pct >= 75) return { grade:'A',  emoji:'🌟', color:'#10b981', msg:"Excellent work! A little more practice and you'll be perfect." };
+        if (pct >= 60) return { grade:'B',  emoji:'👍', color:'#3b82f6', msg:'Good effort! Focus on the questions you missed.' };
+        if (pct >= 40) return { grade:'C',  emoji:'💪', color:'#f59e0b', msg:'Keep going! Review the concepts and try again.' };
+        return              { grade:'D',  emoji:'🌱', color:'#ef4444', msg:'Every expert was once a beginner. Review and retry!' };
     };
 
     const getPerformanceBadge = (pct: number) => {
@@ -527,26 +546,82 @@ export default function ExamMock() {
     // ── RESULTS ───────────────────────────────────────────────────────────────
     if (phase === 'results') {
         const { mcqCorrect, marksEarned } = getScore();
-        const pct = Math.round((mcqCorrect / Math.max(questions.filter(q => q.questionType === 'MCQ').length, 1)) * 100);
-        const badge = getPerformanceBadge(pct);
+        const mcqTotal = questions.filter(q => q.questionType === 'MCQ').length;
+        const pct = Math.round((mcqCorrect / Math.max(mcqTotal, 1)) * 100);
+        const examGrade = getExamGrade(pct);
+        const isFirstAttempt = !prevScore;
+        const improved = prevScore && pct > prevScore.pct;
+        const weakAreas = questions
+            .filter(q => q.questionType === 'MCQ' && !results[q.id]?.correct)
+            .map(q => q.chapter || subject)
+            .filter((v, i, a) => a.indexOf(v) === i)
+            .slice(0, 2);
 
         return (
-            <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 px-4 py-12">
-                <div className="max-w-2xl mx-auto space-y-8">
+            <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 px-4 pb-24 pt-8">
+                <div className="max-w-2xl mx-auto space-y-6">
+
                     {/* Score card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-10 text-center shadow-xl shadow-slate-200/20 dark:shadow-none space-y-4">
-                        <h2 className="text-4xl font-black text-slate-900 dark:text-white">{marksEarned} / {totalMarks} marks</h2>
-                        <span className={`inline-block px-6 py-2 rounded-full border-2 font-black text-lg ${badge.color}`}>
-                            {badge.text}
-                        </span>
-                        <p className="text-slate-500 dark:text-slate-400 font-bold">
-                            MCQ: {mcqCorrect} / {questions.filter(q => q.questionType === 'MCQ').length} correct
-                        </p>
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-8 text-center shadow-xl shadow-slate-200/20 dark:shadow-none space-y-4">
+                        {/* Encouragement banner */}
+                        {(isFirstAttempt || improved) && (
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 text-xs font-black">
+                                {isFirstAttempt ? '🎯 Great first attempt!' : '📈 You improved from last time!'}
+                            </div>
+                        )}
+                        {/* Grade badge */}
+                        <div className="flex flex-col items-center gap-2">
+                            <div className="text-6xl animate-bounce">{examGrade.emoji}</div>
+                            <div className="text-5xl font-black" style={{ color: examGrade.color }}>{examGrade.grade}</div>
+                            <p className="text-sm font-bold text-slate-500 dark:text-slate-400 max-w-xs">{examGrade.msg}</p>
+                        </div>
+                        {/* Score bar */}
+                        <div className="space-y-2">
+                            <p className="text-2xl font-black text-slate-900 dark:text-white">{mcqCorrect} / {mcqTotal} correct</p>
+                            <p className="text-sm text-slate-400">{marksEarned} / {totalMarks} marks · {pct}%</p>
+                            <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: examGrade.color }} />
+                            </div>
+                        </div>
+                        {/* Mentor tip */}
+                        {weakAreas.length > 0 && (
+                            <p className="text-xs text-slate-400 dark:text-slate-500">
+                                💡 Focus on: <span className="font-bold text-amber-600 dark:text-amber-400">{weakAreas.join(', ')}</span>
+                            </p>
+                        )}
                         <p className="text-xs text-slate-400">{subject} · {chapter}</p>
                     </div>
 
-                    {/* Question review */}
-                    <div className="space-y-4">
+                    {/* Action buttons */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={() => setShowReview(v => !v)}
+                            className="py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-black text-sm transition-all hover:border-indigo-300"
+                        >
+                            {showReview ? '▲ Hide Review' : '📖 Review Answers'}
+                        </button>
+                        <button
+                            onClick={() => { setPhase('setup'); setChapter(''); setQuestions([]); setResults({}); setShowReview(false); }}
+                            className="py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm transition-all active:scale-95"
+                        >
+                            🔄 Retry Test
+                        </button>
+                        <button
+                            onClick={() => navigate('/generator', { state: { prefillTopic: chapter || subject } })}
+                            className="py-3 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-black text-sm transition-all active:scale-95"
+                        >
+                            ✨ Story on This Topic
+                        </button>
+                        <button
+                            onClick={() => navigate('/', { state: { prefilledMessage: `Explain ${chapter || subject} — I struggled with it in my mock test` } })}
+                            className="py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm transition-all active:scale-95"
+                        >
+                            💬 Ask AI to Explain
+                        </button>
+                    </div>
+
+                    {/* Question review (collapsible) */}
+                    {showReview && <div className="space-y-4">
                         <h3 className="font-black text-slate-800 dark:text-white text-lg">Question Review</h3>
                         {questions.map(q => {
                             const r = results[q.id];
@@ -599,36 +674,8 @@ export default function ExamMock() {
                                 </div>
                             );
                         })}
-                    </div>
+                    </div>}
 
-                    {/* Weak area suggestion */}
-                    {pct < 60 && (
-                        <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-200 dark:border-amber-800 p-6 space-y-3">
-                            <p className="font-black text-amber-800 dark:text-amber-300">💡 We suggest reviewing <span className="underline">{chapter}</span> in Story Mode</p>
-                            <button
-                                onClick={() => navigate('/generator')}
-                                className="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-sm transition-all active:scale-95"
-                            >
-                                📖 Open Story Mode
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Bottom buttons */}
-                    <div className="flex gap-4">
-                        <button
-                            onClick={() => { setPhase('setup'); setChapter(''); setQuestions([]); setResults({}); }}
-                            className="flex-1 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm transition-all active:scale-95"
-                        >
-                            Try Another Chapter
-                        </button>
-                        <button
-                            onClick={() => navigate('/')}
-                            className="flex-1 py-4 rounded-2xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-black text-sm transition-all active:scale-95"
-                        >
-                            🏠 Back to Home
-                        </button>
-                    </div>
                 </div>
             </div>
         );
