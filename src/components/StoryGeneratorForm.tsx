@@ -139,7 +139,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         onSubmit({ topic, std, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
         // Save to chat_sessions for sidebar history — fire-and-forget
         addDoc(collection(db, 'chat_sessions'), {
-            userId: user.uid, title: `Story: ${topic.trim().slice(0, 40)}`, subject: 'Story',
+            userId: user.uid, title: `📖 Story: ${topic.trim().slice(0, 40)}`, subject: 'Story',
             grade: std, board: '', language: apiLanguage, mode: 'story',
             messages: [], updatedAt: serverTimestamp(), createdAt: serverTimestamp(),
         }).catch(() => {});
