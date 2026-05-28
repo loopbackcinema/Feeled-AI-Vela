@@ -374,7 +374,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                             >
                                 ✨ Generate AI Story
                             </button>
-                            {!isPlus && <div style={{textAlign:'center',color:'#3a3a5a',fontSize:'11px',marginTop:'8px'}}>{Math.max(0, 3 - (dailyUsage?.stories || 0))} of 3 free stories remaining today</div>}
+                            {!isPlus && <div style={{textAlign:'center',color:'#a78bfa',fontSize:'11px',marginTop:'8px',background:'rgba(79,70,229,0.1)',border:'0.5px solid rgba(79,70,229,0.3)',borderRadius:'8px',padding:'6px 12px'}}>{Math.max(0, 3 - (dailyUsage?.stories || 0))} of 3 free stories remaining today</div>}
                             </>
                         ) : (
                             <button

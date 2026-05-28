@@ -435,7 +435,7 @@ export default function ExamMock() {
                 </div>
 
                 {/* Question */}
-                <div className="flex-1 flex flex-col items-center px-4 py-8">
+                <div className="flex-1 flex flex-col items-center px-4 py-8 pb-24 md:pb-8">
                     <div className="w-full max-w-2xl space-y-6">
                         {/* Question card */}
                         <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-8 shadow-xl shadow-slate-200/20 dark:shadow-none space-y-6">
