@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
                     <div className="hidden md:flex flex-col flex-1 min-w-0 gap-6">
                         {/* Logo */}
                         <div className="flex items-center gap-3">
-                            <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-20 h-20 rounded-xl" />
+                            <img src="/feeled-logo.webp" alt="FeelEd AI" style={{ width: 140, height: 140, borderRadius: 14, objectFit: 'contain' }} />
                             <span style={{ color: '#fff', fontWeight: 700, fontSize: 18 }}>
                                 FeelEd <span style={{ color: '#818cf8' }}>AI</span>
                             </span>
@@ -127,7 +127,7 @@ const LoginPage: React.FC = () => {
                     >
                         {/* Logo (mobile only) */}
                         <div className="flex md:hidden flex-col items-center gap-2 mb-6">
-                            <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-20 h-20 rounded-xl" />
+                            <img src="/feeled-logo.webp" alt="FeelEd AI" style={{ width: 100, height: 100, borderRadius: 14, objectFit: 'contain' }} />
                             <span style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}>
                                 FeelEd <span style={{ color: '#818cf8' }}>AI</span>
                             </span>

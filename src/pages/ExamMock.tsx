@@ -226,6 +226,20 @@ export default function ExamMock() {
                     subject,
                     createdAt: serverTimestamp(),
                 });
+                // Save to chat_sessions for sidebar history
+                addDoc(collection(db, 'chat_sessions'), {
+                    userId: user.uid,
+                    title: `Exam: ${chapter || subject}`,
+                    subject,
+                    grade: '10',
+                    board: '',
+                    language: 'English',
+                    mode: 'exam',
+                    messages: [],
+                    preview: `Score: ${mcqCorrect}/${mcqQuestions.length}`,
+                    updatedAt: serverTimestamp(),
+                    createdAt: serverTimestamp(),
+                }).catch(() => {});
                 // Memory engine — fire-and-forget
                 updateExamPerformance({
                     uid:     user.uid,

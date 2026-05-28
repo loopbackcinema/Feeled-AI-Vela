@@ -157,6 +157,7 @@ interface ChatHistoryItem {
     board: string;
     language: string;
     updatedAt: any;
+    mode?: 'chat' | 'story' | 'exam';
     messages: Array<{ id: string; role: string; text: string; timestamp: number; ragUsed?: boolean }>;
 }
 
@@ -220,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <button onClick={onClose} className="md:hidden p-1 rounded-md transition-colors" style={{ color: '#3a3a5a' }}>
                         <X className="w-5 h-5" />
                     </button>
-                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-12 h-12 object-contain" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" style={{ width: 52, height: 52, objectFit: 'contain' }} />
                     <span className="font-black text-base tracking-tight flex-1" style={{ color: '#9090b8' }}>FeelEd AI</span>
                     {/* Desktop collapse toggle */}
                     <button
@@ -271,8 +272,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <div className="space-y-0.5">
                                 {chatHistory.map(item => (
                                     <button key={item.id} onClick={() => onSelectSession(item)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1E1E1E] transition-colors group">
-                                        <p className="text-gray-700 dark:text-[#CCCCCC] text-xs font-medium truncate group-hover:text-gray-900 dark:group-hover:text-white">{item.title}</p>
-                                        <div className="flex items-center gap-1.5 mt-0.5">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[11px] flex-shrink-0">{item.mode === 'story' ? '📖' : item.mode === 'exam' ? '📝' : '💬'}</span>
+                                            <p className="text-gray-700 dark:text-[#CCCCCC] text-xs font-medium truncate group-hover:text-gray-900 dark:group-hover:text-white">{item.title}</p>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 mt-0.5 pl-5">
                                             <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">{item.subject}</span>
                                             <span className="text-[10px] text-gray-400 dark:text-[#555]">· {item.grade}</span>
                                         </div>
@@ -653,6 +657,7 @@ const ChatPage: React.FC = () => {
                     board:    data.board    || '',
                     language: data.language || 'English',
                     updatedAt: data.updatedAt,
+                    mode:     data.mode     || 'chat',
                     messages:  data.messages || [],
                 };
             });
@@ -1209,7 +1214,7 @@ const callAPI = useCallback(async (
                             <img
                                 src="/feeled-logo.webp"
                                 alt="FeelEd AI"
-                                style={{ width: 140, height: 140, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
+                                style={{ width: 160, height: 160, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
                             />
                         </div>
 
@@ -1220,6 +1225,24 @@ const callAPI = useCallback(async (
                         <p style={{ fontSize: 14, color: isDarkMode ? '#4a4a6a' : '#6b7280', marginBottom: 16 }}>
                             {t('home.subtitle')}
                         </p>
+
+                        {/* Context setup prompt — show when defaults unchanged and user is logged in */}
+                        {user && board === 'TN Samacheer' && grade === '10' && subject === 'Science' && (
+                            <div style={{ background:'linear-gradient(135deg, rgba(79,70,229,0.12), rgba(124,58,237,0.08))', border:'1px solid rgba(99,102,241,0.3)', borderRadius:'16px', padding:'16px 20px', marginBottom:'20px', maxWidth:'480px', margin:'0 auto 20px', textAlign:'center', animation:'fadeSlide 0.5s ease-out both' }}>
+                                <div style={{ fontSize:'24px', marginBottom:'8px' }}>📚</div>
+                                <div style={{ color:'#c4b5fd', fontSize:'14px', fontWeight:'700', marginBottom:'6px' }}>Choose Your Learning Context</div>
+                                <div style={{ color:'#5a5a8a', fontSize:'12px', marginBottom:'14px', lineHeight:'1.5' }}>Help FeelEd AI personalise your learning experience</div>
+                                <button
+                                    onClick={() => setPlusOpen(true)}
+                                    style={{ background:'linear-gradient(135deg, #4f46e5, #7c3aed)', border:'none', borderRadius:'12px', padding:'10px 24px', color:'white', fontSize:'13px', fontWeight:'600', cursor:'pointer', boxShadow:'0 4px 12px rgba(79,70,229,0.4)' }}
+                                >
+                                    📖 Set My Learning Context →
+                                </button>
+                                <div style={{ color:'#333360', fontSize:'10px', marginTop:'8px' }}>
+                                    Currently: {board} · Grade {grade} · {subject} · {language}
+                                </div>
+                            </div>
+                        )}
 
                         {/* AI-Powered Insight Cards */}
                         {studentMemory && (() => {
@@ -1330,21 +1353,6 @@ const callAPI = useCallback(async (
                                 </div>
                             );
                         })()}
-
-                        {/* Context setup prompt — show only when defaults are unchanged */}
-                        {board === 'TN Samacheer' && grade === '10' && subject === 'Science' && (
-                            <div style={{ background:'rgba(79,70,229,0.08)', border:'1px solid rgba(99,102,241,0.25)', borderRadius:'16px', padding:'16px 20px', maxWidth:'480px', margin:'0 auto 16px', textAlign:'center' }}>
-                                <div style={{ fontSize:'20px', marginBottom:'8px' }}>📚</div>
-                                <div style={{ color:'#c4b5fd', fontSize:'13px', fontWeight:'600', marginBottom:'4px' }}>Choose Your Learning Context</div>
-                                <div style={{ color:'#5a5a8a', fontSize:'11px', marginBottom:'12px' }}>Help FeelEd AI understand what you're studying</div>
-                                <button
-                                    onClick={() => setPlusOpen(true)}
-                                    style={{ background:'linear-gradient(135deg, #4f46e5, #7c3aed)', border:'none', borderRadius:'10px', padding:'8px 20px', color:'white', fontSize:'12px', fontWeight:'600', cursor:'pointer' }}
-                                >
-                                    Set My Learning Context →
-                                </button>
-                            </div>
-                        )}
 
                         {/* Topic Chips */}
                         <div className="fs-noscroll" style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 10 }}>
