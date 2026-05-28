@@ -4,6 +4,8 @@ import { db } from '../firebase';
 import { doc, updateDoc, collection, query, where, getDocs, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { Book, School, GraduationCap, Heart, Save, Loader2, Award, Target, TrendingUp, Activity, Flame, BookOpen, MessageSquare, X, Zap, Brain } from 'lucide-react';
 import { getStudentMemory, updateGoalTracking, saveLearningInsight, saveRevisionCycle, saveMentorSuggestion, StudentMemory } from '../services/memoryService';
+import { useSubscription } from '../context/SubscriptionContext';
+import PremiumLock from './PremiumLock';
 import { generateExamReadiness, generateCrossModeSuggestions, generateStudyInsights } from '../services/intelligenceEngine';
 import {
     generateDailyLearningGoals, generateMotivationalGuidance, generateRevisionSchedule,
@@ -85,6 +87,7 @@ function findImprovingSubject(allScores: PracticeScore[]): string | null {
 
 const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNavigate }) => {
     const { user, userProfile } = useAuth();
+    const { isPlus, showUpgrade } = useSubscription();
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     
@@ -935,6 +938,9 @@ const StudentDashboard: React.FC<{ onNavigate: (page: any) => void }> = ({ onNav
 
                 </div>
             </div>
+
+            {/* Plus upgrade prompt */}
+            {!isPlus && <div className="px-4 pb-6"><PremiumLock feature="Advanced Learning Insights" description="Deep weakness analysis & revision planner" onUpgrade={() => showUpgrade('feature')} /></div>}
 
             {/* Story modal */}
             {selectedStory && (
