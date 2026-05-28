@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { StoryRequest } from '../types';
 import { STD_OPTIONS, NARRATOR_VOICE_OPTIONS } from '../constants';
 import { useAuth } from '../context/AuthContext';
-import { signInWithGoogle } from '../firebase';
+import { signInWithGoogle, db } from '../firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { updateRecentTopic, updateRecentMode, getStudentMemory } from '../services/memoryService';
 import { canUseFeature, incrementUsage } from '../services/subscriptionService';
 import { useSubscription } from '../context/SubscriptionContext';
@@ -136,6 +137,12 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         if (!allowed) { showUpgrade('stories'); return; }
         incrementUsage(user.uid, 'stories').catch(() => {});
         onSubmit({ topic, std, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
+        // Save to chat_sessions for sidebar history — fire-and-forget
+        addDoc(collection(db, 'chat_sessions'), {
+            userId: user.uid, title: `Story: ${topic.trim().slice(0, 40)}`, subject: 'Story',
+            grade: std, board: '', language: apiLanguage, mode: 'story',
+            messages: [], updatedAt: serverTimestamp(), createdAt: serverTimestamp(),
+        }).catch(() => {});
         // Memory engine — fire-and-forget
         updateRecentTopic({ uid: user.uid, topic: topic.trim(), subject: 'General', source: 'story' });
         updateRecentMode({ uid: user.uid, mode: 'story' });
@@ -251,20 +258,20 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
                     {/* Hero */}
                     <div style={{position:'relative', textAlign:'center', padding:'24px 16px 0'}}>
-                        <div style={{position:'absolute', top:'10px', left:'10%', fontSize:'24px', animation:'floatA 4s ease-in-out infinite', opacity:0.6, pointerEvents:'none'}}>📚</div>
-                        <div style={{position:'absolute', top:'20px', right:'15%', fontSize:'20px', animation:'floatB 5s ease-in-out infinite', opacity:0.5, pointerEvents:'none'}}>✨</div>
-                        <div style={{position:'absolute', top:'40px', left:'25%', fontSize:'16px', animation:'floatC 3.5s ease-in-out infinite', opacity:0.4, pointerEvents:'none'}}>🌟</div>
-                        <div style={{position:'absolute', top:'15px', right:'30%', fontSize:'18px', animation:'floatA 4.5s ease-in-out infinite', opacity:0.5, pointerEvents:'none'}}>🎭</div>
+                        <div style={{position:'absolute', top:'10px', left:'10%', fontSize:'32px', animation:'floatA 4s ease-in-out infinite', opacity:0.6, pointerEvents:'none'}}>📚</div>
+                        <div style={{position:'absolute', top:'20px', right:'15%', fontSize:'28px', animation:'floatB 5s ease-in-out infinite', opacity:0.5, pointerEvents:'none'}}>✨</div>
+                        <div style={{position:'absolute', top:'40px', left:'25%', fontSize:'24px', animation:'floatC 3.5s ease-in-out infinite', opacity:0.4, pointerEvents:'none'}}>🌟</div>
+                        <div style={{position:'absolute', top:'15px', right:'30%', fontSize:'28px', animation:'floatA 4.5s ease-in-out infinite', opacity:0.5, pointerEvents:'none'}}>🎭</div>
                         <div style={{display:'inline-flex', alignItems:'center', gap:'8px', background:'rgba(124,58,237,0.2)', border:'1px solid rgba(167,139,250,0.4)', borderRadius:'24px', padding:'6px 16px', marginBottom:'16px'}}>
-                            <span style={{fontSize:'16px'}}>✨</span>
-                            <span style={{color:'#c4b5fd', fontSize:'12px', fontWeight:'600', letterSpacing:'0.5px'}}>STORY MODE</span>
-                            <span style={{fontSize:'16px'}}>✨</span>
+                            <span style={{fontSize:'18px'}}>✨</span>
+                            <span style={{color:'#c4b5fd', fontSize:'14px', fontWeight:'600', letterSpacing:'0.5px'}}>STORY MODE</span>
+                            <span style={{fontSize:'18px'}}>✨</span>
                         </div>
-                        <h1 style={{fontSize:'clamp(22px, 5vw, 32px)', fontWeight:'800', background:'linear-gradient(135deg, #ffffff, #c4b5fd, #818cf8)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', margin:'0 0 8px', lineHeight:'1.2', letterSpacing:'-0.5px'}}>
+                        <h1 style={{fontSize:'clamp(28px, 6vw, 42px)', fontWeight:'800', background:'linear-gradient(135deg, #ffffff, #c4b5fd, #818cf8)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', margin:'0 0 8px', lineHeight:'1.2', letterSpacing:'-0.5px'}}>
                             Turn any lesson into a<br/>
                             <span style={{background:'linear-gradient(135deg, #f472b6, #a855f7, #6366f1)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text'}}>cinematic AI story</span>
                         </h1>
-                        <p style={{color:'rgba(196,181,253,0.7)', fontSize:'14px', margin:'0 0 24px'}}>
+                        <p style={{color:'rgba(196,181,253,0.7)', fontSize:'16px', margin:'0 0 24px'}}>
                             Learn through characters, emotion, and imagination 🎬
                         </p>
                     </div>
@@ -289,7 +296,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
                         {/* ── Topic input ───────────────────────────────── */}
                         <div>
-                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                            <label style={{ display: 'block', color: '#8080b0', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                                 What should we turn into a story?
                             </label>
                             <div style={{ position: 'relative' }}>
@@ -316,7 +323,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
                         {/* ── Story style cards — full-width grid ───────── */}
                         <div>
-                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                            <label style={{ display: 'block', color: '#8080b0', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                                 Choose your story style
                             </label>
                             <div className="sgf-cards-grid">
@@ -335,8 +342,8 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                             }}
                                         >
                                             <div style={{ fontSize: 18, marginBottom: 4 }}>{card.emoji}</div>
-                                            <div style={{ color: sel ? card.selColor : card.unselColor, fontSize: 12, fontWeight: 700, marginBottom: 2 }}>{card.label}</div>
-                                            <div style={{ color: sel ? 'rgba(255,255,255,0.8)' : card.unselColor, fontSize: 10, opacity: sel ? 0.9 : 0.7 }}>{card.sub}</div>
+                                            <div style={{ color: sel ? card.selColor : card.unselColor, fontSize: 14, fontWeight: 700, marginBottom: 2 }}>{card.label}</div>
+                                            <div style={{ color: sel ? 'rgba(255,255,255,0.8)' : card.unselColor, fontSize: 12, opacity: sel ? 0.9 : 0.7 }}>{card.sub}</div>
                                         </div>
                                     );
                                 })}
@@ -345,7 +352,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
                         {/* ── Language pills ────────────────────────────── */}
                         <div>
-                            <label style={{ display: 'block', color: '#8080b0', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                            <label style={{ display: 'block', color: '#8080b0', fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
                                 Language
                             </label>
                             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -400,7 +407,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                                 type="submit"
                                 className="sgf-pulse"
                                 disabled={isLoading}
-                                style={{ width: '100%', height: 56, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, color: 'white', fontSize: 16, fontWeight: 700, border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1 }}
+                                style={{ width: '100%', height: 60, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, color: 'white', fontSize: 18, fontWeight: 700, border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1 }}
                             >
                                 ✨ Generate AI Story
                             </button>
