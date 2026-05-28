@@ -220,7 +220,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <button onClick={onClose} className="md:hidden p-1 rounded-md transition-colors" style={{ color: '#3a3a5a' }}>
                         <X className="w-5 h-5" />
                     </button>
-                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-10 h-10 object-contain" />
+                    <img src="/feeled-logo.webp" alt="FeelEd AI" className="w-12 h-12 object-contain" />
                     <span className="font-black text-base tracking-tight flex-1" style={{ color: '#9090b8' }}>FeelEd AI</span>
                     {/* Desktop collapse toggle */}
                     <button
@@ -546,6 +546,8 @@ const ChatPage: React.FC = () => {
     const [placeholderIdx, setPlaceholderIdx] = useState(0);
     const [isOffline, setIsOffline] = useState(() => !navigator.onLine);
     const [studentMemory, setStudentMemory] = useState<StudentMemory | null>(null);
+    const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+    const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
     const [welcomeStep, setWelcomeStep] = useState(0);
     const [welcomeMessages, setWelcomeMessages] = useState<{ text: string }[]>([]);
     const [showingWelcome, setShowingWelcome] = useState(false);
@@ -934,7 +936,14 @@ const callAPI = useCallback(async (
     }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession, user]);
 
     // TTS
-    const playTts = async (text: string) => {
+    const playTts = async (text: string, msgId: string) => {
+        if (speakingMsgId === msgId) {
+            ttsAudioRef.current?.pause();
+            setSpeakingMsgId(null);
+            return;
+        }
+        ttsAudioRef.current?.pause();
+        setSpeakingMsgId(msgId);
         try {
             const r = await fetch("/api/sarvam-tts", {
                 method: "POST",
@@ -944,9 +953,11 @@ const callAPI = useCallback(async (
             const d = await r.json();
             if (d.base64Audio) {
                 const audio = new Audio(`data:audio/wav;base64,${d.base64Audio}`);
+                ttsAudioRef.current = audio;
+                audio.onended = () => setSpeakingMsgId(null);
                 audio.play();
             }
-        } catch {}
+        } catch { setSpeakingMsgId(null); }
     };
 
     // STT
@@ -1189,13 +1200,13 @@ const callAPI = useCallback(async (
                         </div>
                     )}
 
-                    <div style={{ maxWidth: 680, margin: '0 auto', padding: '5vh 20px 24px', textAlign: 'center' }}>
+                    <div style={{ maxWidth: 800, margin: '0 auto', padding: '5vh 20px 24px', textAlign: 'center' }}>
                         {/* Animated logo */}
                         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
                             <img
                                 src="/feeled-logo.webp"
                                 alt="FeelEd AI"
-                                style={{ width: 120, height: 120, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
+                                style={{ width: 140, height: 140, objectFit: 'contain', animation: 'logoFloat 3s ease-in-out infinite' }}
                             />
                         </div>
 
@@ -1335,13 +1346,13 @@ const callAPI = useCallback(async (
                 </div>
             ) : (
                 <div className="flex-1 overflow-y-auto px-4 py-6" style={{ minHeight: 0 }}>
-                    <div className="max-w-3xl mx-auto space-y-6">
+                    <div className="max-w-4xl mx-auto space-y-6">
                         {chatMessages.map((msg, i) => (
                             <div key={msg.id} className={`flex gap-3 animate-fade-in ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'model' && (
                                     <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm select-none">🤖</div>
                                 )}
-                                <div className="max-w-[80%] md:max-w-[70%]">
+                                <div className="max-w-[85%] md:max-w-[75%]">
                                     {msg.role === 'model' && msg.ragUsed && (
                                         <div className="flex items-center gap-1.5 mb-1.5 ml-1">
                                             <BookOpen className="w-3 h-3 text-emerald-600 flex-shrink-0" />
@@ -1404,12 +1415,12 @@ const callAPI = useCallback(async (
 
                                             {/* 🔊 Read aloud */}
                                             <button
-                                                onClick={() => playTts(msg.text)}
-                                                data-tooltip="Read aloud"
-                                                style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease', display: 'flex', alignItems: 'center' }}
+                                                onClick={() => playTts(msg.text, msg.id)}
+                                                data-tooltip={speakingMsgId === msg.id ? 'Stop' : 'Read aloud'}
+                                                style={{ background: speakingMsgId === msg.id ? (isDarkMode ? '#1a1040' : '#ede9fe') : 'transparent', border: `0.5px solid ${speakingMsgId === msg.id ? '#4f46e5' : 'transparent'}`, borderRadius: 6, padding: '3px 8px', cursor: 'pointer', fontSize: 13, color: speakingMsgId === msg.id ? '#818cf8' : (isDarkMode ? '#3a3a5a' : '#9ca3af'), transition: 'all 0.15s ease', display: 'flex', alignItems: 'center' }}
                                                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#818cf8'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; }}
-                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
-                                            >🔊</button>
+                                                onMouseLeave={e => { if (speakingMsgId !== msg.id) { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; } }}
+                                            >{speakingMsgId === msg.id ? '⏸' : '🔊'}</button>
 
                                             <div style={{ width: '0.5px', height: 14, background: isDarkMode ? '#1e1e35' : '#e5e7eb' }} />
 
@@ -1500,7 +1511,7 @@ const callAPI = useCallback(async (
                     borderTop: `1px solid ${isDarkMode ? '#1a1a30' : '#e5e7eb'}` }}>
                 {/* Uploaded image preview */}
                 {uploadedImage && (
-                    <div className="max-w-3xl mx-auto mb-2 flex items-center gap-3 px-1">
+                    <div className="max-w-4xl mx-auto mb-2 flex items-center gap-3 px-1">
                         <img src={`data:${uploadedImage.mime};base64,${uploadedImage.base64}`} alt="Uploaded" className="w-12 h-12 rounded-xl object-cover" style={{ border: `1px solid ${isDarkMode ? '#333' : '#e5e7eb'}` }} />
                         <span className="text-xs flex-1" style={{ color: isDarkMode ? '#777' : '#9ca3af' }}>Image queued — ask your question</span>
                         <button onClick={() => setUploadedImage(null)} style={{ color: isDarkMode ? '#6060a0' : '#9ca3af' }}><X className="w-4 h-4" /></button>
@@ -1508,7 +1519,7 @@ const callAPI = useCallback(async (
                 )}
 
                 {/* Input bar */}
-                <div className="max-w-3xl mx-auto relative" ref={plusRef}>
+                <div className="max-w-4xl mx-auto relative" ref={plusRef}>
                     {plusOpen && (
                         <PlusMenu
                             board={setupBoard}     setBoard={setSetupBoard}
