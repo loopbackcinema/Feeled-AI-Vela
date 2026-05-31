@@ -160,6 +160,17 @@ function parseContextFromText(text: string): { standard: string; subject: string
     return { standard: grade || '10th', subject: foundSubject || 'Science' };
 }
 
+// Singleton AudioContext — reused across all mode-card sounds. Created on first
+// user interaction to satisfy browser autoplay policy.
+const getSharedAC = (() => {
+    let ac: AudioContext | null = null;
+    return () => {
+        if (!ac) ac = new (window.AudioContext || (window as any).webkitAudioContext)();
+        if (ac.state === 'suspended') ac.resume();
+        return ac;
+    };
+})();
+
 async function blobToBase64(blob: Blob): Promise<string> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1085,7 +1096,8 @@ const callAPI = useCallback(async (
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
         <div className={`fixed inset-0 flex flex-col overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'md:pl-[200px]' : ''}`}
-            style={{ background: isDarkMode ? '#060610' : '#ffffff', color: isDarkMode ? '#eeeef8' : '#111111' }}>
+            style={{ background: isDarkMode ? '#060610' : '#ffffff', color: isDarkMode ? '#eeeef8' : '#111111' }}
+            onClick={() => { try { getSharedAC(); } catch(e) {} }}>
 
             {/* Push notification subscription (renders nothing) */}
             <PushNotificationSetup />
@@ -1318,9 +1330,11 @@ const callAPI = useCallback(async (
 
                         {/* 3 Mode Cards — Sleeping Characters */}
                         {(() => {
+                          const getAC = getSharedAC;
+
                           const playMagicSparkle = () => {
                             try {
-                              const AC = new (window.AudioContext || (window as any).webkitAudioContext)();
+                              const AC = getAC();
                               [0, 80, 160, 240].forEach((delay, i) => {
                                 setTimeout(() => {
                                   const o = AC.createOscillator();
@@ -1333,11 +1347,12 @@ const callAPI = useCallback(async (
                                   g.gain.setValueAtTime(0, AC.currentTime);
                                   g.gain.linearRampToValueAtTime(0.18, AC.currentTime + 0.03);
                                   g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.22);
-                                  o.start(AC.currentTime); o.stop(AC.currentTime + 0.22);
+                                  o.start(AC.currentTime);
+                                  o.stop(AC.currentTime + 0.22);
                                 }, delay);
                               });
                               setTimeout(() => {
-                                const AC2 = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                const AC2 = getAC();
                                 const n = AC2.createOscillator();
                                 const ng = AC2.createGain();
                                 n.connect(ng); ng.connect(AC2.destination);
@@ -1346,14 +1361,15 @@ const callAPI = useCallback(async (
                                 n.frequency.exponentialRampToValueAtTime(2400, AC2.currentTime + 0.3);
                                 ng.gain.setValueAtTime(0.08, AC2.currentTime);
                                 ng.gain.exponentialRampToValueAtTime(0.001, AC2.currentTime + 0.3);
-                                n.start(AC2.currentTime); n.stop(AC2.currentTime + 0.3);
+                                n.start(AC2.currentTime);
+                                n.stop(AC2.currentTime + 0.3);
                               }, 100);
-                            } catch(e) {}
+                            } catch(e) { console.log('sound error', e); }
                           };
 
                           const playGameBeep = () => {
                             try {
-                              const AC = new (window.AudioContext || (window as any).webkitAudioContext)();
+                              const AC = getAC();
                               const notes = [261, 329, 392, 523, 659, 784];
                               notes.forEach((freq, i) => {
                                 setTimeout(() => {
@@ -1364,15 +1380,16 @@ const callAPI = useCallback(async (
                                   o.frequency.setValueAtTime(freq, AC.currentTime);
                                   g.gain.setValueAtTime(0.12, AC.currentTime);
                                   g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.12);
-                                  o.start(AC.currentTime); o.stop(AC.currentTime + 0.12);
+                                  o.start(AC.currentTime);
+                                  o.stop(AC.currentTime + 0.12);
                                 }, i * 60);
                               });
-                            } catch(e) {}
+                            } catch(e) { console.log('sound error', e); }
                           };
 
                           const playExamBell = () => {
                             try {
-                              const AC = new (window.AudioContext || (window as any).webkitAudioContext)();
+                              const AC = getAC();
                               const o = AC.createOscillator();
                               const g = AC.createGain();
                               o.connect(g); g.connect(AC.destination);
@@ -1383,8 +1400,24 @@ const callAPI = useCallback(async (
                               g.gain.setValueAtTime(0, AC.currentTime);
                               g.gain.linearRampToValueAtTime(0.2, AC.currentTime + 0.02);
                               g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.6);
-                              o.start(AC.currentTime); o.stop(AC.currentTime + 0.65);
-                            } catch(e) {}
+                              o.start(AC.currentTime);
+                              o.stop(AC.currentTime + 0.65);
+                              setTimeout(() => {
+                                const AC2 = getAC();
+                                const buf = AC2.createBuffer(1, AC2.sampleRate * 0.08, AC2.sampleRate);
+                                const d = buf.getChannelData(0);
+                                for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.3;
+                                const s = AC2.createBufferSource();
+                                const ng = AC2.createGain();
+                                const f = AC2.createBiquadFilter();
+                                f.type = 'bandpass'; f.frequency.value = 4000; f.Q.value = 0.5;
+                                s.buffer = buf;
+                                s.connect(f); f.connect(ng); ng.connect(AC2.destination);
+                                ng.gain.setValueAtTime(0.4, AC2.currentTime);
+                                ng.gain.exponentialRampToValueAtTime(0.001, AC2.currentTime + 0.08);
+                                s.start(AC2.currentTime);
+                              }, 100);
+                            } catch(e) { console.log('sound error', e); }
                           };
 
                           const cardStyle = (anim: string): React.CSSProperties => ({
