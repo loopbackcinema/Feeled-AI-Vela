@@ -35,7 +35,29 @@ import { useTranslation } from 'react-i18next';
 import { useSubscription } from '../../context/SubscriptionContext';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const ALL_GRADES = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th','11th','12th'];
+const ALL_GRADES = ['6','7','8','9','10','11','12'];
+
+const SUBJECTS_BY_GRADE: Record<string, string[]> = {
+    '6':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '7':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '8':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '9':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '10': ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English', 'Physical Education'],
+    '11': [
+        'Physics', 'Chemistry', 'Mathematics', 'Biology',
+        'Botany', 'Zoology', 'Bio-Botany', 'Bio-Zoology',
+        'Bio-Chemistry', 'History', 'Geography', 'Economics',
+        'Computer Science', 'Commerce', 'Accountancy',
+        'Business Maths', 'Tamil', 'English',
+    ],
+    '12': [
+        'Physics', 'Chemistry', 'Mathematics', 'Biology',
+        'Botany', 'Zoology', 'Bio-Botany', 'Bio-Zoology',
+        'Bio-Chemistry', 'History', 'Geography', 'Economics',
+        'Computer Science', 'Commerce', 'Accountancy',
+        'Business Maths', 'Tamil', 'English',
+    ],
+};
 const ALL_BOARDS = ['Tamil Nadu State Board (Samacheer)', 'CBSE', 'ICSE'];
 const LANGUAGES  = ['English', 'Tamil', 'Hindi', 'Telugu', 'Kannada', 'Malayalam'];
 const STT_LANG: Record<string, string> = {
@@ -118,10 +140,8 @@ const WELCOME_SETS = [
 ];
 
 function getSubjectsForGrade(grade: string): string[] {
-    const n = parseInt(grade);
-    if (n <= 7)  return ['Maths', 'English', 'Tamil', 'EVS', 'General Knowledge'];
-    if (n <= 10) return ['Tamil', 'English', 'Maths', 'Science', 'Social Science'];
-    return ['Tamil', 'English', 'Maths', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
+    const key = grade.replace(/\D/g, '') || '10';
+    return SUBJECTS_BY_GRADE[key] ?? SUBJECTS_BY_GRADE['10'];
 }
 
 function parseContextFromText(text: string): { standard: string; subject: string } | null {
@@ -415,7 +435,8 @@ interface PlusMenuProps {
 }
 
 const PlusMenu: React.FC<PlusMenuProps> = ({ board, setBoard, grade, setGrade, subject, setSubject, language, setLanguage, onApply, onClose, onImageClick }) => {
-    const subs = getSubjectsForGrade(grade);
+    const gradeKey = grade.replace(/\D/g, '') || '10';
+    const subs = SUBJECTS_BY_GRADE[gradeKey] ?? SUBJECTS_BY_GRADE['10'];
     const eff = subs.includes(subject) ? subject : subs[0];
     return (
         <div className="absolute bottom-full left-0 mb-3 w-80 bg-white dark:bg-[#161616] border border-gray-200 dark:border-[#2A2A2A] rounded-2xl shadow-2xl overflow-hidden z-50">
@@ -446,8 +467,8 @@ const PlusMenu: React.FC<PlusMenuProps> = ({ board, setBoard, grade, setGrade, s
                 <div className="grid grid-cols-2 gap-2">
                     <div>
                         <label className="text-gray-400 dark:text-[#666] text-[10px] uppercase tracking-wider mb-1 block">Grade</label>
-                        <select value={grade} onChange={e => setGrade(e.target.value)} className="w-full bg-gray-50 dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg px-3 py-2 text-gray-900 dark:text-white text-xs focus:outline-none focus:border-indigo-500">
-                            {ALL_GRADES.map(g => <option key={g} value={g}>{g}</option>)}
+                        <select value={gradeKey} onChange={e => { setGrade(e.target.value); setSubject((SUBJECTS_BY_GRADE[e.target.value] ?? SUBJECTS_BY_GRADE['10'])[0]); }} className="w-full bg-gray-50 dark:bg-[#1E1E1E] border border-gray-200 dark:border-[#333] rounded-lg px-3 py-2 text-gray-900 dark:text-white text-xs focus:outline-none focus:border-indigo-500">
+                            {ALL_GRADES.map(g => <option key={g} value={g}>Grade {g}</option>)}
                         </select>
                     </div>
                     <div>
@@ -522,7 +543,7 @@ const ChatPage: React.FC = () => {
 
     // Plus panel context state
     const [setupBoard, setSetupBoard]       = useState(board || ALL_BOARDS[0]);
-    const [setupGrade, setSetupGrade]       = useState(standard || '10th');
+    const [setupGrade, setSetupGrade]       = useState(() => (standard || '10').replace(/\D/g, '') || '10');
     const [setupSubject, setSetupSubject]   = useState(subject || 'Science');
     const [setupLanguage, setSetupLanguage] = useState(language || 'English');
 
@@ -730,9 +751,10 @@ const ChatPage: React.FC = () => {
     const applyContext = useCallback(() => {
         const subs = getSubjectsForGrade(setupGrade);
         const finalSubject = subs.includes(setupSubject) ? setupSubject : subs[0];
+        const numericGrade = setupGrade.replace(/\D/g, '') || '10';
         setContext({
             board: setupBoard,
-            standard: setupGrade,
+            standard: numericGrade,
             subject: finalSubject,
             language: setupLanguage,
             learningMode: parseInt(setupGrade) <= 7 ? 'Junior' : 'Senior',

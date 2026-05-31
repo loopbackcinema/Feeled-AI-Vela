@@ -1,7 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StoryRequest } from '../types';
-import { STD_OPTIONS, NARRATOR_VOICE_OPTIONS } from '../constants';
+import { NARRATOR_VOICE_OPTIONS } from '../constants';
+
+const STORY_GRADES = ['6','7','8','9','10','11','12'];
+
+const SUBJECTS_BY_GRADE: Record<string, string[]> = {
+    '6':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '7':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '8':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '9':  ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English'],
+    '10': ['Science', 'Mathematics', 'Social Science', 'Tamil', 'English', 'Physical Education'],
+    '11': [
+        'Physics', 'Chemistry', 'Mathematics', 'Biology',
+        'Botany', 'Zoology', 'Bio-Botany', 'Bio-Zoology',
+        'Bio-Chemistry', 'History', 'Geography', 'Economics',
+        'Computer Science', 'Commerce', 'Accountancy',
+        'Business Maths', 'Tamil', 'English',
+    ],
+    '12': [
+        'Physics', 'Chemistry', 'Mathematics', 'Biology',
+        'Botany', 'Zoology', 'Bio-Botany', 'Bio-Zoology',
+        'Bio-Chemistry', 'History', 'Geography', 'Economics',
+        'Computer Science', 'Commerce', 'Accountancy',
+        'Business Maths', 'Tamil', 'English',
+    ],
+};
 import { useAuth } from '../context/AuthContext';
 import { signInWithGoogle, db } from '../firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
@@ -83,7 +107,8 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
     const [topic, setTopic]                 = useState('');
     const [isListening, setIsListening]     = useState(false);
-    const [std, setStd]                     = useState(STD_OPTIONS[4]);
+    const [grade, setGrade]                 = useState('10');
+    const [subject, setSubject]             = useState(SUBJECTS_BY_GRADE['10'][0]);
     const [langPill, setLangPill]           = useState('English');
     const [narratorVoice, setNarratorVoice] = useState(NARRATOR_VOICE_OPTIONS.English[0]);
     const [selectedStyle, setSelectedStyle] = useState(2);
@@ -118,9 +143,9 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                 setNarratorVoice(NARRATOR_VOICE_OPTIONS[v][0]);
             }
             if (mem.learningGoal) {
-                const goalToStd: Record<string, string> = { '10th Board': '10th STD', '12th Board': '12th STD', 'NEET': '12th STD', 'JEE': '12th STD' };
-                const mapped = goalToStd[mem.learningGoal];
-                if (mapped) setStd(mapped);
+                const goalToGrade: Record<string, string> = { '10th Board': '10', '12th Board': '12', 'NEET': '12', 'JEE': '12' };
+                const mapped = goalToGrade[mem.learningGoal];
+                if (mapped) { setGrade(mapped); setSubject(SUBJECTS_BY_GRADE[mapped][0]); }
             }
             const recentSubject = mem.recentTopics?.[0]?.subject || '';
             const gradeLabel = mem.learningGoal === '10th Board' ? 'Grade 10' : mem.learningGoal === '12th Board' ? 'Grade 12' : mem.learningGoal === 'NEET' ? 'NEET' : mem.learningGoal === 'JEE' ? 'JEE' : '';
@@ -136,7 +161,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         const { allowed } = await canUseFeature(user.uid, 'stories');
         if (!allowed) { showUpgrade('stories'); return; }
         incrementUsage(user.uid, 'stories').catch(() => {});
-        onSubmit({ topic, std, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
+        onSubmit({ topic, std: `Grade ${grade}`, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
         // Save to chat_sessions for sidebar history — fire-and-forget
         addDoc(collection(db, 'chat_sessions'), {
             userId: user.uid, title: `📖 Story: ${topic.trim().slice(0, 40)}`, subject: 'Story',
@@ -376,16 +401,26 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                             </div>
                         </div>
 
-                        {/* ── Target Level + Voice Persona ─────────────── */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        {/* ── Grade + Subject + Voice Persona ──────────── */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                             <div>
-                                <label style={{ display: 'block', color: '#5a5a8a', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Target Level</label>
+                                <label style={{ display: 'block', color: '#5a5a8a', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Grade</label>
                                 <select
-                                    value={std}
-                                    onChange={e => setStd(e.target.value)}
+                                    value={grade}
+                                    onChange={e => { setGrade(e.target.value); setSubject((SUBJECTS_BY_GRADE[e.target.value] ?? SUBJECTS_BY_GRADE['10'])[0]); }}
                                     style={{ width: '100%', background: 'rgba(12,12,28,0.8)', border: '0.5px solid #3a3a5a', borderRadius: 10, color: '#9090b8', fontSize: 12, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
                                 >
-                                    {STD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                    {STORY_GRADES.map(g => <option key={g} value={g}>Grade {g}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', color: '#5a5a8a', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>Subject</label>
+                                <select
+                                    value={subject}
+                                    onChange={e => setSubject(e.target.value)}
+                                    style={{ width: '100%', background: 'rgba(12,12,28,0.8)', border: '0.5px solid #3a3a5a', borderRadius: 10, color: '#9090b8', fontSize: 12, padding: '8px 10px', outline: 'none', cursor: 'pointer' }}
+                                >
+                                    {(SUBJECTS_BY_GRADE[grade] ?? SUBJECTS_BY_GRADE['10']).map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </div>
                             <div>

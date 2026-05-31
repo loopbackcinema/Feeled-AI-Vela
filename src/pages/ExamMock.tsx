@@ -38,7 +38,25 @@ interface ExamResult {
 
 type Phase = 'setup' | 'loading' | 'test' | 'results';
 
-const SUBJECTS = ['Mathematics', 'Science', 'Social Science'];
+const EXAM_GRADES = ['10', '11', '12'];
+
+const SUBJECTS_BY_GRADE: Record<string, string[]> = {
+    '10': ['Mathematics', 'Science', 'Social Science', 'Tamil', 'English'],
+    '11': [
+        'Physics', 'Chemistry', 'Mathematics', 'Biology',
+        'Botany', 'Zoology', 'Bio-Botany', 'Bio-Zoology',
+        'Bio-Chemistry', 'History', 'Geography', 'Economics',
+        'Computer Science', 'Commerce', 'Accountancy',
+        'Business Maths', 'Tamil', 'English',
+    ],
+    '12': [
+        'Physics', 'Chemistry', 'Mathematics', 'Biology',
+        'Botany', 'Zoology', 'Bio-Botany', 'Bio-Zoology',
+        'Bio-Chemistry', 'History', 'Geography', 'Economics',
+        'Computer Science', 'Commerce', 'Accountancy',
+        'Business Maths', 'Tamil', 'English',
+    ],
+};
 
 const LOADING_STEPS = [
     '🔍 Searching question bank...',
@@ -54,6 +72,7 @@ export default function ExamMock() {
     const { isPlus, dailyUsage, showUpgrade } = useSubscription();
 
     // Setup state
+    const [examGrade, setExamGrade] = useState('10');
     const [subject, setSubject] = useState('Mathematics');
     const [chapter, setChapter] = useState('');
     const [phase, setPhase] = useState<Phase>('setup');
@@ -87,6 +106,7 @@ export default function ExamMock() {
                     setVisited(new Set(session.visited || []));
                     setTimeLeft(session.timeLeft || 900);
                     setTotalMarks(session.totalMarks || 16);
+                    setExamGrade(session.examGrade || '10');
                     setSubject(session.subject || 'Mathematics');
                     setChapter(session.chapter || '');
                     setPhase('test');
@@ -99,7 +119,7 @@ export default function ExamMock() {
     useEffect(() => {
         if (phase === 'test') {
             localStorage.setItem(SESSION_KEY, JSON.stringify({
-                phase, questions, answers, visited: [...visited], timeLeft, totalMarks, subject, chapter
+                phase, questions, answers, visited: [...visited], timeLeft, totalMarks, examGrade, subject, chapter
             }));
         }
     }, [answers, visited, timeLeft, phase]);
@@ -147,7 +167,7 @@ export default function ExamMock() {
             const res = await fetch('/api/exam-unified', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'mock', subject, chapter, grade: '10' }),
+                body: JSON.stringify({ action: 'mock', subject, chapter, grade: examGrade }),
             });
             clearInterval(stepInterval);
 
@@ -216,7 +236,7 @@ export default function ExamMock() {
                     score: mcqCorrect,
                     total: mcqQuestions.length,
                     examType: 'mock-test',
-                    grade: '10',
+                    grade: examGrade,
                     createdAt: serverTimestamp(),
                 });
                 await addDoc(collection(db, 'study_activity'), {
@@ -231,7 +251,7 @@ export default function ExamMock() {
                     userId: user.uid,
                     title: `📝 Exam: ${chapter || subject || 'Mock Test'}`,
                     subject,
-                    grade: '10',
+                    grade: examGrade,
                     board: '',
                     language: 'English',
                     mode: 'exam',
@@ -365,6 +385,18 @@ export default function ExamMock() {
                                     </div>
                                 )}
 
+                                {/* Grade */}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Grade</label>
+                                    <select
+                                        value={examGrade}
+                                        onChange={e => { setExamGrade(e.target.value); setSubject((SUBJECTS_BY_GRADE[e.target.value] ?? SUBJECTS_BY_GRADE['10'])[0]); }}
+                                        className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-indigo-500 transition-all appearance-none"
+                                    >
+                                        {EXAM_GRADES.map(g => <option key={g} value={g}>Grade {g}</option>)}
+                                    </select>
+                                </div>
+
                                 {/* Subject */}
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Subject</label>
@@ -373,7 +405,7 @@ export default function ExamMock() {
                                         onChange={e => setSubject(e.target.value)}
                                         className="w-full px-5 py-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200 outline-none focus:border-indigo-500 transition-all appearance-none"
                                     >
-                                        {SUBJECTS.map(s => <option key={s}>{s}</option>)}
+                                        {(SUBJECTS_BY_GRADE[examGrade] ?? SUBJECTS_BY_GRADE['10']).map(s => <option key={s}>{s}</option>)}
                                     </select>
                                 </div>
 
@@ -393,7 +425,7 @@ export default function ExamMock() {
                                 {/* Grade badge */}
                                 <div className="flex items-center gap-2">
                                     <span className="px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-black border border-indigo-100 dark:border-indigo-800">
-                                        Grade 10 — TN Samacheer
+                                        Grade {examGrade} — TN Samacheer
                                     </span>
                                 </div>
 
