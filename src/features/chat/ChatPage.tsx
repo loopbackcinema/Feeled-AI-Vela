@@ -1277,22 +1277,6 @@ const callAPI = useCallback(async (
                         </p>
 
                         {/* Context setup prompt — show when defaults unchanged and user is logged in */}
-                        {user && contextIsDefault && (
-                            <div style={{ background:'linear-gradient(135deg, rgba(79,70,229,0.12), rgba(124,58,237,0.08))', border:'1px solid rgba(99,102,241,0.3)', borderRadius:'16px', padding:'16px 20px', margin:'0 auto 20px', maxWidth:'480px', width:'100%', textAlign:'center', animation:'fadeSlide 0.5s ease-out both' }}>
-                                <div style={{ fontSize:'24px', marginBottom:'8px' }}>📚</div>
-                                <div style={{ color:'#c4b5fd', fontSize:'14px', fontWeight:'700', marginBottom:'6px' }}>Choose Your Learning Context</div>
-                                <div style={{ color:'#5a5a8a', fontSize:'12px', marginBottom:'14px', lineHeight:'1.5' }}>Help FeelEd AI personalise your learning experience</div>
-                                <button
-                                    onClick={() => setPlusOpen(true)}
-                                    style={{ background:'linear-gradient(135deg, #4f46e5, #7c3aed)', border:'none', borderRadius:'12px', padding:'10px 24px', color:'white', fontSize:'13px', fontWeight:'600', cursor:'pointer', boxShadow:'0 4px 12px rgba(79,70,229,0.4)' }}
-                                >
-                                    📖 Set My Learning Context →
-                                </button>
-                                <div style={{ color:'#333360', fontSize:'10px', marginTop:'8px' }}>
-                                    Currently: {board === 'Tamil Nadu State Board (Samacheer)' ? 'TN Samacheer' : (board || 'TN Samacheer')} · Grade {grade} · {subject || 'Science'} · {language || 'English'}
-                                </div>
-                            </div>
-                        )}
 
                         {/* AI-Powered Insight Cards */}
                         {studentMemory && (() => {
@@ -1676,6 +1660,21 @@ const callAPI = useCallback(async (
                             </div>
                           );
                         })()}
+
+                        {/* Compact context row — below mode cards */}
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:8, marginBottom:16, flexWrap:'wrap' }}>
+                            <span style={{ fontSize:11, color: isDarkMode ? '#555' : '#999', opacity:0.8 }}>
+                                {board === 'Tamil Nadu State Board (Samacheer)' ? 'TN Samacheer' : (board || 'TN Samacheer')} · Grade {grade} · {subject || 'Science'} · {language || 'English'}
+                            </span>
+                            <button
+                                onClick={() => setPlusOpen(true)}
+                                style={{ background:'none', border:'1px solid #333', borderRadius:20, padding:'2px 10px', fontSize:10, color:'#888', cursor:'pointer', display:'flex', alignItems:'center', gap:4, transition:'all 0.2s' }}
+                                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor='#a78bfa'; (e.currentTarget as HTMLButtonElement).style.color='#a78bfa'; }}
+                                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor='#333'; (e.currentTarget as HTMLButtonElement).style.color='#888'; }}
+                            >
+                                ✏️ Change
+                            </button>
+                        </div>
 
                         {/* Personalized insights + recommended topics */}
                         {studentMemory && (() => {
