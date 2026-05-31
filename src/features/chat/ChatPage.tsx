@@ -1164,6 +1164,10 @@ const callAPI = useCallback(async (
                         @keyframes floatA{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
                         @keyframes floatB{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
                         @keyframes floatC{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+                        @keyframes twinkA{0%,100%{opacity:0.2;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+                        @keyframes zzz1{0%{opacity:0;transform:translate(0,0) scale(0.5)}50%{opacity:1}100%{opacity:0;transform:translate(12px,-26px) scale(1.2)}}
+                        @keyframes zzz2{0%{opacity:0;transform:translate(0,0) scale(0.5)}50%{opacity:1}100%{opacity:0;transform:translate(-12px,-24px) scale(1.2)}}
+                        @keyframes dreamPop{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
                         @keyframes logoFloat{0%,100%{transform:translateY(0px);filter:drop-shadow(0 0 15px #4f46e540)}50%{transform:translateY(-8px);filter:drop-shadow(0 0 25px #4f46e570)}}
                         @keyframes fadeSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
                         .fc-card{transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer}
@@ -1312,30 +1316,333 @@ const callAPI = useCallback(async (
                             );
                         })()}
 
-                        {/* 3 Mode Cards */}
-                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 16 }}>
-                            <div className="fc-card" onClick={() => navigate('/story')}
-                                style={{ width: 160, background: 'linear-gradient(135deg, #1a0b40, #2d1b69)', border: '1px solid #4c3a99', borderRadius: 16, padding: 16, animation: 'floatA 4s ease-in-out infinite', textAlign: 'left' }}>
-                                <div style={{ fontSize: 22, marginBottom: 8 }}>✨</div>
-                                <div style={{ color: '#c4b5fd', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.story')}</div>
-                                <div style={{ color: '#7c6aad', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Turn lessons into stories</div>
-                                <span style={{ background: '#2d1b69', borderRadius: 4, color: '#a78bfa', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>✦ POPULAR</span>
+                        {/* 3 Mode Cards — Sleeping Characters */}
+                        {(() => {
+                          const playMagicSparkle = () => {
+                            try {
+                              const AC = new (window.AudioContext || (window as any).webkitAudioContext)();
+                              [0, 80, 160, 240].forEach((delay, i) => {
+                                setTimeout(() => {
+                                  const o = AC.createOscillator();
+                                  const g = AC.createGain();
+                                  o.connect(g); g.connect(AC.destination);
+                                  o.type = 'sine';
+                                  const freq = 600 + i * 220;
+                                  o.frequency.setValueAtTime(freq, AC.currentTime);
+                                  o.frequency.exponentialRampToValueAtTime(freq * 1.5, AC.currentTime + 0.18);
+                                  g.gain.setValueAtTime(0, AC.currentTime);
+                                  g.gain.linearRampToValueAtTime(0.18, AC.currentTime + 0.03);
+                                  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.22);
+                                  o.start(AC.currentTime); o.stop(AC.currentTime + 0.22);
+                                }, delay);
+                              });
+                              setTimeout(() => {
+                                const AC2 = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                const n = AC2.createOscillator();
+                                const ng = AC2.createGain();
+                                n.connect(ng); ng.connect(AC2.destination);
+                                n.type = 'triangle';
+                                n.frequency.setValueAtTime(1800, AC2.currentTime);
+                                n.frequency.exponentialRampToValueAtTime(2400, AC2.currentTime + 0.3);
+                                ng.gain.setValueAtTime(0.08, AC2.currentTime);
+                                ng.gain.exponentialRampToValueAtTime(0.001, AC2.currentTime + 0.3);
+                                n.start(AC2.currentTime); n.stop(AC2.currentTime + 0.3);
+                              }, 100);
+                            } catch(e) {}
+                          };
+
+                          const playGameBeep = () => {
+                            try {
+                              const AC = new (window.AudioContext || (window as any).webkitAudioContext)();
+                              const notes = [261, 329, 392, 523, 659, 784];
+                              notes.forEach((freq, i) => {
+                                setTimeout(() => {
+                                  const o = AC.createOscillator();
+                                  const g = AC.createGain();
+                                  o.connect(g); g.connect(AC.destination);
+                                  o.type = i % 2 === 0 ? 'square' : 'triangle';
+                                  o.frequency.setValueAtTime(freq, AC.currentTime);
+                                  g.gain.setValueAtTime(0.12, AC.currentTime);
+                                  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.12);
+                                  o.start(AC.currentTime); o.stop(AC.currentTime + 0.12);
+                                }, i * 60);
+                              });
+                            } catch(e) {}
+                          };
+
+                          const playExamBell = () => {
+                            try {
+                              const AC = new (window.AudioContext || (window as any).webkitAudioContext)();
+                              const o = AC.createOscillator();
+                              const g = AC.createGain();
+                              o.connect(g); g.connect(AC.destination);
+                              o.type = 'sine';
+                              o.frequency.setValueAtTime(880, AC.currentTime);
+                              o.frequency.setValueAtTime(1046, AC.currentTime + 0.05);
+                              o.frequency.setValueAtTime(880, AC.currentTime + 0.1);
+                              g.gain.setValueAtTime(0, AC.currentTime);
+                              g.gain.linearRampToValueAtTime(0.2, AC.currentTime + 0.02);
+                              g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.6);
+                              o.start(AC.currentTime); o.stop(AC.currentTime + 0.65);
+                            } catch(e) {}
+                          };
+
+                          const cardStyle = (anim: string): React.CSSProperties => ({
+                            width: 160,
+                            cursor: 'pointer',
+                            animation: anim,
+                            flexShrink: 0,
+                            borderRadius: 28,
+                            transition: 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s ease',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                            position: 'relative',
+                          });
+
+                          const [storyAwake, setStoryAwake] = React.useState(false);
+                          const [gameAwake, setGameAwake] = React.useState(false);
+                          const [examAwake, setExamAwake] = React.useState(false);
+
+                          return (
+                            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
+
+                              {/* ── STORY ── */}
+                              <div
+                                style={cardStyle('floatA 4.8s ease-in-out infinite')}
+                                onClick={() => navigate('/story')}
+                                onMouseEnter={() => { setStoryAwake(true); playMagicSparkle(); }}
+                                onMouseLeave={() => setStoryAwake(false)}
+                              >
+                                <svg width="160" height="220" viewBox="0 0 168 230" xmlns="http://www.w3.org/2000/svg">
+                                  <defs>
+                                    <radialGradient id="sgBg" cx="40%" cy="35%" r="70%"><stop offset="0%" stopColor="#3b1a7a"/><stop offset="60%" stopColor="#1a0b45"/><stop offset="100%" stopColor="#08041e"/></radialGradient>
+                                    <radialGradient id="bookFace" cx="40%" cy="30%" r="70%"><stop offset="0%" stopColor="#7c3aed"/><stop offset="100%" stopColor="#4c1d95"/></radialGradient>
+                                    <radialGradient id="bookSpine" cx="30%" cy="30%" r="80%"><stop offset="0%" stopColor="#a78bfa"/><stop offset="100%" stopColor="#6d28d9"/></radialGradient>
+                                    <radialGradient id="moonGl" cx="35%" cy="35%" r="55%"><stop offset="0%" stopColor="#f0e6ff"/><stop offset="100%" stopColor="#b48df5"/></radialGradient>
+                                  </defs>
+                                  <rect width="168" height="230" rx="28" fill="url(#sgBg)"/>
+                                  <ellipse cx="84" cy="0" rx="70" ry="30" fill="#6d28d9" opacity=".2"/>
+                                  <circle cx="20" cy="22" r="2.5" fill="#e9d5ff" style={{animation:'twinkA 2.1s infinite'}}/>
+                                  <circle cx="140" cy="16" r="1.8" fill="#ddd6fe" style={{animation:'twinkA 2.9s infinite .5s'}}/>
+                                  <circle cx="152" cy="52" r="2.2" fill="#c4b5fd" style={{animation:'twinkA 2.4s infinite 1s'}}/>
+                                  <circle cx="14" cy="68" r="1.5" fill="#a78bfa" style={{animation:'twinkA 3.1s infinite .3s'}}/>
+                                  <circle cx="156" cy="88" r="2" fill="#ddd6fe" style={{animation:'twinkA 2.7s infinite .8s'}}/>
+                                  <circle cx="40" cy="44" r="24" fill="url(#moonGl)"/>
+                                  <circle cx="48" cy="37" r="17" fill="#08041e"/>
+                                  {!storyAwake && (<g>
+                                    <circle cx="122" cy="55" r="35" fill="#2d1069" opacity=".95" style={{animation:'dreamPop 3s ease-in-out infinite'}}/>
+                                    <circle cx="122" cy="55" r="34" fill="none" stroke="#7c3aed" strokeWidth="2.5" opacity=".6"/>
+                                    <circle cx="122" cy="55" r="34" fill="none" stroke="#c4b5fd" strokeWidth="1" opacity=".3" strokeDasharray="3 4"/>
+                                    <ellipse cx="112" cy="42" rx="8" ry="5" fill="#c4b5fd" opacity=".2" transform="rotate(-30 112 42)"/>
+                                    <circle cx="111" cy="91" r="4" fill="#2d1069" opacity=".8"/>
+                                    <circle cx="116" cy="99" r="2.5" fill="#2d1069" opacity=".6"/>
+                                    <rect x="104" y="42" width="36" height="26" rx="5" fill="#6d28d9"/>
+                                    <rect x="104" y="42" width="6" height="26" rx="3" fill="#a78bfa"/>
+                                    <rect x="120" y="46" width="2" height="18" fill="#4c1d95"/>
+                                    <text x="108" y="78" fontSize="11" fill="#fef08a">★</text>
+                                    <text x="122" y="80" fontSize="8" fill="#c4b5fd">★</text>
+                                    <text x="131" y="73" fontSize="9" fill="#fbbf24">★</text>
+                                  </g>)}
+                                  <rect x="32" y="104" width="106" height="80" rx="13" fill="#2d1069"/>
+                                  <rect x="30" y="100" width="106" height="80" rx="13" fill="url(#bookFace)"/>
+                                  <rect x="30" y="100" width="18" height="80" rx="10" fill="url(#bookSpine)"/>
+                                  <rect x="32" y="103" width="6" height="74" rx="3" fill="#c4b5fd" opacity=".2"/>
+                                  <rect x="130" y="104" width="4" height="72" rx="2" fill="#ede9fe" opacity=".15"/>
+                                  <rect x="54" y="113" width="52" height="4.5" rx="2.2" fill="#7c3aed" opacity=".55"/>
+                                  <rect x="54" y="122" width="42" height="3.5" rx="1.7" fill="#7c3aed" opacity=".38"/>
+                                  <rect x="54" y="130" width="48" height="3.5" rx="1.7" fill="#7c3aed" opacity=".38"/>
+                                  <ellipse cx="80" cy="108" rx="28" ry="5" fill="#c4b5fd" opacity=".12"/>
+                                  {!storyAwake ? (<g>
+                                    <path d="M57 152 Q65 145 73 152" stroke="#ddd6fe" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M85 152 Q93 145 101 152" stroke="#ddd6fe" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                  </g>) : (<g>
+                                    <circle cx="65" cy="148" r="9" fill="#fff" opacity=".95"/>
+                                    <circle cx="93" cy="148" r="9" fill="#fff" opacity=".95"/>
+                                    <circle cx="66" cy="148" r="5.5" fill="#5b21b6"/>
+                                    <circle cx="94" cy="148" r="5.5" fill="#5b21b6"/>
+                                    <circle cx="68" cy="146" r="2" fill="#fff"/>
+                                    <circle cx="96" cy="146" r="2" fill="#fff"/>
+                                    <text x="44" y="138" fontSize="12" fill="#fbbf24">✦</text>
+                                    <text x="108" y="138" fontSize="10" fill="#c4b5fd">✦</text>
+                                    <path d="M54 138 Q65 132 75 138" stroke="#c4b5fd" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M83 138 Q93 132 103 138" stroke="#c4b5fd" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  </g>)}
+                                  <path d="M70 163 Q79 169 88 163" stroke="#c4b5fd" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  <ellipse cx="57" cy="160" rx="8" ry="5" fill="#a78bfa" opacity=".3"/>
+                                  <ellipse cx="101" cy="160" rx="8" ry="5" fill="#a78bfa" opacity=".3"/>
+                                  {!storyAwake && (<g>
+                                    <text x="28" y="95" fontSize="13" fill="#c4b5fd" fontWeight="800" style={{animation:'zzz1 2.8s ease-out infinite'}}>z</text>
+                                    <text x="15" y="80" fontSize="16" fill="#a78bfa" fontWeight="800" style={{animation:'zzz1 2.8s ease-out infinite .9s'}}>z</text>
+                                    <text x="5" y="64" fontSize="11" fill="#ddd6fe" fontWeight="800" style={{animation:'zzz1 2.8s ease-out infinite .45s'}}>z</text>
+                                  </g>)}
+                                  <rect x="18" y="192" width="132" height="30" rx="15" fill="#2d1069"/>
+                                  <rect x="19" y="193" width="130" height="14" rx="10" fill="#4c1d95" opacity=".5"/>
+                                  <text x="84" y="213" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="#e9d5ff">✨ Story Mode</text>
+                                </svg>
+                              </div>
+
+                              {/* ── GAME ── */}
+                              <div
+                                style={cardStyle('floatB 5.2s ease-in-out infinite')}
+                                onClick={() => navigate('/game')}
+                                onMouseEnter={() => { setGameAwake(true); playGameBeep(); }}
+                                onMouseLeave={() => setGameAwake(false)}
+                              >
+                                <svg width="160" height="220" viewBox="0 0 168 230" xmlns="http://www.w3.org/2000/svg">
+                                  <defs>
+                                    <radialGradient id="ggBg" cx="40%" cy="35%" r="70%"><stop offset="0%" stopColor="#064e29"/><stop offset="60%" stopColor="#022b14"/><stop offset="100%" stopColor="#010d06"/></radialGradient>
+                                    <radialGradient id="ctrl" cx="40%" cy="30%" r="70%"><stop offset="0%" stopColor="#16a34a"/><stop offset="100%" stopColor="#14532d"/></radialGradient>
+                                    <radialGradient id="ctrlGrip" cx="40%" cy="30%" r="70%"><stop offset="0%" stopColor="#15803d"/><stop offset="100%" stopColor="#166534"/></radialGradient>
+                                  </defs>
+                                  <rect width="168" height="230" rx="28" fill="url(#ggBg)"/>
+                                  <ellipse cx="84" cy="0" rx="70" ry="30" fill="#15803d" opacity=".18"/>
+                                  <circle cx="18" cy="20" r="2.5" fill="#a7f3d0" style={{animation:'twinkA 2.3s infinite'}}/>
+                                  <circle cx="144" cy="18" r="1.8" fill="#6ee7b7" style={{animation:'twinkA 3s infinite .4s'}}/>
+                                  <circle cx="154" cy="54" r="2.2" fill="#a7f3d0" style={{animation:'twinkA 2.6s infinite .9s'}}/>
+                                  <circle cx="10" cy="66" r="1.5" fill="#34d399" style={{animation:'twinkA 2.9s infinite .2s'}}/>
+                                  <circle cx="154" cy="90" r="2" fill="#a7f3d0" style={{animation:'twinkA 2.4s infinite .7s'}}/>
+                                  {!gameAwake && (<g>
+                                    <circle cx="44" cy="52" r="35" fill="#021f0e" opacity=".95" style={{animation:'dreamPop 3.5s ease-in-out infinite'}}/>
+                                    <circle cx="44" cy="52" r="34" fill="none" stroke="#16a34a" strokeWidth="2.5" opacity=".6"/>
+                                    <circle cx="44" cy="52" r="34" fill="none" stroke="#4ade80" strokeWidth="1" opacity=".25" strokeDasharray="3 4"/>
+                                    <circle cx="56" cy="88" r="4" fill="#021f0e" opacity=".8"/>
+                                    <circle cx="52" cy="96" r="2.5" fill="#021f0e" opacity=".6"/>
+                                    <polygon points="44,30 49,45 62,45 51,54 55,69 44,61 33,69 37,54 26,45 39,45" fill="#fbbf24"/>
+                                    <circle cx="28" cy="42" r="5" fill="#4ade80" opacity=".85"/>
+                                    <circle cx="60" cy="66" r="4" fill="#60a5fa" opacity=".85"/>
+                                    <circle cx="58" cy="38" r="3.5" fill="#f87171" opacity=".85"/>
+                                  </g>)}
+                                  <rect x="26" y="110" width="116" height="68" rx="34" fill="#01140a"/>
+                                  <rect x="24" y="106" width="120" height="68" rx="34" fill="url(#ctrl)"/>
+                                  <rect x="28" y="109" width="112" height="18" rx="20" fill="#22c55e" opacity=".3"/>
+                                  <ellipse cx="40" cy="165" rx="21" ry="19" fill="#01140a"/>
+                                  <ellipse cx="38" cy="162" rx="20" ry="18" fill="url(#ctrlGrip)"/>
+                                  <ellipse cx="128" cy="165" rx="21" ry="19" fill="#01140a"/>
+                                  <ellipse cx="126" cy="162" rx="20" ry="18" fill="url(#ctrlGrip)"/>
+                                  <rect x="36" y="124" width="22" height="8" rx="4" fill="#15803d"/>
+                                  <rect x="43" y="117" width="8" height="22" rx="4" fill="#15803d"/>
+                                  <rect x="37" y="125" width="20" height="4" rx="3" fill="#22c55e" opacity=".4"/>
+                                  <circle cx="106" cy="116" r="7" fill="#15803d"/><circle cx="106" cy="114" r="6" fill="#4ade80"/>
+                                  <circle cx="119" cy="127" r="7" fill="#6b3a00"/><circle cx="119" cy="125" r="6" fill="#fbbf24"/>
+                                  <circle cx="106" cy="138" r="7" fill="#7f1d1d"/><circle cx="106" cy="136" r="6" fill="#f87171"/>
+                                  <circle cx="93" cy="127" r="7" fill="#1e3a6e"/><circle cx="93" cy="125" r="6" fill="#60a5fa"/>
+                                  <circle cx="58" cy="134" r="10" fill="#0f5a28"/><circle cx="58" cy="132" r="9" fill="#15803d"/>
+                                  <circle cx="98" cy="134" r="10" fill="#0f5a28"/><circle cx="98" cy="132" r="9" fill="#15803d"/>
+                                  {!gameAwake ? (<g>
+                                    <path d="M50 150 Q59 143 68 150" stroke="#a7f3d0" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M98 150 Q107 143 116 150" stroke="#a7f3d0" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                  </g>) : (<g>
+                                    <circle cx="59" cy="145" r="10" fill="#dcfce7" opacity=".95"/>
+                                    <circle cx="107" cy="145" r="10" fill="#dcfce7" opacity=".95"/>
+                                    <circle cx="60" cy="145" r="6" fill="#15803d"/>
+                                    <circle cx="108" cy="145" r="6" fill="#15803d"/>
+                                    <circle cx="62" cy="143" r="2.5" fill="#fff"/>
+                                    <circle cx="110" cy="143" r="2.5" fill="#fff"/>
+                                    <text x="36" y="136" fontSize="12" fill="#4ade80">✦</text>
+                                    <text x="120" y="136" fontSize="10" fill="#fbbf24">✦</text>
+                                    <path d="M48 135 Q59 129 69 135" stroke="#6ee7b7" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M97 135 Q107 129 117 135" stroke="#6ee7b7" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  </g>)}
+                                  <path d="M72 162 Q83 169 94 162" stroke="#6ee7b7" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  <ellipse cx="50" cy="158" rx="7" ry="4.5" fill="#22c55e" opacity=".25"/>
+                                  <ellipse cx="116" cy="158" rx="7" ry="4.5" fill="#22c55e" opacity=".25"/>
+                                  {!gameAwake && (<g>
+                                    <text x="126" y="95" fontSize="13" fill="#6ee7b7" fontWeight="800" style={{animation:'zzz2 3s ease-out infinite'}}>z</text>
+                                    <text x="138" y="80" fontSize="16" fill="#34d399" fontWeight="800" style={{animation:'zzz2 3s ease-out infinite 1s'}}>z</text>
+                                    <text x="150" y="65" fontSize="11" fill="#a7f3d0" fontWeight="800" style={{animation:'zzz2 3s ease-out infinite .5s'}}>z</text>
+                                  </g>)}
+                                  <rect x="18" y="192" width="132" height="30" rx="15" fill="#021f0e"/>
+                                  <rect x="19" y="193" width="130" height="14" rx="10" fill="#14532d" opacity=".6"/>
+                                  <text x="84" y="213" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="#a7f3d0">🎮 Game Mode</text>
+                                </svg>
+                              </div>
+
+                              {/* ── EXAM ── */}
+                              <div
+                                style={cardStyle('floatC 4.5s ease-in-out infinite')}
+                                onClick={() => navigate('/exam-mock')}
+                                onMouseEnter={() => { setExamAwake(true); playExamBell(); }}
+                                onMouseLeave={() => setExamAwake(false)}
+                              >
+                                <svg width="160" height="220" viewBox="0 0 168 230" xmlns="http://www.w3.org/2000/svg">
+                                  <defs>
+                                    <radialGradient id="egBg" cx="40%" cy="35%" r="70%"><stop offset="0%" stopColor="#2c1a04"/><stop offset="60%" stopColor="#140e02"/><stop offset="100%" stopColor="#060400"/></radialGradient>
+                                    <linearGradient id="pBody" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#f59e0b"/><stop offset="18%" stopColor="#fde047"/><stop offset="50%" stopColor="#fef08a"/><stop offset="80%" stopColor="#fde047"/><stop offset="100%" stopColor="#d97706"/></linearGradient>
+                                    <linearGradient id="pWood" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#a16207"/><stop offset="30%" stopColor="#ca8a04"/><stop offset="60%" stopColor="#d4a520"/><stop offset="100%" stopColor="#a16207"/></linearGradient>
+                                  </defs>
+                                  <rect width="168" height="230" rx="28" fill="url(#egBg)"/>
+                                  <ellipse cx="84" cy="0" rx="70" ry="30" fill="#92400e" opacity=".18"/>
+                                  <circle cx="20" cy="20" r="2.5" fill="#fef08a" style={{animation:'twinkA 2.2s infinite'}}/>
+                                  <circle cx="142" cy="16" r="1.8" fill="#fde047" style={{animation:'twinkA 2.9s infinite .5s'}}/>
+                                  <circle cx="152" cy="52" r="2.2" fill="#fef08a" style={{animation:'twinkA 2.5s infinite 1s'}}/>
+                                  <circle cx="12" cy="66" r="1.5" fill="#fbbf24" style={{animation:'twinkA 3.1s infinite .3s'}}/>
+                                  <circle cx="154" cy="88" r="2" fill="#fef08a" style={{animation:'twinkA 2.7s infinite .8s'}}/>
+                                  {!examAwake && (<g>
+                                    <circle cx="122" cy="50" r="34" fill="#1c1004" opacity=".95" style={{animation:'dreamPop 3.2s ease-in-out infinite'}}/>
+                                    <circle cx="122" cy="50" r="33" fill="none" stroke="#d97706" strokeWidth="2.5" opacity=".6"/>
+                                    <circle cx="122" cy="50" r="33" fill="none" stroke="#fbbf24" strokeWidth="1" opacity=".25" strokeDasharray="3 4"/>
+                                    <circle cx="110" cy="85" r="4" fill="#1c1004" opacity=".8"/>
+                                    <circle cx="114" cy="93" r="2.5" fill="#1c1004" opacity=".6"/>
+                                    <text x="122" y="44" textAnchor="middle" fontSize="22" fontWeight="800" fill="#fef08a">100</text>
+                                    <text x="122" y="60" textAnchor="middle" fontSize="12" fill="#fbbf24">★★★★★</text>
+                                    <text x="122" y="74" textAnchor="middle" fontSize="9.5" fontWeight="700" fill="#f59e0b">PERFECT!</text>
+                                  </g>)}
+                                  <rect x="60" y="70" width="48" height="14" rx="7" fill="#fecdd3"/>
+                                  <rect x="63" y="72" width="28" height="5" rx="2.5" fill="#fda4af" opacity=".6"/>
+                                  <rect x="60" y="82" width="48" height="9" fill="#d97706"/>
+                                  <rect x="60" y="83" width="48" height="3" fill="#fbbf24" opacity=".25"/>
+                                  <rect x="60" y="91" width="10" height="84" fill="#f59e0b"/>
+                                  <rect x="70" y="91" width="28" height="84" fill="url(#pBody)"/>
+                                  <rect x="98" y="91" width="10" height="84" fill="#d97706"/>
+                                  <rect x="80" y="94" width="4" height="78" rx="2" fill="#fef9c3" opacity=".35"/>
+                                  <line x1="62" y1="108" x2="106" y2="108" stroke="#d97706" strokeWidth=".8" opacity=".25"/>
+                                  <line x1="62" y1="121" x2="106" y2="121" stroke="#d97706" strokeWidth=".8" opacity=".25"/>
+                                  <line x1="62" y1="134" x2="106" y2="134" stroke="#d97706" strokeWidth=".8" opacity=".25"/>
+                                  <line x1="62" y1="147" x2="106" y2="147" stroke="#d97706" strokeWidth=".8" opacity=".25"/>
+                                  <line x1="62" y1="160" x2="106" y2="160" stroke="#d97706" strokeWidth=".8" opacity=".25"/>
+                                  <polygon points="60,175 70,175 70,204 68,204" fill="#a16207"/>
+                                  <polygon points="70,175 98,175 84,204" fill="url(#pWood)"/>
+                                  <polygon points="98,175 108,175 84,204" fill="#854d0e"/>
+                                  <polygon points="68,204 100,204 84,214" fill="#374151"/>
+                                  <polygon points="68,204 76,204 84,214" fill="#1f2937"/>
+                                  <polygon points="74,206 79,206 78,212" fill="#6b7280" opacity=".5"/>
+                                  <polygon points="84,56 114,68 84,80 54,68" fill="#1c1004"/>
+                                  <polygon points="84,56 114,68 84,64" fill="#374151" opacity=".4"/>
+                                  <rect x="80" y="56" width="8" height="10" rx="3" fill="#292524"/>
+                                  <circle cx="112" cy="68" r="4" fill="#fbbf24"/>
+                                  <line x1="112" y1="70" x2="112" y2="84" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round"/>
+                                  <line x1="109" y1="84" x2="115" y2="84" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round"/>
+                                  {!examAwake ? (<g>
+                                    <path d="M66 136 Q74 129 82 136" stroke="#78350f" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M86 136 Q94 129 102 136" stroke="#78350f" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                  </g>) : (<g>
+                                    <circle cx="74" cy="131" r="10" fill="#fef9c3" opacity=".95"/>
+                                    <circle cx="94" cy="131" r="10" fill="#fef9c3" opacity=".95"/>
+                                    <circle cx="75" cy="131" r="6" fill="#92400e"/>
+                                    <circle cx="95" cy="131" r="6" fill="#92400e"/>
+                                    <circle cx="77" cy="129" r="2.5" fill="#fff"/>
+                                    <circle cx="97" cy="129" r="2.5" fill="#fff"/>
+                                    <text x="52" y="122" fontSize="12" fill="#fbbf24">✦</text>
+                                    <text x="112" y="122" fontSize="10" fill="#fef08a">✦</text>
+                                    <path d="M63 121 Q74 115 84 121" stroke="#fbbf24" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M84 121 Q94 115 105 121" stroke="#fbbf24" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  </g>)}
+                                  <path d="M72 148 Q84 155 96 148" stroke="#92400e" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  <ellipse cx="66" cy="144" rx="7" ry="4.5" fill="#f97316" opacity=".2"/>
+                                  <ellipse cx="102" cy="144" rx="7" ry="4.5" fill="#f97316" opacity=".2"/>
+                                  {!examAwake && (<g>
+                                    <text x="28" y="92" fontSize="13" fill="#fde047" fontWeight="800" style={{animation:'zzz1 3s ease-out infinite .2s'}}>z</text>
+                                    <text x="14" y="77" fontSize="16" fill="#fbbf24" fontWeight="800" style={{animation:'zzz1 3s ease-out infinite 1.1s'}}>z</text>
+                                    <text x="4" y="62" fontSize="11" fill="#fef08a" fontWeight="800" style={{animation:'zzz1 3s ease-out infinite .55s'}}>z</text>
+                                  </g>)}
+                                  <rect x="18" y="192" width="132" height="30" rx="15" fill="#1c1004"/>
+                                  <rect x="19" y="193" width="130" height="14" rx="10" fill="#78350f" opacity=".5"/>
+                                  <text x="84" y="213" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="#fde047">📝 Exam Mode</text>
+                                </svg>
+                              </div>
+
                             </div>
-                            <div className="fc-card" onClick={() => navigate('/game')}
-                                style={{ width: 160, background: 'linear-gradient(135deg, #052010, #0a3520)', border: '1px solid #1a6b45', borderRadius: 16, padding: 16, animation: 'floatB 4.8s ease-in-out infinite', textAlign: 'left' }}>
-                                <div style={{ fontSize: 22, marginBottom: 8 }}>🎮</div>
-                                <div style={{ color: '#6ee7b7', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.game')}</div>
-                                <div style={{ color: '#2d7a56', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Practice through play</div>
-                                <span style={{ background: '#0a3520', borderRadius: 4, color: '#34d399', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🔥 FUN</span>
-                            </div>
-                            <div className="fc-card" onClick={() => navigate('/exam-mock')}
-                                style={{ width: 160, background: 'linear-gradient(135deg, #1c0e04, #3d2010)', border: '1px solid #7a4a1a', borderRadius: 16, padding: 16, animation: 'floatC 3.8s ease-in-out infinite', textAlign: 'left' }}>
-                                <div style={{ fontSize: 22, marginBottom: 8 }}>📝</div>
-                                <div style={{ color: '#fcd34d', fontSize: 13, fontWeight: 700, marginBottom: 4 }}>{t('modes.exam')}</div>
-                                <div style={{ color: '#a07030', fontSize: 10, lineHeight: 1.5, marginBottom: 10 }}>Mock tests & revision</div>
-                                <span style={{ background: '#3d2010', borderRadius: 4, color: '#f59e0b', fontSize: 9, fontWeight: 700, padding: '2px 6px' }}>🎯 REAL PAPERS</span>
-                            </div>
-                        </div>
+                          );
+                        })()}
 
                         {/* Personalized insights + recommended topics */}
                         {studentMemory && (() => {
