@@ -593,6 +593,9 @@ const ChatPage: React.FC = () => {
     const [welcomeStep, setWelcomeStep] = useState(0);
     const [welcomeMessages, setWelcomeMessages] = useState<{ text: string }[]>([]);
     const [showingWelcome, setShowingWelcome] = useState(false);
+    const [storyAwake, setStoryAwake] = useState(false);
+    const [gameAwake, setGameAwake]   = useState(false);
+    const [examAwake, setExamAwake]   = useState(false);
 
     // Offline/online detection
     useEffect(() => {
@@ -1380,10 +1383,6 @@ const callAPI = useCallback(async (
                             boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
                             position: 'relative',
                           });
-
-                          const [storyAwake, setStoryAwake] = React.useState(false);
-                          const [gameAwake, setGameAwake] = React.useState(false);
-                          const [examAwake, setExamAwake] = React.useState(false);
 
                           return (
                             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 20 }}>
