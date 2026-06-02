@@ -823,7 +823,7 @@ const callAPI = useCallback(async (
             } catch {}
         }
     }
-    return { reply: fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, ''), ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], streamingId };
+    return { reply: fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, ''), ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], textbookImages: finalData.textbookImages || [], streamingId };
 }, [setSession]);
 
     // Message rating handlers
@@ -938,7 +938,7 @@ const callAPI = useCallback(async (
                     language: actualLang,
                     medium: actualLang === 'Tamil' ? 'Tamil' : 'English',
                 }, undefined, undefined, studentCtx);
-                const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
+                const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, textbookImages: data.textbookImages, timestamp: Date.now() };
                 const finalMsgs = [...newMessages, aiMsg];
                 setSession({ chatMessages: finalMsgs });
                 setPendingQuestion('');
@@ -1807,6 +1807,28 @@ const callAPI = useCallback(async (
                                             </div>
                                         );
                                     })()}
+
+                                    {/* Textbook images */}
+                                    {msg.role === 'model' && msg.textbookImages && msg.textbookImages.length > 0 && (
+                                        <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                            <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: isDarkMode ? '#4a4a6a' : '#9ca3af', marginBottom: 4 }}>
+                                                📚 From Your Textbook
+                                            </div>
+                                            {msg.textbookImages.map((img, idx) => (
+                                                <div key={idx} style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, maxWidth: 320 }}>
+                                                    <img
+                                                        src={img.url}
+                                                        alt={`${img.subject} - Page ${img.page}`}
+                                                        style={{ width: '100%', height: 'auto', display: 'block' }}
+                                                        loading="lazy"
+                                                    />
+                                                    <div style={{ padding: '6px 10px', fontSize: 10, color: isDarkMode ? '#555' : '#9ca3af', background: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.03)' }}>
+                                                        Grade {img.grade} · {img.subject} · Page {img.page}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {/* Unified action bar — only on completed AI messages */}
                                     {msg.role === 'model' && !(isLoading && i === lastAiIndex) && (

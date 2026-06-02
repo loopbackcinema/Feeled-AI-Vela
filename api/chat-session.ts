@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI } from '@google/genai';
 import { fetchRagContext, fetchExamFrequency, normaliseGrade, effectiveMedium, formatCitations } from './_rag.js';
+import { findTextbookImages } from './_images.js';
 
 function parseSuggestions(text: string): { reply: string; suggestions: string[] } {
     const match = text.match(/\nFOLLOWUP:([^\n]+)/);
@@ -37,6 +38,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             fetchRagContext({ query: message, subject, grade, medium, board }),
             fetchExamFrequency({ query: message, subject, grade }),
         ]);
+
+        // Fetch textbook images after RAG so we can use the citation page number
+        const ragPage = ragResult.citations?.[0]?.page || undefined;
+        const textbookImages = ragResult.chunksFound > 0 && subject !== 'General'
+            ? await findTextbookImages({ grade, subject, medium, page: ragPage, limit: 2 }).catch(() => [])
+            : [];
 
         const { context: ragContext, chunksFound, citations, scores } = ragResult;
 
@@ -232,11 +239,12 @@ where question1, question2, question3 are 3 short follow-up questions the studen
         }
         const { reply, suggestions } = parseSuggestions(fullText);
         res.write('data: ' + JSON.stringify({
-            done:        true,
-            ragUsed:     chunksFound > 0,
+            done:          true,
+            ragUsed:       chunksFound > 0,
             suggestions,
-            ragCitations: citations,
-            examYears:   examFreq.years,
+            ragCitations:  citations,
+            examYears:     examFreq.years,
+            ...(textbookImages.length > 0 && { textbookImages }),
         }) + '\n\n');
         res.end();
 

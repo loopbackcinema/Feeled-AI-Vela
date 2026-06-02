@@ -42,6 +42,16 @@ export interface RagCitation {
     score:      number;
 }
 
+export interface TextbookImage {
+    url: string;
+    grade: number;
+    subject: string;
+    medium: string;
+    page: number;
+    width: number;
+    height: number;
+}
+
 export interface StudyChatMessage {
     id: string;
     role: 'user' | 'model';
@@ -50,6 +60,7 @@ export interface StudyChatMessage {
     timestamp: number;
     suggestions?: string[];
     ragCitations?: RagCitation[];
+    textbookImages?: TextbookImage[];
 }
 
 export interface StudentContext {
