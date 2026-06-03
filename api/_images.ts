@@ -9,13 +9,18 @@ function getDb() {
     if (!getApps().length) {
         initializeApp({
             credential: cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: (process.env.FIREBASE_PRIVATE_KEY || '')
-                    .replace(/\\\\n/g, '\n')
-                    .replace(/\\n/g, '\n'),
+                projectId: 'gen-lang-client-0342576140',
+                clientEmail: 'firebase-adminsdk-fbsvc@gen-lang-client-0342576140.iam.gserviceaccount.com',
+                privateKey: process.env.FIREBASE_PRIVATE_KEY
+                    ? process.env.FIREBASE_PRIVATE_KEY
+                        .replace(/\\\\n/g, '\n')
+                        .replace(/\\n/g, '\n')
+                        .replace(/\n\n/g, '\n')
+                        .trim()
+                    : undefined,
             }),
         });
+        console.log('[_images] Firebase initialized, key length:', (process.env.FIREBASE_PRIVATE_KEY || '').length);
     }
     return getFirestore();
 }
