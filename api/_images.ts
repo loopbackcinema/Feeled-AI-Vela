@@ -42,29 +42,36 @@ export async function findTextbookImages(params: {
         const db = getDb();
         const { grade, subject, medium, limit = 2 } = params;
 
+        console.log(`[_images] Querying: grade=${grade}(${typeof grade}) subject="${subject}" medium="${medium}"`);
+
+        const gradeNum = parseInt(grade);
+        console.log(`[_images] gradeNum=${gradeNum}`);
+
         // Simple 3-field query (no page filter — avoid composite index issues)
         const snapshot = await db.collection('textbook_images')
-            .where('grade', '==', parseInt(grade))
+            .where('grade', '==', gradeNum)
             .where('subject', '==', subject)
             .where('medium', '==', medium)
             .limit(limit)
             .get();
 
-        console.log(`[images] grade=${grade} subject=${subject} medium=${medium} found=${snapshot.size}`);
+        console.log(`[_images] snapshot.size=${snapshot.size} empty=${snapshot.empty}`);
 
         if (snapshot.empty) {
+            console.log(`[_images] Trying fallback without medium...`);
             // Fallback: grade + subject only
             const fallback = await db.collection('textbook_images')
-                .where('grade', '==', parseInt(grade))
+                .where('grade', '==', gradeNum)
                 .where('subject', '==', subject)
                 .limit(limit)
                 .get();
+            console.log(`[_images] fallback.size=${fallback.size}`);
             return fallback.docs.map((doc: any) => doc.data() as TextbookImage);
         }
 
         return snapshot.docs.map((doc: any) => doc.data() as TextbookImage);
     } catch (e) {
-        console.error('Image fetch error:', e);
+        console.error('[_images] ERROR:', e);
         return [];
     }
 }
