@@ -25,7 +25,7 @@ export interface RagResult {
     scores:      number[];
 }
 
-const SCORE_THRESHOLD = 0.45;  // raised from 0.4 — reduces noise matches
+const SCORE_THRESHOLD = 0.35;  // lowered from 0.45 to improve recall for Physics/Science queries
 const TOP_K = 4;               // fetch 4, keep up to 3 after threshold
 
 function normalizeBoard(board: string): string {
