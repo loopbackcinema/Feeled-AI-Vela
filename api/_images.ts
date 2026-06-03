@@ -7,6 +7,7 @@ const SERVICE_ACCOUNT = {
     project_id: 'gen-lang-client-0342576140',
     private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || '',
     private_key: (process.env.FIREBASE_PRIVATE_KEY || '')
+        .replace(/\\\\n/g, '\n')
         .replace(/\\n/g, '\n'),
     client_email: 'firebase-adminsdk-fbsvc@gen-lang-client-0342576140.iam.gserviceaccount.com',
     client_id: '',
@@ -16,7 +17,7 @@ const SERVICE_ACCOUNT = {
 
 function getDb() {
     if (!getApps().length) {
-        console.log('[_images] init Firebase, key starts:', SERVICE_ACCOUNT.private_key.slice(0, 30));
+        console.log('[_images] init Firebase, key starts:', SERVICE_ACCOUNT.private_key.slice(0, 50), 'includes newline:', SERVICE_ACCOUNT.private_key.includes('\n'));
         initializeApp({
             credential: cert(SERVICE_ACCOUNT as any),
         });
