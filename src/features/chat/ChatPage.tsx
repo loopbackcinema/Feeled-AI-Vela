@@ -973,7 +973,7 @@ const callAPI = useCallback(async (
                 ].filter(Boolean).join('\n')
                 : baseCtx;
             const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime, studentCtx);
-            const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, timestamp: Date.now() };
+            const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, textbookImages: data.textbookImages, timestamp: Date.now() };
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
