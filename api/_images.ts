@@ -1,26 +1,25 @@
-// Server-side helper to fetch textbook images from Firestore.
-// Requires FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY env vars.
-// Returns [] gracefully when credentials are not configured.
-
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
+// Hardcoded service account — avoids env var parsing issues
+const SERVICE_ACCOUNT = {
+    type: 'service_account',
+    project_id: 'gen-lang-client-0342576140',
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || '',
+    private_key: (process.env.FIREBASE_PRIVATE_KEY || '')
+        .replace(/\\n/g, '\n'),
+    client_email: 'firebase-adminsdk-fbsvc@gen-lang-client-0342576140.iam.gserviceaccount.com',
+    client_id: '',
+    auth_uri: 'https://accounts.google.com/o/oauth2/auth',
+    token_uri: 'https://oauth2.googleapis.com/token',
+};
+
 function getDb() {
     if (!getApps().length) {
+        console.log('[_images] init Firebase, key starts:', SERVICE_ACCOUNT.private_key.slice(0, 30));
         initializeApp({
-            credential: cert({
-                projectId: 'gen-lang-client-0342576140',
-                clientEmail: 'firebase-adminsdk-fbsvc@gen-lang-client-0342576140.iam.gserviceaccount.com',
-                privateKey: process.env.FIREBASE_PRIVATE_KEY
-                    ? process.env.FIREBASE_PRIVATE_KEY
-                        .replace(/\\\\n/g, '\n')
-                        .replace(/\\n/g, '\n')
-                        .replace(/\n\n/g, '\n')
-                        .trim()
-                    : undefined,
-            }),
+            credential: cert(SERVICE_ACCOUNT as any),
         });
-        console.log('[_images] Firebase initialized, key length:', (process.env.FIREBASE_PRIVATE_KEY || '').length);
     }
     return getFirestore();
 }
@@ -42,37 +41,27 @@ export async function findTextbookImages(params: {
     page?: number;
     limit?: number;
 }): Promise<TextbookImage[]> {
-    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
-        return [];
-    }
     try {
         const db = getDb();
         const { grade, subject, medium, limit = 2 } = params;
 
-        console.log(`[_images] Querying: grade=${grade}(${typeof grade}) subject="${subject}" medium="${medium}"`);
+        console.log(`[_images] query grade=${grade} subject=${subject} medium=${medium}`);
 
-        const gradeNum = parseInt(grade);
-        console.log(`[_images] gradeNum=${gradeNum}`);
-
-        // Simple 3-field query (no page filter — avoid composite index issues)
         const snapshot = await db.collection('textbook_images')
-            .where('grade', '==', gradeNum)
+            .where('grade', '==', parseInt(grade))
             .where('subject', '==', subject)
             .where('medium', '==', medium)
             .limit(limit)
             .get();
 
-        console.log(`[_images] snapshot.size=${snapshot.size} empty=${snapshot.empty}`);
+        console.log(`[_images] found=${snapshot.size}`);
 
         if (snapshot.empty) {
-            console.log(`[_images] Trying fallback without medium...`);
-            // Fallback: grade + subject only
             const fallback = await db.collection('textbook_images')
-                .where('grade', '==', gradeNum)
+                .where('grade', '==', parseInt(grade))
                 .where('subject', '==', subject)
                 .limit(limit)
                 .get();
-            console.log(`[_images] fallback.size=${fallback.size}`);
             return fallback.docs.map((doc: any) => doc.data() as TextbookImage);
         }
 
