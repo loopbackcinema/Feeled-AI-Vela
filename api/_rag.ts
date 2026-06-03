@@ -79,7 +79,7 @@ export async function fetchRagContext(params: RagParams): Promise<RagResult> {
             headers: { 'Content-Type': 'application/json', 'Api-Key': PINECONE_API_KEY },
             body: JSON.stringify({ vector, topK: TOP_K, includeMetadata: true, filter }),
         });
-        if (!pinRes.ok) return { context: null, chunksFound: 0, citations: [], scores: [] };
+        const pinStatus = pinRes.status; console.log(`[rag] pinecone status=${pinStatus}`); if (!pinRes.ok) { const err = await pinRes.text(); console.log(`[rag] pinecone error=${err.slice(0,100)}`); return { context: null, chunksFound: 0, citations: [], scores: [] }; }
         const pinData = await pinRes.json() as any;
 
         // 4 ── filter by threshold, cap at 3 high-quality chunks
