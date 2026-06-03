@@ -40,33 +40,31 @@ export async function findTextbookImages(params: {
     }
     try {
         const db = getDb();
-        const { grade, subject, medium, page, limit = 3 } = params;
+        const { grade, subject, medium, limit = 2 } = params;
 
-        let q: FirebaseFirestore.Query = db.collection('textbook_images')
+        // Simple 3-field query (no page filter — avoid composite index issues)
+        const snapshot = await db.collection('textbook_images')
             .where('grade', '==', parseInt(grade))
             .where('subject', '==', subject)
-            .where('medium', '==', medium);
+            .where('medium', '==', medium)
+            .limit(limit)
+            .get();
 
-        if (page) {
-            q = q
-                .where('page', '>=', page - 2)
-                .where('page', '<=', page + 2);
-        }
-
-        const snapshot = await q.limit(limit).get();
+        console.log(`[images] grade=${grade} subject=${subject} medium=${medium} found=${snapshot.size}`);
 
         if (snapshot.empty) {
+            // Fallback: grade + subject only
             const fallback = await db.collection('textbook_images')
                 .where('grade', '==', parseInt(grade))
                 .where('subject', '==', subject)
                 .limit(limit)
                 .get();
-            return fallback.docs.map(doc => doc.data() as TextbookImage);
+            return fallback.docs.map((doc: any) => doc.data() as TextbookImage);
         }
 
-        return snapshot.docs.map(doc => doc.data() as TextbookImage);
+        return snapshot.docs.map((doc: any) => doc.data() as TextbookImage);
     } catch (e) {
-        console.error('[images] fetch error:', e);
+        console.error('Image fetch error:', e);
         return [];
     }
 }
