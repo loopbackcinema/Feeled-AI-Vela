@@ -1,26 +1,13 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
-// Hardcoded service account — avoids env var parsing issues
-const SERVICE_ACCOUNT = {
-    type: 'service_account',
-    project_id: 'gen-lang-client-0342576140',
-    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || '',
-    private_key: process.env.FIREBASE_PRIVATE_KEY_B64
-        ? Buffer.from(process.env.FIREBASE_PRIVATE_KEY_B64, 'base64').toString('utf-8')
-        : (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-    client_email: 'firebase-adminsdk-fbsvc@gen-lang-client-0342576140.iam.gserviceaccount.com',
-    client_id: '',
-    auth_uri: 'https://accounts.google.com/o/oauth2/auth',
-    token_uri: 'https://oauth2.googleapis.com/token',
-};
-
 function getDb() {
     if (!getApps().length) {
-        console.log('[_images] init Firebase, key starts:', SERVICE_ACCOUNT.private_key.slice(0, 50), 'includes newline:', SERVICE_ACCOUNT.private_key.includes('\n'));
-        initializeApp({
-            credential: cert(SERVICE_ACCOUNT as any),
-        });
+        const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_B64 || '';
+        console.log('[_images] b64 length:', b64.length);
+        const sa = JSON.parse(Buffer.from(b64, 'base64').toString('utf-8'));
+        console.log('[_images] sa.project_id:', sa.project_id);
+        initializeApp({ credential: cert(sa) });
     }
     return getFirestore();
 }
