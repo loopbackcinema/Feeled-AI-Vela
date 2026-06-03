@@ -42,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // Fetch textbook images after RAG so we can use the citation page number
         const ragPage = ragResult.citations?.[0]?.page || undefined;
         console.log(`[chat-session] Fetching images: grade="${grade}" subject="${subject}" medium="${medium}" chunksFound=${ragResult.chunksFound}`);
-        const textbookImages = ragResult.chunksFound > 0 && subject !== 'General'
+        const textbookImages = subject !== 'General' && subject !== ''
             ? await findTextbookImages({ grade, subject, medium, page: ragPage, limit: 2 }).catch((e) => {
                 console.error('[chat-session] image fetch failed:', e);
                 return [];
