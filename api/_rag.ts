@@ -58,7 +58,7 @@ export async function fetchRagContext(params: RagParams): Promise<RagResult> {
                 }),
             }
         );
-        if (!embRes.ok) return { context: null, chunksFound: 0, citations: [], scores: [] };
+        const embStatus = embRes.status; console.log(`[rag] embed status=${embStatus}`); if (!embRes.ok) return { context: null, chunksFound: 0, citations: [], scores: [] };
         const embData = await embRes.json() as any;
         const vector: number[] = embData.embedding?.values ?? [];
         if (vector.length === 0) return { context: null, chunksFound: 0, citations: [], scores: [] };
