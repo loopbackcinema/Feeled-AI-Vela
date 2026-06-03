@@ -40,6 +40,7 @@ function extractChapterNum(query: string): number | null {
 
 export async function fetchRagContext(params: RagParams): Promise<RagResult> {
     const { API_KEY, PINECONE_API_KEY, PINECONE_HOST } = process.env;
+    console.log(`[rag] API_KEY=${!!API_KEY} PINECONE_API_KEY=${!!PINECONE_API_KEY} PINECONE_HOST=${PINECONE_HOST}`);
     if (!API_KEY || !PINECONE_API_KEY || !PINECONE_HOST) {
         return { context: null, chunksFound: 0, citations: [], scores: [] };
     }
@@ -201,3 +202,4 @@ export async function fetchExamFrequency(params: {
         return { years: [], count: 0 };
     }
 }
+// DEBUG ONLY - remove later
