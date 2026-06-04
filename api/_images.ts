@@ -32,23 +32,51 @@ export async function findTextbookImages(params: {
 }): Promise<TextbookImage[]> {
   try {
     const db = getDb();
-    const { grade, subject, medium, limit = 2 } = params;
-    console.log(`[_images] query grade=${grade} subject=${subject} medium=${medium}`);
+    const { grade, subject, medium, page, limit = 2 } = params;
+    console.log(`[_images] query grade=${grade} subject=${subject} medium=${medium} page=${page}`);
+
+    const gradeNum = parseInt(grade);
+
+    // Try page-specific query first (±10 pages)
+    if (page && page > 0) {
+      const pageMin = Math.max(1, page - 10);
+      const pageMax = page + 10;
+      
+      const snapshot = await db.collection('textbook_images')
+        .where('grade', '==', gradeNum)
+        .where('subject', '==', subject)
+        .where('medium', '==', medium)
+        .where('page', '>=', pageMin)
+        .where('page', '<=', pageMax)
+        .limit(limit)
+        .get();
+
+      console.log(`[_images] page-specific found=${snapshot.size} (pages ${pageMin}-${pageMax})`);
+
+      if (!snapshot.empty) {
+        return snapshot.docs.map((doc: any) => doc.data() as TextbookImage);
+      }
+    }
+
+    // Fallback: subject + medium only
     const snapshot = await db.collection('textbook_images')
-      .where('grade', '==', parseInt(grade))
+      .where('grade', '==', gradeNum)
       .where('subject', '==', subject)
       .where('medium', '==', medium)
       .limit(limit)
       .get();
-    console.log(`[_images] found=${snapshot.size}`);
+
+    console.log(`[_images] fallback found=${snapshot.size}`);
+
     if (snapshot.empty) {
-      const fallback = await db.collection('textbook_images')
-        .where('grade', '==', parseInt(grade))
+      const fallback2 = await db.collection('textbook_images')
+        .where('grade', '==', gradeNum)
         .where('subject', '==', subject)
         .limit(limit)
         .get();
-      return fallback.docs.map((doc: any) => doc.data() as TextbookImage);
+      return fallback2.docs.map((doc: any) => doc.data() as TextbookImage);
     }
+
     return snapshot.docs.map((doc: any) => doc.data() as TextbookImage);
   } catch (e) {
     console.error('[_images] ERROR:', e);
