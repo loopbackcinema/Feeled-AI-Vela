@@ -1811,7 +1811,7 @@ const callAPI = useCallback(async (
                                     {msg.role === 'model' && msg.textbookImages && msg.textbookImages.length > 0 && (
                                         <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                                             <div style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: isDarkMode ? '#4a4a6a' : '#9ca3af', marginBottom: 4 }}>
-                                                📚 From Your Textbook
+                                                📚 Related Textbook Images
                                             </div>
                                             {msg.textbookImages.map((img, idx) => (
                                                 <div key={idx} style={{ borderRadius: 12, overflow: 'hidden', border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`, maxWidth: 320 }}>
@@ -1822,7 +1822,7 @@ const callAPI = useCallback(async (
                                                         loading="lazy"
                                                     />
                                                     <div style={{ padding: '6px 10px', fontSize: 10, color: isDarkMode ? '#555' : '#9ca3af', background: isDarkMode ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.03)' }}>
-                                                        Grade {img.grade} · {img.subject} · Page {img.page}
+                                                        Grade {img.grade} · {img.subject}
                                                     </div>
                                                 </div>
                                             ))}
