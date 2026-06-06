@@ -681,6 +681,7 @@ const ChatPage: React.FC = () => {
 
     const loadHistory = async (loadMore: boolean) => {
         if (!user || isLoadingHistory) return;
+        console.log('[history] loading, uid:', user.uid, 'loadMore:', loadMore);
         setIsLoadingHistory(true);
         try {
             let q = query(
@@ -699,11 +700,12 @@ const ChatPage: React.FC = () => {
                 );
             }
             const snap = await getDocs(q);
+            console.log('[history] snap.size:', snap.size);
             const items: ChatHistoryItem[] = snap.docs.map(d => {
                 const data = d.data();
                 return {
                     id: d.id,
-                    title:    data.title    || 'Chat',
+                    title:    data.title    || data.messages?.[0]?.text?.slice(0, 40) || 'Chat',
                     subject:  data.subject  || '',
                     grade:    data.grade    || '',
                     board:    data.board    || '',
@@ -716,7 +718,9 @@ const ChatPage: React.FC = () => {
             lastHistoryDoc.current = snap.docs[snap.docs.length - 1] || null;
             setChatHistory(prev => loadMore ? [...prev, ...items] : items);
             setHasMoreHistory(snap.docs.length === HISTORY_PAGE_SIZE);
-        } catch { /* ignore */ } finally {
+        } catch (e) {
+            console.error('[history] ERROR:', e);
+        } finally {
             setIsLoadingHistory(false);
         }
     };
