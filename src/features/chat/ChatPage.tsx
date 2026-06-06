@@ -207,11 +207,12 @@ interface SidebarProps {
     onAuth: () => void;
     onNavigate: (path: string) => void;
     onSelectSession: (item: ChatHistoryItem) => void;
+    activeSessionId: string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
     open, onClose, desktopOpen, onToggle, user, chatHistory, hasMoreHistory, isLoadingHistory,
-    onLoadMore, onNewChat, onAuth, onNavigate, onSelectSession,
+    onLoadMore, onNewChat, onAuth, onNavigate, onSelectSession, activeSessionId,
 }) => {
     const { t } = useTranslation();
     const { isPlus, showUpgrade } = useSubscription();
@@ -267,60 +268,70 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                 {/* User profile */}
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-[#222]">
-                    {user && (
-                        <div className="flex items-center gap-3 mb-3">
+                    {user ? (
+                        <div className="flex items-center gap-3">
                             {user.photoURL
-                                ? <img src={user.photoURL} alt="" className="w-9 h-9 rounded-full ring-2 ring-indigo-500/40" />
-                                : <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-black text-sm">{user.displayName?.[0]?.toUpperCase() ?? 'U'}</div>
+                                ? <img src={user.photoURL} alt="" className="w-9 h-9 rounded-full ring-2 ring-indigo-500/40 flex-shrink-0" />
+                                : <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0">{user.displayName?.[0]?.toUpperCase() ?? 'U'}</div>
                             }
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                                 <p className="text-gray-900 dark:text-white font-bold text-sm truncate">{user.displayName || 'Student'}</p>
                                 <p className="text-gray-500 dark:text-[#666] text-xs truncate">{user.email}</p>
-                                {isPlus ? <span style={{fontSize:'10px',color:'#818cf8'}}>⭐ FeelEd Plus</span> : <button onClick={() => showUpgrade()} style={{fontSize:'10px',color:'#6366f1',background:'none',border:'none',cursor:'pointer'}}>Upgrade to Plus ✨</button>}
+                                {isPlus
+                                    ? <span style={{fontSize:'10px',color:'#818cf8'}}>⭐ FeelEd Plus</span>
+                                    : <button onClick={() => showUpgrade()} style={{fontSize:'10px',color:'#6366f1',background:'none',border:'none',cursor:'pointer',padding:0}}>Upgrade to Plus ✨</button>
+                                }
                             </div>
+                            <button onClick={onAuth} title="Sign out" className="flex-shrink-0 p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-[#2A2A2A] text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#888] transition-colors">
+                                <LogOut className="w-3.5 h-3.5" />
+                            </button>
                         </div>
+                    ) : (
+                        <button onClick={onAuth} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-[#1E1E1E] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-sm font-semibold text-gray-700 dark:text-[#CCCCCC] transition-colors">
+                            <LogIn className="w-4 h-4 flex-shrink-0" />
+                            Student Login
+                        </button>
                     )}
-                    <button onClick={onAuth} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-[#1E1E1E] hover:bg-gray-200 dark:hover:bg-[#2A2A2A] text-sm font-semibold text-gray-700 dark:text-[#CCCCCC] transition-colors">
-                        {user ? <LogOut className="w-4 h-4 flex-shrink-0" /> : <LogIn className="w-4 h-4 flex-shrink-0" />}
-                        {user ? t('nav.signOut') : 'Student Login'}
-                    </button>
-                </div>
-
-                {/* New Chat */}
-                <div className="px-4 py-3 border-b border-gray-200 dark:border-[#222]">
-                    <button onClick={onNewChat} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold transition-colors">
-                        <SquarePen className="w-4 h-4" /> {t('nav.newChat')}
-                    </button>
                 </div>
 
                 {/* Scrollable content */}
                 <div className="flex-1 overflow-y-auto" ref={historyRef} onScroll={handleHistoryScroll}>
 
-                    {/* Chat History */}
-                    {chatHistory.length > 0 && (
-                        <div className={groupWrap}>
-                            <span className={groupLabel}>Recent Chats</span>
-                            <div className="space-y-0.5">
-                                {chatHistory.map(item => (
-                                    <button key={item.id} onClick={() => onSelectSession(item)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1E1E1E] transition-colors group">
+                    {/* Recents + New Chat */}
+                    <div className={groupWrap}>
+                        <div className="flex items-center justify-between mb-1">
+                            <span className={groupLabel} style={{marginBottom:0}}>Recents</span>
+                            <button onClick={onNewChat} title="New chat" className="flex items-center gap-1 px-2 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white transition-colors" style={{fontSize:'11px',fontWeight:700}}>
+                                <SquarePen className="w-3 h-3" /> New
+                            </button>
+                        </div>
+                        <div className="space-y-0.5 mt-1">
+                            {chatHistory.length === 0 && (
+                                <p className="text-[11px] text-gray-400 dark:text-[#555] px-3 py-2">No recent chats</p>
+                            )}
+                            {chatHistory.map(item => {
+                                const isActive = item.id === activeSessionId;
+                                return (
+                                    <button key={item.id} onClick={() => onSelectSession(item)}
+                                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors group ${isActive ? 'bg-indigo-50 dark:bg-[#1a1a3a]' : 'hover:bg-gray-100 dark:hover:bg-[#1E1E1E]'}`}>
                                         <div className="flex items-center gap-1.5">
                                             <span className="text-[11px] flex-shrink-0">{item.mode === 'story' ? '📖' : item.mode === 'exam' ? '📝' : '💬'}</span>
-                                            <p className="text-gray-700 dark:text-[#CCCCCC] text-xs font-medium truncate group-hover:text-gray-900 dark:group-hover:text-white">{item.title}</p>
+                                            <p className={`text-xs font-medium truncate ${isActive ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-700 dark:text-[#CCCCCC] group-hover:text-gray-900 dark:group-hover:text-white'}`}>{item.title}</p>
                                         </div>
                                         <div className="flex items-center gap-1.5 mt-0.5 pl-5">
                                             <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold">{item.subject}</span>
                                             <span className="text-[10px] text-gray-400 dark:text-[#555]">· {item.grade}</span>
                                         </div>
                                     </button>
-                                ))}
-                                {hasMoreHistory && (
-                                    <button onClick={onLoadMore} disabled={isLoadingHistory} className="w-full text-center text-xs text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#888] py-2 transition-colors">
-                                        {isLoadingHistory ? 'Loading...' : 'Load more'}
-                                    </button>
-                                )}
-                            </div>
+                                );
+                            })}
+                            {hasMoreHistory && (
+                                <button onClick={onLoadMore} disabled={isLoadingHistory} className="w-full text-center text-xs text-gray-400 dark:text-[#555] hover:text-gray-600 dark:hover:text-[#888] py-2 transition-colors">
+                                    {isLoadingHistory ? 'Loading...' : 'Load more'}
+                                </button>
+                            )}
                         </div>
-                    )}
+                    </div>
 
                     {/* GROUP 1: LEARN */}
                     <div className={groupWrap}>
@@ -1127,6 +1138,7 @@ const callAPI = useCallback(async (
                 onAuth={handleAuth}
                 onNavigate={path => { navigate(path); setSidebarOpen(false); }}
                 onSelectSession={handleSelectSession}
+                activeSessionId={sessionRef.current.id}
             />
 
             {/* Desktop sidebar reopen tab — visible only when sidebar is collapsed */}
