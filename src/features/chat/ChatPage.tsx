@@ -659,26 +659,6 @@ const ChatPage: React.FC = () => {
         return () => document.removeEventListener('mousedown', handle);
     }, [plusOpen]);
 
-    // Load initial chat history + fire mode/streak tracking
-    useEffect(() => {
-        if (!user) { setChatHistory([]); return; }
-        loadHistory(false);
-        // Fire-and-forget — never blocks UI
-        updateRecentMode({ uid: user.uid, mode: 'chat' });
-        updateLearningStreak(user.uid);
-        // Load memory for personalized empty state (2s timeout)
-        Promise.race([
-            getStudentMemory(user.uid),
-            new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
-        ]).then(mem => {
-            if (!mem) return;
-            setStudentMemory(mem);
-            if (!mem.welcomeShown && chatMessages.length === 0) {
-                triggerWelcome(mem, user.uid, user.displayName);
-            }
-        });
-    }, [user]);
-
     const loadHistory = async (loadMore: boolean) => {
         if (!user || isLoadingHistory) return;
         console.log('[history] loading, uid:', user.uid, 'loadMore:', loadMore);
@@ -724,6 +704,26 @@ const ChatPage: React.FC = () => {
             setIsLoadingHistory(false);
         }
     };
+
+    // Load initial chat history + fire mode/streak tracking
+    useEffect(() => {
+        if (!user) { setChatHistory([]); return; }
+        loadHistory(false);
+        // Fire-and-forget — never blocks UI
+        updateRecentMode({ uid: user.uid, mode: 'chat' });
+        updateLearningStreak(user.uid);
+        // Load memory for personalized empty state (2s timeout)
+        Promise.race([
+            getStudentMemory(user.uid),
+            new Promise<null>(resolve => setTimeout(() => resolve(null), 2000)),
+        ]).then(mem => {
+            if (!mem) return;
+            setStudentMemory(mem);
+            if (!mem.welcomeShown && chatMessages.length === 0) {
+                triggerWelcome(mem, user.uid, user.displayName);
+            }
+        });
+    }, [user]);
 
     // First-time welcome message sequence — goal-aware
     const triggerWelcome = async (memory: StudentMemory, uid: string, displayName: string | null) => {
