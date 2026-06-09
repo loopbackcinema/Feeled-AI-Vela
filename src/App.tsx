@@ -144,14 +144,16 @@ const App: React.FC = () => {
             setSession({ generatedStory: story });
             navigate('/story');
             setIsLoading(false);
-            try {
-                await addDoc(collection(db, 'stories'), {
-                    userId: user.uid, userEmail: user.email || 'No Email',
-                    title: story.title,
-                    content: `${story.introduction}\n\n${story.concept_explanation}\n\n${story.resolution}`,
-                    language: request.language, topic: request.topic, createdAt: serverTimestamp(),
-                });
-            } catch (e) { console.warn('FeelEd:', e); }
+            if (user) {
+                try {
+                    await addDoc(collection(db, 'stories'), {
+                        userId: user.uid, userEmail: user.email || 'No Email',
+                        title: story.title,
+                        content: `${story.introduction}\n\n${story.concept_explanation}\n\n${story.resolution}`,
+                        language: request.language, topic: request.topic, createdAt: serverTimestamp(),
+                    });
+                } catch (e) { console.warn('FeelEd:', e); }
+            }
             setIsAudioLoading(true);
             setIsImageLoading(true);
             generateVoice(story, request)

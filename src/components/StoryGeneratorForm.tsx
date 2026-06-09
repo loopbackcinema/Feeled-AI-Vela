@@ -157,20 +157,24 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || !topic.trim()) return;
-        const { allowed } = await canUseFeature(user.uid, 'stories');
-        if (!allowed) { showUpgrade('stories'); return; }
-        incrementUsage(user.uid, 'stories').catch(() => {});
+        if (!topic.trim()) return;
+        if (user) {
+            const { allowed } = await canUseFeature(user.uid, 'stories');
+            if (!allowed) { showUpgrade('stories'); return; }
+            incrementUsage(user.uid, 'stories').catch(() => {});
+        }
         onSubmit({ topic, std: `Grade ${grade}`, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
-        // Save to chat_sessions for sidebar history — fire-and-forget
-        addDoc(collection(db, 'chat_sessions'), {
-            userId: user.uid, title: `📖 Story: ${topic.trim().slice(0, 40)}`, subject: 'Story',
-            grade: std, board: '', language: apiLanguage, mode: 'story',
-            messages: [], updatedAt: serverTimestamp(), createdAt: serverTimestamp(),
-        }).catch(() => {});
-        // Memory engine — fire-and-forget
-        updateRecentTopic({ uid: user.uid, topic: topic.trim(), subject: 'General', source: 'story' });
-        updateRecentMode({ uid: user.uid, mode: 'story' });
+        if (user) {
+            // Save to chat_sessions for sidebar history — fire-and-forget
+            addDoc(collection(db, 'chat_sessions'), {
+                userId: user.uid, title: `📖 Story: ${topic.trim().slice(0, 40)}`, subject: 'Story',
+                grade: std, board: '', language: apiLanguage, mode: 'story',
+                messages: [], updatedAt: serverTimestamp(), createdAt: serverTimestamp(),
+            }).catch(() => {});
+            // Memory engine — fire-and-forget
+            updateRecentTopic({ uid: user.uid, topic: topic.trim(), subject: 'General', source: 'story' });
+            updateRecentMode({ uid: user.uid, mode: 'story' });
+        }
     };
 
     const startListening = () => {
@@ -435,56 +439,16 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                             </div>
                         </div>
 
-                        {/* ── Generate / Login button ───────────────────── */}
-                        {user ? (
-                            <>
-                            <button
-                                type="submit"
-                                className="sgf-pulse"
-                                disabled={isLoading}
-                                style={{ width: '100%', height: 60, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, color: 'white', fontSize: 18, fontWeight: 700, border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1 }}
-                            >
-                                ✨ Generate AI Story
-                            </button>
-                            {!isPlus && <div style={{textAlign:'center',color:'#a78bfa',fontSize:'11px',marginTop:'8px',background:'rgba(79,70,229,0.1)',border:'0.5px solid rgba(79,70,229,0.3)',borderRadius:'8px',padding:'6px 12px'}}>{Math.max(0, 3 - (dailyUsage?.stories || 0))} of 3 free stories remaining today</div>}
-                            </>
-                        ) : (
-                            <button
-                                type="button"
-                                disabled={isLoggingIn}
-                                onClick={async () => {
-                                    try { setIsLoggingIn(true); await signInWithGoogle(); }
-                                    catch (err: any) { alert(err.message || 'Login failed. Please check if popups are blocked.'); }
-                                    finally { setIsLoggingIn(false); }
-                                }}
-                                style={{ width: '100%', height: 56, background: isLoggingIn ? '#4338ca' : 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, color: 'white', fontSize: 16, fontWeight: 700, border: 'none', cursor: isLoggingIn ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
-                            >
-                                {isLoggingIn ? (
-                                    <><span style={{ width: 18, height: 18, border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} /> Authenticating…</>
-                                ) : (
-                                    <><span>🔑</span> Login with Google to Start</>
-                                )}
-                            </button>
-                        )}
-
-                        {/* Trouble logging in */}
-                        {!user && (
-                            <div style={{ borderTop: '0.5px solid #2a2a4a', paddingTop: 12 }}>
-                                <details>
-                                    <summary style={{ cursor: 'pointer', color: '#4a4a6a', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', listStyle: 'none', textAlign: 'center' }}>
-                                        ❓ Trouble Logging In?
-                                    </summary>
-                                    <div style={{ marginTop: 10, background: 'rgba(10,10,22,0.7)', border: '0.5px solid #2a2a4a', borderRadius: 12, padding: '12px 16px', fontSize: 12, color: '#4a4a6a', lineHeight: 1.7 }}>
-                                        <p style={{ marginBottom: 8 }}>If the login button doesn't respond or shows an error:</p>
-                                        <ul style={{ paddingLeft: 16, margin: 0 }}>
-                                            <li><strong style={{ color: '#6060a0' }}>Pop-ups:</strong> Ensure your browser allows pop-ups for this site.</li>
-                                            <li><strong style={{ color: '#6060a0' }}>Third-Party Cookies:</strong> Firebase requires third-party cookies. Try Incognito Mode.</li>
-                                            <li><strong style={{ color: '#6060a0' }}>Brave/Safari:</strong> Disable Shields or Cross-Site Tracking prevention.</li>
-                                        </ul>
-                                    </div>
-                                </details>
-                            </div>
-                        )}
+                        {/* ── Generate button ───────────────────── */}
+                        <button
+                            type="submit"
+                            className="sgf-pulse"
+                            disabled={isLoading}
+                            style={{ width: '100%', height: 60, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: 16, color: 'white', fontSize: 18, fontWeight: 700, border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', opacity: isLoading ? 0.7 : 1 }}
+                        >
+                            ✨ Generate AI Story
+                        </button>
+                        {user && !isPlus && <div style={{textAlign:'center',color:'#a78bfa',fontSize:'11px',marginTop:'8px',background:'rgba(79,70,229,0.1)',border:'0.5px solid rgba(79,70,229,0.3)',borderRadius:'8px',padding:'6px 12px'}}>{Math.max(0, 3 - (dailyUsage?.stories || 0))} of 3 free stories remaining today</div>}
 
                     </form>
                 </div>
