@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { updateRecentMode } from '../services/memoryService';
-import GuestLoginModal from '../components/GuestLoginModal';
 
 const GameMode: React.FC = () => {
     const navigate = useNavigate();
@@ -11,7 +10,6 @@ const GameMode: React.FC = () => {
     const [iframeError, setIframeError] = useState(false);
     const [loading, setLoading] = useState(true);
     const [key, setKey] = useState(0);
-    const [showGuestModal, setShowGuestModal] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -43,55 +41,6 @@ const GameMode: React.FC = () => {
     const retry = () => {
         setKey(k => k + 1);
     };
-
-    if (!user) {
-        return (
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0a0a18' }}>
-                {/* Branding header */}
-                <div style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '0 16px', height: 60, flexShrink: 0,
-                    background: 'rgba(10,10,24,0.95)', backdropFilter: 'blur(12px)',
-                    borderBottom: '0.5px solid rgba(79,70,229,0.25)', zIndex: 10,
-                }}>
-                    <button
-                        onClick={() => navigate('/')}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#94a3b8', fontSize: 13, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: '6px 10px', borderRadius: 8, transition: 'color 0.2s' }}
-                        onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                        onMouseLeave={e => (e.currentTarget.style.color = '#94a3b8')}
-                    >
-                        ← Home
-                    </button>
-                    <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 16 }}>|</span>
-                    <span style={{ color: '#fff', fontWeight: 900, fontSize: 14, letterSpacing: '0.1em', textTransform: 'uppercase' }}>🎮 Game Mode</span>
-                </div>
-                {/* Teaser */}
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 24px' }}>
-                    <div style={{ textAlign: 'center', maxWidth: 380 }}>
-                        <div style={{ fontSize: 64, marginBottom: 20 }}>🎮</div>
-                        <h2 style={{ color: '#eeeef8', fontSize: 24, fontWeight: 800, margin: '0 0 12px' }}>Game Mode</h2>
-                        <p style={{ color: '#4a4a6a', fontSize: 15, marginBottom: 28, lineHeight: 1.6 }}>
-                            Learn through interactive activities, quizzes, and challenges designed for TN Board students.
-                        </p>
-                        <button
-                            onClick={() => setShowGuestModal(true)}
-                            style={{
-                                background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff',
-                                border: 'none', borderRadius: 12, padding: '14px 32px',
-                                fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                                boxShadow: '0 4px 20px rgba(79,70,229,0.35)',
-                            }}
-                        >
-                            Sign in to Play
-                        </button>
-                    </div>
-                </div>
-                {showGuestModal && (
-                    <GuestLoginModal heading="Sign in to play" onClose={() => setShowGuestModal(false)} />
-                )}
-            </div>
-        );
-    }
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#0a0a18' }}>

@@ -110,6 +110,7 @@ const App: React.FC = () => {
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [error, setError]                   = useState<string | null>(null);
     const [showGuestModal, setShowGuestModal] = useState(false);
+    const [guestStoryCount, setGuestStoryCount] = useState(0);
 
     const navigateTo = useCallback((page: Page) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -133,7 +134,8 @@ const App: React.FC = () => {
     };
 
     const handleGenerateStory = useCallback(async (request: StoryRequest) => {
-        if (!user) { setShowGuestModal(true); return; }
+        if (!user && guestStoryCount >= 1) { setShowGuestModal(true); return; }
+        if (!user) setGuestStoryCount(c => c + 1);
         setIsLoading(true);
         setError(null);
         setSession({ generatedStory: null, base64Audio: null, base64Image: null, imageMimeType: null, lastLanguage: request.language });
@@ -164,7 +166,7 @@ const App: React.FC = () => {
             setError(formatError(err));
             setIsLoading(false);
         }
-    }, [user, navigate, setSession]);
+    }, [user, navigate, setSession, guestStoryCount]);
 
     const handleTryAnother = () => {
         setSession({ generatedStory: null, base64Audio: null, base64Image: null, imageMimeType: null });
