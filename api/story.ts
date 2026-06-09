@@ -58,17 +58,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         Return output strictly in JSON format matching the schema.`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: storySchema,
-            },
-        });
+        const generateWithModel = async (model: string) => {
+            const response = await ai.models.generateContent({
+                model,
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: storySchema,
+                },
+            });
+            if (!response.text) throw new Error("Empty response from Gemini");
+            return JSON.parse(response.text.trim());
+        };
 
-        if (!response.text) throw new Error("Empty response from Gemini");
-        const story = JSON.parse(response.text.trim());
+        let story: any;
+        try {
+            story = await generateWithModel('gemini-2.5-flash');
+        } catch (firstErr: any) {
+            const status = firstErr?.status ?? firstErr?.httpStatus;
+            if (status === 503 || String(firstErr?.message).includes('503')) {
+                console.warn('[story] 503 from gemini-2.5-flash, retrying with gemini-1.5-flash');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                story = await generateWithModel('gemini-1.5-flash');
+            } else {
+                throw firstErr;
+            }
+        }
+
         res.status(200).json({ story });
     } catch (error) {
         console.error('Gemini Story Generation Error:', error);
