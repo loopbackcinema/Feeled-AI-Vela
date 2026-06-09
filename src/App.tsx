@@ -239,28 +239,22 @@ const App: React.FC = () => {
                     </ProtectedRoute>
                 } />
                 <Route path="/story" element={
-                    <ProtectedRoute>
-                        {generatedStory
-                            ? <PageShell><StoryDisplay story={generatedStory} language={lastLanguage} base64Audio={base64Audio} isAudioLoading={isAudioLoading} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} onTryAnother={handleTryAnother} /></PageShell>
-                            : <Navigate to="/generator" />}
-                    </ProtectedRoute>
+                    generatedStory
+                        ? <PageShell><StoryDisplay story={generatedStory} language={lastLanguage} base64Audio={base64Audio} isAudioLoading={isAudioLoading} base64Image={base64Image} imageMimeType={imageMimeType} isImageLoading={isImageLoading} onTryAnother={handleTryAnother} /></PageShell>
+                        : <Navigate to="/generator" />
                 } />
                 <Route path="/generator" element={
                     <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
                 } />
                 <Route path="/exam" element={
-                    <ProtectedRoute>
-                        {examData
-                            ? <PageShell><ExamModeScreen examPrep={examData} topic={studentContext.subject} context={studentContext} onBack={() => navigate('/')} /></PageShell>
-                            : <Navigate to="/" />}
-                    </ProtectedRoute>
+                    examData
+                        ? <PageShell><ExamModeScreen examPrep={examData} topic={studentContext.subject} context={studentContext} onBack={() => navigate('/')} /></PageShell>
+                        : <Navigate to="/" />
                 } />
                 <Route path="/practice" element={
-                    <ProtectedRoute>
-                        {practiceData
-                            ? <PageShell><PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/answer')} /></PageShell>
-                            : <Navigate to="/" />}
-                    </ProtectedRoute>
+                    practiceData
+                        ? <PageShell><PracticeScreen questions={practiceData} topic={currentQuestion} subject={studentContext.subject} onBack={() => navigate('/answer')} /></PageShell>
+                        : <Navigate to="/" />
                 } />
                 <Route path="/dashboard" element={
                     <ProtectedRoute>
