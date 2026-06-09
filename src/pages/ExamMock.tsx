@@ -80,6 +80,7 @@ export default function ExamMock() {
     const [loadingStep, setLoadingStep] = useState(0);
     const [error, setError] = useState('');
     const [showGuestModal, setShowGuestModal] = useState(false);
+    const [guestSubmitCount, setGuestSubmitCount] = useState(0);
 
     // Test state
     const [questions, setQuestions] = useState<ExamQuestion[]>([]);
@@ -150,7 +151,8 @@ export default function ExamMock() {
 
     const startExam = async () => {
         if (!chapter.trim()) { setError('Please enter a chapter name'); return; }
-        if (!user) { setShowGuestModal(true); return; }
+        if (!user && guestSubmitCount >= 1) { setShowGuestModal(true); return; }
+        if (!user) setGuestSubmitCount(c => c + 1);
         if (user) {
             const { allowed } = await canUseFeature(user.uid, 'exams');
             if (!allowed) { showUpgrade('exams'); return; }

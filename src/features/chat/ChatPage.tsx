@@ -609,6 +609,7 @@ const ChatPage: React.FC = () => {
     const [gameAwake, setGameAwake]   = useState(false);
     const [examAwake, setExamAwake]   = useState(false);
     const [showGuestModal, setShowGuestModal] = useState(false);
+    const [guestMsgCount, setGuestMsgCount]   = useState(0);
 
     // Offline/online detection
     useEffect(() => {
@@ -904,6 +905,14 @@ const callAPI = useCallback(async (
     const sendMessage = useCallback(async (text: string) => {
         const trimmed = text.trim();
         if (!trimmed || isLoading) return;
+
+        // Freemium gate: show login wall before processing the 2nd guest message
+        if (!user && guestMsgCount >= 1) {
+            setShowGuestModal(true);
+            return;
+        }
+        if (!user) setGuestMsgCount(c => c + 1);
+
         setInput('');
 
         const userMsg: StudyChatMessage = { id: `${Date.now()}-u`, role: 'user', text: trimmed, timestamp: Date.now() };
@@ -963,7 +972,6 @@ const callAPI = useCallback(async (
                 setSession({ chatMessages: finalMsgs });
                 setPendingQuestion('');
                 saveSession(finalMsgs).catch(() => {});
-                if (!user) setShowGuestModal(true);
             } catch {
                 setSession({ chatMessages: [...chatMessages, userMsg, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
             } finally {
@@ -995,7 +1003,6 @@ const callAPI = useCallback(async (
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
-            if (!user) setShowGuestModal(true);
             // Update memory — fire-and-forget, never blocks UI
             if (user) {
                 updateRecentTopic({ uid: user.uid, topic: trimmed.slice(0, 60), subject: subject || 'General', source: 'chat' });
@@ -1006,7 +1013,7 @@ const callAPI = useCallback(async (
             setIsLoading(false);
             setUploadedImage(null);
         }
-    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession, user]);
+    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession, user, guestMsgCount]);
 
     // TTS
     const playTts = async (text: string, msgId: string) => {
