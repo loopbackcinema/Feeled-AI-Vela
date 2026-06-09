@@ -29,6 +29,7 @@ import { generateStudyInsights, generateNextTopicSuggestions, generateWeaknessRe
 import { generateFuturePathSuggestions, generateExamPriorityRecommendations, generateLearningHabitInsights, generateCrossModeContext, generateInsightCards } from '../../services/mentorEngine';
 import type { InsightCard } from '../../services/mentorEngine';
 import TypewriterMarkdown from '../../components/TypewriterMarkdown';
+import GuestLoginModal from '../../components/GuestLoginModal';
 import { StudyChatMessage, RagCitation } from '../../types';
 import PushNotificationSetup from '../../components/PushNotificationSetup';
 import { useTranslation } from 'react-i18next';
@@ -607,6 +608,7 @@ const ChatPage: React.FC = () => {
     const [storyAwake, setStoryAwake] = useState(false);
     const [gameAwake, setGameAwake]   = useState(false);
     const [examAwake, setExamAwake]   = useState(false);
+    const [showGuestModal, setShowGuestModal] = useState(false);
 
     // Offline/online detection
     useEffect(() => {
@@ -961,6 +963,7 @@ const callAPI = useCallback(async (
                 setSession({ chatMessages: finalMsgs });
                 setPendingQuestion('');
                 saveSession(finalMsgs).catch(() => {});
+                if (!user) setShowGuestModal(true);
             } catch {
                 setSession({ chatMessages: [...chatMessages, userMsg, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
             } finally {
@@ -992,6 +995,7 @@ const callAPI = useCallback(async (
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
+            if (!user) setShowGuestModal(true);
             // Update memory — fire-and-forget, never blocks UI
             if (user) {
                 updateRecentTopic({ uid: user.uid, topic: trimmed.slice(0, 60), subject: subject || 'General', source: 'chat' });
@@ -1119,6 +1123,14 @@ const callAPI = useCallback(async (
 
             {/* Push notification subscription (renders nothing) */}
             <PushNotificationSetup />
+
+            {/* Guest login modal — shown after first AI response for non-logged-in users */}
+            {showGuestModal && !user && (
+                <GuestLoginModal
+                    heading="Sign in to continue learning"
+                    onClose={() => setShowGuestModal(false)}
+                />
+            )}
 
             {/* Offline banner */}
             {isOffline && (

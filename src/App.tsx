@@ -10,6 +10,7 @@ import StoryGeneratorForm from './components/StoryGeneratorForm';
 import StoryDisplay from './components/StoryDisplay';
 import PWAInstallBanner from './components/PWAInstallBanner';
 import ProtectedRoute from './components/ProtectedRoute';
+import GuestLoginModal from './components/GuestLoginModal';
 import ErrorBoundary from './components/ErrorBoundary';
 import BottomNav from './components/BottomNav';
 import { SubscriptionProvider } from './context/SubscriptionContext';
@@ -108,6 +109,7 @@ const App: React.FC = () => {
     const [isAudioLoading, setIsAudioLoading] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
     const [error, setError]                   = useState<string | null>(null);
+    const [showGuestModal, setShowGuestModal] = useState(false);
 
     const navigateTo = useCallback((page: Page) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -131,7 +133,7 @@ const App: React.FC = () => {
     };
 
     const handleGenerateStory = useCallback(async (request: StoryRequest) => {
-        if (!user) { setError('Please log in to generate stories.'); return; }
+        if (!user) { setShowGuestModal(true); return; }
         setIsLoading(true);
         setError(null);
         setSession({ generatedStory: null, base64Audio: null, base64Image: null, imageMimeType: null, lastLanguage: request.language });
@@ -221,8 +223,8 @@ const App: React.FC = () => {
             <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
             <Routes>
-                {/* ── Protected core app routes ── */}
-                <Route path="/" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                {/* ── Core routes — ChatPage/Game/ExamMock/Generator are public-first (freemium) ── */}
+                <Route path="/" element={<ChatPage />} />
                 <Route path="/chat" element={<Navigate to="/" replace />} />
 
                 <Route path="/answer" element={
@@ -240,9 +242,7 @@ const App: React.FC = () => {
                     </ProtectedRoute>
                 } />
                 <Route path="/generator" element={
-                    <ProtectedRoute>
-                        <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
-                    </ProtectedRoute>
+                    <StoryGeneratorForm onSubmit={handleGenerateStory} isLoading={isLoading} error={error} />
                 } />
                 <Route path="/exam" element={
                     <ProtectedRoute>
@@ -268,8 +268,8 @@ const App: React.FC = () => {
                         <PageShell showNav><div className="container mx-auto px-4 py-8 max-w-7xl"><MyStories onNavigate={navigateTo} /></div></PageShell>
                     </ProtectedRoute>
                 } />
-                <Route path="/game"      element={<ProtectedRoute><GameMode /></ProtectedRoute>} />
-                <Route path="/exam-mock" element={<ProtectedRoute><ExamMock /></ProtectedRoute>} />
+                <Route path="/game"      element={<GameMode />} />
+                <Route path="/exam-mock" element={<ExamMock />} />
 
                 {/* ── Public informational pages (no login required) ── */}
                 <Route path="/about"     element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
@@ -290,6 +290,12 @@ const App: React.FC = () => {
             </ErrorBoundary>
             <PWAInstallBanner />
             <BottomNav />
+            {showGuestModal && !user && (
+                <GuestLoginModal
+                    heading="Sign in to generate stories"
+                    onClose={() => setShowGuestModal(false)}
+                />
+            )}
         </SubscriptionProvider>
     );
 };

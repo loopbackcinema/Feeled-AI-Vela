@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import GuestLoginModal from '../components/GuestLoginModal';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { updateRecentMode, updateExamPerformance } from '../services/memoryService';
 import { canUseFeature, incrementUsage } from '../services/subscriptionService';
@@ -78,6 +79,7 @@ export default function ExamMock() {
     const [phase, setPhase] = useState<Phase>('setup');
     const [loadingStep, setLoadingStep] = useState(0);
     const [error, setError] = useState('');
+    const [showGuestModal, setShowGuestModal] = useState(false);
 
     // Test state
     const [questions, setQuestions] = useState<ExamQuestion[]>([]);
@@ -148,6 +150,7 @@ export default function ExamMock() {
 
     const startExam = async () => {
         if (!chapter.trim()) { setError('Please enter a chapter name'); return; }
+        if (!user) { setShowGuestModal(true); return; }
         if (user) {
             const { allowed } = await canUseFeature(user.uid, 'exams');
             if (!allowed) { showUpgrade('exams'); return; }
@@ -332,6 +335,12 @@ export default function ExamMock() {
     if (phase === 'setup' || phase === 'loading') {
         return (
             <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex flex-col items-center px-4 py-12">
+                {showGuestModal && !user && (
+                    <GuestLoginModal
+                        heading="Sign in to start your exam"
+                        onClose={() => setShowGuestModal(false)}
+                    />
+                )}
                 <div className="w-full max-w-2xl">
                     {/* Back */}
                     <button onClick={() => navigate('/')} className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 text-sm font-medium mb-8 transition-colors">
