@@ -38,6 +38,36 @@ function extractChapterNum(query: string): number | null {
     return m ? parseInt(m[1], 10) : null;
 }
 
+// Pinecone holds English curriculum content (gemini-embedding-001, 768d), so a raw
+// Tamil query embeds to a semantically mismatched vector → wrong matches. Translate
+// Tamil → a short English search phrase first. Non-Tamil queries pass through untouched
+// (no API call); any failure falls back to the original query so retrieval still runs.
+async function translateTamilQuery(query: string, API_KEY: string): Promise<string> {
+    if (!/[\u0B80-\u0BFF]/.test(query)) return query;  // no Tamil → no API call
+    try {
+        const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `Translate this Tamil student question into a short English search phrase for a curriculum search engine. Reply with only the English phrase, no quotes or explanation.\n\n${query}` }] }],
+                    generationConfig: { temperature: 0, maxOutputTokens: 50, thinkingConfig: { thinkingBudget: 0 } },
+                }),
+            }
+        );
+        if (!res.ok) return query;
+        const data = await res.json() as any;
+        const translated = (data.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim();
+        if (!translated) return query;
+        console.log(`[rag] translated "${query}" → "${translated}"`);
+        return translated;
+    } catch (err) {
+        console.error('[rag] translation failed (using original query):', err);
+        return query;
+    }
+}
+
 export async function fetchRagContext(params: RagParams): Promise<RagResult> {
     const { API_KEY, PINECONE_API_KEY, PINECONE_HOST } = process.env;
     console.log(`[rag] API_KEY=${!!API_KEY} PINECONE_API_KEY=${!!PINECONE_API_KEY} PINECONE_HOST=${PINECONE_HOST}`);
@@ -46,6 +76,9 @@ export async function fetchRagContext(params: RagParams): Promise<RagResult> {
     }
 
     try {
+        // 0 ── translate Tamil queries to English so they match the English index
+        const searchQuery = await translateTamilQuery(params.query, API_KEY);
+
         // 1 ── embed the query
         const embRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${API_KEY}`,
@@ -53,7 +86,7 @@ export async function fetchRagContext(params: RagParams): Promise<RagResult> {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    content: { parts: [{ text: params.query }] },
+                    content: { parts: [{ text: searchQuery }] },
                     outputDimensionality: 768,
                 }),
             }
@@ -156,13 +189,14 @@ export async function fetchExamFrequency(params: {
     if (!API_KEY || !PINECONE_API_KEY || !PINECONE_HOST) return { years: [], count: 0 };
 
     try {
+        const searchQuery = await translateTamilQuery(params.query, API_KEY);
         const embRes = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key=${API_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    content: { parts: [{ text: params.query }] },
+                    content: { parts: [{ text: searchQuery }] },
                     outputDimensionality: 768,
                 }),
             }
