@@ -821,6 +821,7 @@ const callAPI = useCallback(async (
     const decoder = new TextDecoder();
     let fullText = '';
     let finalData: any = {};
+    let gotDone = false;
     const streamingId = `${Date.now()}-streaming`;
     setSession(prev => ({ chatMessages: [...(prev.chatMessages || []), { id: streamingId, role: 'model', text: '', timestamp: Date.now() }] }));
     while (true) {
@@ -840,12 +841,28 @@ const callAPI = useCallback(async (
                         )
                     }));
                 }
-                if (data.done) finalData = data;
+                if (data.done) { finalData = data; gotDone = true; }
             } catch {}
         }
     }
-    return { reply: fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, ''), ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], textbookImages: finalData.textbookImages || [], streamingId };
+    return { reply: fullText.replace(/\nFOLLOWUP:[^\n]*/g, '').replace(/FOLLOWUP:[^\n]*/g, ''), ragUsed: finalData.ragUsed || false, suggestions: finalData.suggestions || [], ragCitations: finalData.ragCitations || [], textbookImages: finalData.textbookImages || [], completed: gotDone, streamingId };
 }, [setSession]);
+
+    // Build personalized student context (memory + mentor signals) for a query.
+    // Shared by sendMessage and regenerateMessage so both produce identical context.
+    const buildStudentCtx = useCallback(async (queryText: string): Promise<string> => {
+        const baseCtx = user ? await Promise.race([
+            getPersonalizedContext(user.uid, queryText),
+            new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
+        ]) : '';
+        return studentMemory
+            ? [
+                baseCtx,
+                generateFuturePathSuggestions(studentMemory).slice(0, 2).join(' '),
+                `Exam priorities: ${generateExamPriorityRecommendations(studentMemory).slice(0, 2).join(', ')}`,
+            ].filter(Boolean).join('\n')
+            : baseCtx;
+    }, [user, studentMemory]);
 
     // Message rating handlers
     const handleRating = async (msgId: string, rating: 'up' | 'down') => {
@@ -967,13 +984,13 @@ const callAPI = useCallback(async (
                     language: actualLang,
                     medium: actualLang === 'Tamil' ? 'Tamil' : 'English',
                 }, undefined, undefined, studentCtx);
-                const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, textbookImages: data.textbookImages, timestamp: Date.now() };
+                const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, textbookImages: data.textbookImages, timestamp: Date.now(), incomplete: !data.completed || data.reply.trim().length === 0 };
                 const finalMsgs = [...newMessages, aiMsg];
                 setSession({ chatMessages: finalMsgs });
                 setPendingQuestion('');
                 saveSession(finalMsgs).catch(() => {});
             } catch {
-                setSession({ chatMessages: [...chatMessages, userMsg, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
+                setSession({ chatMessages: [...chatMessages, userMsg, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now(), incomplete: true }] });
             } finally {
                 setIsLoading(false);
                 setUploadedImage(null);
@@ -987,19 +1004,9 @@ const callAPI = useCallback(async (
         setIsLoading(true);
 
         try {
-            const baseCtx = user ? await Promise.race([
-                getPersonalizedContext(user.uid, trimmed),
-                new Promise<string>(resolve => setTimeout(() => resolve(''), 2000)),
-            ]) : '';
-            const studentCtx = studentMemory
-                ? [
-                    baseCtx,
-                    generateFuturePathSuggestions(studentMemory).slice(0, 2).join(' '),
-                    `Exam priorities: ${generateExamPriorityRecommendations(studentMemory).slice(0, 2).join(', ')}`,
-                ].filter(Boolean).join('\n')
-                : baseCtx;
+            const studentCtx = await buildStudentCtx(trimmed);
             const data = await callAPI(trimmed, updated, { board, grade, subject, language, medium }, uploadedImage?.base64, uploadedImage?.mime, studentCtx);
-            const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, textbookImages: data.textbookImages, timestamp: Date.now() };
+            const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, textbookImages: data.textbookImages, timestamp: Date.now(), incomplete: !data.completed || data.reply.trim().length === 0 };
             const finalMsgs = [...updated, aiMsg];
             setSession({ chatMessages: finalMsgs });
             saveSession(finalMsgs).catch(() => {});
@@ -1008,12 +1015,40 @@ const callAPI = useCallback(async (
                 updateRecentTopic({ uid: user.uid, topic: trimmed.slice(0, 60), subject: subject || 'General', source: 'chat' });
             }
         } catch {
-            setSession({ chatMessages: [...updated, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now() }] });
+            setSession({ chatMessages: [...updated, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now(), incomplete: true }] });
         } finally {
             setIsLoading(false);
             setUploadedImage(null);
         }
-    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession, user, guestMsgCount]);
+    }, [chatMessages, isLoading, contextReady, awaitingContext, pendingQuestion, board, standard, subject, language, grade, medium, uploadedImage, setSession, setContext, callAPI, saveSession, buildStudentCtx, user, guestMsgCount]);
+
+    // Regenerate the latest assistant answer: re-send the user question that produced it,
+    // replacing only that one answer with a fresh response. Reuses callAPI (no duplicated
+    // API/stream code), never consumes a guest credit, and is text-only (no image re-send).
+    const regenerateMessage = useCallback(async (aiMsgId: string) => {
+        if (isLoading) return;
+        const aiIdx = chatMessages.findIndex((m: StudyChatMessage) => m.id === aiMsgId);
+        if (aiIdx < 1) return;
+        const question = chatMessages[aiIdx - 1];
+        if (!question || question.role !== 'user') return;
+
+        // Drop only this assistant answer; keep everything up to and including the question.
+        const history = chatMessages.slice(0, aiIdx);
+        setSession({ chatMessages: history });
+        setIsLoading(true);
+        try {
+            const studentCtx = await buildStudentCtx(question.text);
+            const data = await callAPI(question.text, history, { board, grade, subject, language, medium }, undefined, undefined, studentCtx);
+            const aiMsg: StudyChatMessage = { id: `${Date.now()}-a`, role: 'model', text: data.reply, ragUsed: data.ragUsed, suggestions: data.suggestions, ragCitations: data.ragCitations, textbookImages: data.textbookImages, timestamp: Date.now(), incomplete: !data.completed || data.reply.trim().length === 0 };
+            const finalMsgs = [...history, aiMsg];
+            setSession({ chatMessages: finalMsgs });
+            saveSession(finalMsgs).catch(() => {});
+        } catch {
+            setSession({ chatMessages: [...history, { id: `${Date.now()}-e`, role: 'model', text: 'Sorry, something went wrong. Please try again.', timestamp: Date.now(), incomplete: true }] });
+        } finally {
+            setIsLoading(false);
+        }
+    }, [chatMessages, isLoading, board, grade, subject, language, medium, buildStudentCtx, callAPI, saveSession, setSession]);
 
     // TTS
     const playTts = async (text: string, msgId: string) => {
@@ -1809,6 +1844,16 @@ const callAPI = useCallback(async (
                                         )}
                                     </div>
 
+                                    {/* Incomplete-response retry prompt — last assistant message only */}
+                                    {msg.role === 'model' && i === lastAiIndex && msg.incomplete && !isLoading && (
+                                        <button
+                                            onClick={() => regenerateMessage(msg.id)}
+                                            style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '6px 12px', borderRadius: 10, border: `1px solid ${isDarkMode ? '#3a1a1a' : '#fecaca'}`, background: isDarkMode ? '#190d0d' : '#fef2f2', color: isDarkMode ? '#f87171' : '#dc2626', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s ease' }}
+                                        >
+                                            ⚠️ Response incomplete — tap to retry 🔄
+                                        </button>
+                                    )}
+
                                     {/* Suggestion chips below AI messages */}
                                     {msg.role === 'model' && msg.suggestions && msg.suggestions.length > 0 && (
                                         <div className="flex flex-wrap gap-1.5 mt-2 ml-1">
@@ -1865,7 +1910,7 @@ const callAPI = useCallback(async (
                                     )}
 
                                     {/* Unified action bar — only on completed AI messages */}
-                                    {msg.role === 'model' && !(isLoading && i === lastAiIndex) && (
+                                    {msg.role === 'model' && !(isLoading && i === lastAiIndex) && !(msg.incomplete && i === lastAiIndex) && (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6, flexWrap: 'wrap' }}>
 
                                             {/* 🔊 Read aloud */}
@@ -1907,6 +1952,19 @@ const callAPI = useCallback(async (
                                                 onMouseEnter={e => { if (!messageRatings[msg.id]) (e.currentTarget as HTMLElement).style.color = '#ef4444'; }}
                                                 onMouseLeave={e => { if (messageRatings[msg.id] !== 'down') (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; }}
                                             >👎</button>
+
+                                            {/* 🔄 Regenerate — only on the latest assistant message */}
+                                            {i === lastAiIndex && (<>
+                                                <div style={{ width: '0.5px', height: 14, background: isDarkMode ? '#1e1e35' : '#e5e7eb' }} />
+                                                <button
+                                                    onClick={() => regenerateMessage(msg.id)}
+                                                    disabled={isLoading}
+                                                    data-tooltip="Regenerate"
+                                                    style={{ background: 'transparent', border: '0.5px solid transparent', borderRadius: 6, padding: '3px 8px', cursor: isLoading ? 'default' : 'pointer', fontSize: 13, color: isDarkMode ? '#3a3a5a' : '#9ca3af', transition: 'all 0.15s ease', opacity: isLoading ? 0.4 : 1 }}
+                                                    onMouseEnter={e => { if (!isLoading) { (e.currentTarget as HTMLElement).style.color = '#818cf8'; (e.currentTarget as HTMLElement).style.borderColor = isDarkMode ? '#2a2a4a' : '#e5e7eb'; } }}
+                                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = isDarkMode ? '#3a3a5a' : '#9ca3af'; (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; }}
+                                                >🔄</button>
+                                            </>)}
 
                                             {/* Inline feedback input after thumbs down */}
                                             {showFeedbackInput === msg.id && (

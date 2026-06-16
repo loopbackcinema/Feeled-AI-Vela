@@ -61,6 +61,7 @@ export interface StudyChatMessage {
     suggestions?: string[];
     ragCitations?: RagCitation[];
     textbookImages?: TextbookImage[];
+    incomplete?: boolean;   // assistant reply ended abnormally (empty / stream error / no completion signal)
 }
 
 export interface StudentContext {
