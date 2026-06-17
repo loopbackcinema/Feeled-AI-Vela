@@ -32,12 +32,12 @@ const StorySection: React.FC<{ title: string; content: string }> = ({ title, con
     </div>
 );
 
-export interface QuizSectionProps {
-    quiz: (QuizQuestion & { explanation?: string })[];
+interface QuizSectionProps {
+    quiz: QuizQuestion[];
     onQuizComplete: (score: number) => void;
 }
 
-export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
+const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [showResult, setShowResult] = useState<{ [key: number]: boolean }>({});
     const [score, setScore] = useState(0);
@@ -101,11 +101,6 @@ export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }
                                 <button onClick={() => handleCheckAnswer(index)} disabled={!answers[index]} className="bg-indigo-600 text-white px-8 py-3 rounded-full font-black shadow-xl hover:bg-indigo-700 transition active:scale-95 disabled:opacity-50">
                                     Verify Answer
                                 </button>
-                            </div>
-                        )}
-                        {showResult[index] && q.explanation && (
-                            <div className="mt-2 px-5 py-4 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                                <span className="font-black text-indigo-600 dark:text-indigo-400">Why: </span>{q.explanation}
                             </div>
                         )}
                     </div>

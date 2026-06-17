@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StoryRequest, SceneStory } from '../types';
+import { StoryRequest } from '../types';
 import { NARRATOR_VOICE_OPTIONS } from '../constants';
-import { generateSceneStory } from '../services/geminiService';
-import SceneStoryDisplay from './SceneStoryDisplay';
 
 const STORY_GRADES = ['6','7','8','9','10','11','12'];
 
@@ -119,9 +117,6 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [isLoggingIn, setIsLoggingIn]     = useState(false);
     const [phIdx, setPhIdx]                 = useState(0);
     const [stageIdx, setStageIdx]           = useState(0);
-    const [sceneStory, setSceneStory]       = useState<SceneStory | null>(null);
-    const [sceneLoading, setSceneLoading]   = useState(false);
-    const [sceneError, setSceneError]       = useState<string | null>(null);
 
     useEffect(() => {
         if (isLoading) return;
@@ -168,30 +163,6 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
             if (!allowed) { showUpgrade('stories'); return; }
             incrementUsage(user.uid, 'stories').catch(() => {});
         }
-
-        // Grades 10-12 -> scene-based story (separate endpoint + display). Grades 6-9 keep the linear flow.
-        const gradeNum = parseInt(grade, 10) || 0;
-        if (gradeNum >= 10) {
-            setSceneError(null);
-            setSceneLoading(true);
-            try {
-                const { scenes_story } = await generateSceneStory({
-                    topic: topic.trim(), grade, subject,
-                    language: apiLanguage, emotionTone: STYLE_CARDS[selectedStyle].tone,
-                });
-                setSceneStory(scenes_story);
-            } catch (err: any) {
-                setSceneError(err?.message || 'Story generation failed. Please try again.');
-            } finally {
-                setSceneLoading(false);
-            }
-            if (user) {
-                updateRecentTopic({ uid: user.uid, topic: topic.trim(), subject: subject || 'General', source: 'story' });
-                updateRecentMode({ uid: user.uid, mode: 'story' });
-            }
-            return;
-        }
-
         onSubmit({ topic, std: `Grade ${grade}`, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
         if (user) {
             // Save to chat_sessions for sidebar history — fire-and-forget
@@ -219,18 +190,8 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         r.start();
     };
 
-    // ── Scene-based result (grades 10-12) ───────────────────────────────────────
-    if (sceneStory) {
-        return (
-            <SceneStoryDisplay
-                sceneStory={sceneStory}
-                onTryAnother={() => { setSceneStory(null); setSceneError(null); setTopic(''); }}
-            />
-        );
-    }
-
     // ── Loading state ──────────────────────────────────────────────────────────
-    if (isLoading || sceneLoading) {
+    if (isLoading) {
         return (
             <div style={{ minHeight: '100vh', width: '100%', margin: 0, padding: 0, background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
                 <style>{`
@@ -354,9 +315,9 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                     )}
 
                     {/* Error */}
-                    {(error || sceneError) && (
+                    {error && (
                         <div style={{ background: '#2d0a0a', border: '0.5px solid #7f1d1d', color: '#fca5a5', padding: '10px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span>⚠️</span> {error || sceneError}
+                            <span>⚠️</span> {error}
                         </div>
                     )}
 

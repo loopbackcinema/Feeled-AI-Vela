@@ -26,38 +26,6 @@ export interface StoryRequest {
     difficulty?: 'Easy' | 'Medium' | 'Hard';
 }
 
-export type SceneType = "hook" | "conflict" | "discovery" | "application" | "reflection" | "exam_connect";
-
-export interface StoryScene {
-    scene_number: number;
-    scene_title: string;
-    scene_type: SceneType;
-    setting: string;
-    characters: string[];
-    narrative: string;
-    concept_highlight: string;
-    visual_prompt: string;
-    socratic_question: string;
-    student_response_hint: string;
-}
-
-export interface SceneQuizItem {
-    question: string;
-    options: string[];
-    answer: string;
-    explanation: string;
-}
-
-export interface SceneStory {
-    title: string;
-    grade: string;
-    subject: string;
-    curriculum_connection: string;
-    scenes: StoryScene[];
-    exam_tips: string[];
-    quiz: SceneQuizItem[];
-}
-
 export interface ChatMessage {
     role: 'user' | 'model';
     text: string;
