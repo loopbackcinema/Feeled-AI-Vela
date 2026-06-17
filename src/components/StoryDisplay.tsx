@@ -37,7 +37,7 @@ interface QuizSectionProps {
     onQuizComplete: (score: number) => void;
 }
 
-const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
+export const QuizSection: React.FC<QuizSectionProps> = ({ quiz, onQuizComplete }) => {
     const [answers, setAnswers] = useState<{ [key: number]: string }>({});
     const [showResult, setShowResult] = useState<{ [key: number]: boolean }>({});
     const [score, setScore] = useState(0);

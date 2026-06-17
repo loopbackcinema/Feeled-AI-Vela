@@ -102,3 +102,92 @@ export interface UserSettings {
     isDyslexicFont: boolean;
     uiLanguage: 'English' | 'Tamil';
 }
+
+// ── FeelEd Cinema (Grade 10–12 Story Mode) ──────────────────────────────────
+export type CinemaActType = "hook" | "rising_action" | "climax" | "resolution" | "exam_bridge";
+export type StageElementType = "character" | "object" | "formula" | "diagram" | "label" | "effect";
+export type StagePosition = "left" | "center" | "right" | "top" | "bottom";
+export type StageAnimation = "enter" | "float" | "pulse" | "fall" | "rise" | "spin" | "glow";
+export type ScreenplaySpeaker = "narrator" | "protagonist" | "student_voice" | "concept_voice";
+export type ScreenplayEmotion = "curious" | "excited" | "dramatic" | "calm" | "triumphant";
+
+export interface CinemaProtagonist {
+    name: string;
+    era: string;
+    role: string;
+    tamil_connection: string;
+    avatar_emoji: string;
+}
+
+export interface StageElement {
+    element_type: StageElementType;
+    name: string;
+    description: string;
+    position: StagePosition;
+    animation: StageAnimation;
+    highlight: boolean;
+}
+
+export interface ScreenplayLine {
+    speaker: ScreenplaySpeaker;
+    text: string;
+    emotion: ScreenplayEmotion;
+    is_concept_reveal: boolean;
+}
+
+export interface ConceptBoard {
+    title: string;
+    formula: string;
+    key_points: string[];
+    tamil_analogy: string;
+}
+
+export interface CinemaSetting {
+    place: string;
+    tamil_parallel: string;
+    time_of_day: string;
+    mood: string;
+}
+
+export interface CinemaAct {
+    act_number: number;
+    act_title: string;
+    act_type: CinemaActType;
+    setting: CinemaSetting;
+    stage_elements: StageElement[];
+    screenplay: ScreenplayLine[];
+    concept_board: ConceptBoard;
+    curtain_question: string;
+}
+
+export interface IntervalCard {
+    recap: string;
+    teaser: string;
+}
+
+export interface ExamSpotlight {
+    most_asked_question: string;
+    model_answer_structure: string[];
+    marks_tip: string;
+    previous_year_hint: string;
+}
+
+export interface CinemaQuizItem {
+    question: string;
+    options: string[];
+    answer: string;
+    explanation: string;
+    concept_connection: string;
+}
+
+export interface CinemaStory {
+    cinema_title: string;
+    subject: string;
+    grade: string;
+    protagonist: CinemaProtagonist;
+    acts: CinemaAct[];
+    interval_card: IntervalCard;
+    exam_spotlight: ExamSpotlight;
+    quiz: CinemaQuizItem[];
+}
+
