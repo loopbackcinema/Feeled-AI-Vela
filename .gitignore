@@ -24,4 +24,3 @@ npm-debug.log*
 .claude/
 
 .env*.local
-.env*

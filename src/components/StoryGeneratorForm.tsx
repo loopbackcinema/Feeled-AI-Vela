@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StoryRequest, SceneStory } from '../types';
+import { StoryRequest, CinemaStory } from '../types';
 import { NARRATOR_VOICE_OPTIONS } from '../constants';
-import { generateSceneStory } from '../services/geminiService';
-import SceneStoryDisplay from './SceneStoryDisplay';
+import CinemaDisplay from './CinemaDisplay';
 
 const STORY_GRADES = ['6','7','8','9','10','11','12'];
 
@@ -119,9 +118,9 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [isLoggingIn, setIsLoggingIn]     = useState(false);
     const [phIdx, setPhIdx]                 = useState(0);
     const [stageIdx, setStageIdx]           = useState(0);
-    const [sceneStory, setSceneStory]       = useState<SceneStory | null>(null);
-    const [sceneLoading, setSceneLoading]   = useState(false);
-    const [sceneError, setSceneError]       = useState<string | null>(null);
+    const [cinemaStory, setCinemaStory]     = useState<CinemaStory | null>(null);
+    const [cinemaLoading, setCinemaLoading] = useState(false);
+    const [cinemaError, setCinemaError]     = useState<string | null>(null);
 
     useEffect(() => {
         if (isLoading) return;
@@ -169,29 +168,34 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
             incrementUsage(user.uid, 'stories').catch(() => {});
         }
 
-        // Grades 10-12 -> scene-based story (separate endpoint + display). Grades 6-9 keep the linear flow.
-        const gradeNum = parseInt(grade, 10) || 0;
-        if (gradeNum >= 10) {
-            setSceneError(null);
-            setSceneLoading(true);
+        if (parseInt(grade) >= 10) {
+            // FeelEd Cinema path
+            setCinemaLoading(true);
+            setCinemaError(null);
             try {
-                const { scenes_story } = await generateSceneStory({
-                    topic: topic.trim(), grade, subject,
-                    language: apiLanguage, emotionTone: STYLE_CARDS[selectedStyle].tone,
+                const res = await fetch('/api/story-cinema', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topic,
+                        grade,
+                        subject,
+                        language: apiLanguage,
+                        style: STYLE_CARDS[selectedStyle].tone,
+                    }),
                 });
-                setSceneStory(scenes_story);
-            } catch (err: any) {
-                setSceneError(err?.message || 'Story generation failed. Please try again.');
+                if (!res.ok) throw new Error('Cinema generation failed');
+                const data = await res.json();
+                setCinemaStory(data.cinema);
+            } catch (err) {
+                setCinemaError('🎬 Cinema failed to load. Please try again.');
             } finally {
-                setSceneLoading(false);
+                setCinemaLoading(false);
             }
-            if (user) {
-                updateRecentTopic({ uid: user.uid, topic: topic.trim(), subject: subject || 'General', source: 'story' });
-                updateRecentMode({ uid: user.uid, mode: 'story' });
-            }
-            return;
+            return; // Stop here — do not call onSubmit
         }
 
+        // Grade < 10: existing path unchanged
         onSubmit({ topic, std: `Grade ${grade}`, language: apiLanguage, narratorVoice, emotionTone: STYLE_CARDS[selectedStyle].tone });
         if (user) {
             // Save to chat_sessions for sidebar history — fire-and-forget
@@ -219,18 +223,47 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         r.start();
     };
 
-    // ── Scene-based result (grades 10-12) ───────────────────────────────────────
-    if (sceneStory) {
+    // ── Cinema result state ────────────────────────────────────────────────────
+    if (cinemaStory) {
         return (
-            <SceneStoryDisplay
-                sceneStory={sceneStory}
-                onTryAnother={() => { setSceneStory(null); setSceneError(null); setTopic(''); }}
+            <CinemaDisplay
+                cinema={cinemaStory}
+                language={apiLanguage}
+                onTryAnother={() => {
+                    setCinemaStory(null);
+                    setCinemaError(null);
+                }}
             />
         );
     }
 
+    // ── Cinema loading state ───────────────────────────────────────────────────
+    if (cinemaLoading) {
+        return (
+            <div style={{ minHeight:'100vh', background:'#0a0e1a', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:24 }}>
+                <style>{`@keyframes pulseDot {0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}`}</style>
+                <div style={{ fontSize:48 }}>🎬</div>
+                <p style={{ color:'#c4b5fd', fontSize:16, fontWeight:600 }}>
+                    Lights dimming...
+                </p>
+                <p style={{ color:'#6b7280', fontSize:13 }}>
+                    Creating your cinema experience
+                </p>
+                <div style={{ display:'flex', gap:8 }}>
+                    {[0,1,2].map(d => (
+                        <span key={d} style={{
+                            width:8, height:8, borderRadius:'50%',
+                            background:'#4f46e5', display:'inline-block',
+                            animation:`pulseDot 1.2s ease-in-out ${d*0.2}s infinite`
+                        }} />
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     // ── Loading state ──────────────────────────────────────────────────────────
-    if (isLoading || sceneLoading) {
+    if (isLoading) {
         return (
             <div style={{ minHeight: '100vh', width: '100%', margin: 0, padding: 0, background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 100%)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
                 <style>{`
@@ -255,6 +288,10 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         <>
             <style>{`
                 @keyframes twinkle {
+                    0%,100% { opacity: 0.3; transform: scale(0.8); }
+                    50%     { opacity: 1;   transform: scale(1.2); }
+                }
+                @keyframes pulseDot {
                     0%,100% { opacity: 0.3; transform: scale(0.8); }
                     50%     { opacity: 1;   transform: scale(1.2); }
                 }
@@ -354,9 +391,9 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                     )}
 
                     {/* Error */}
-                    {(error || sceneError) && (
+                    {(error || cinemaError) && (
                         <div style={{ background: '#2d0a0a', border: '0.5px solid #7f1d1d', color: '#fca5a5', padding: '10px 16px', borderRadius: 12, fontSize: 13, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span>⚠️</span> {error || sceneError}
+                            <span>⚠️</span> {error || cinemaError}
                         </div>
                     )}
 
