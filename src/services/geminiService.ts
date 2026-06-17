@@ -1,4 +1,4 @@
-import { Story, StoryRequest, ChatMessage, ConceptResponse, PracticeQuestion, ExamPrep, StudentContext } from '../types';
+import { Story, StoryRequest, SceneStory, ChatMessage, ConceptResponse, PracticeQuestion, ExamPrep, StudentContext } from '../types';
 
 async function post<T>(path: string, body: unknown): Promise<T> {
     const res = await fetch(path, {
@@ -31,6 +31,18 @@ export const generateStory = async (request: StoryRequest): Promise<{ story: Sto
     return post<{ story: Story }>('/api/story', {
         topic: request.topic,
         std: request.std,
+        language: request.language,
+        emotionTone: request.emotionTone,
+    });
+};
+
+export const generateSceneStory = async (request: {
+    topic: string; grade: string; subject: string; language: string; emotionTone: string;
+}): Promise<{ scenes_story: SceneStory }> => {
+    return post<{ scenes_story: SceneStory }>('/api/story-scenes', {
+        topic: request.topic,
+        grade: request.grade,
+        subject: request.subject,
         language: request.language,
         emotionTone: request.emotionTone,
     });
