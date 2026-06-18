@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { GoogleGenAI, Type } from "@google/genai";
+import { fetchExamFrequency } from './_rag';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Cinematic storytelling endpoint — "மாயக் கற்றல் திரையரங்கம்" (Magical Learning
@@ -135,14 +136,14 @@ const actSchema = {
             },
             required: ["place", "tamil_parallel", "time_of_day", "mood"],
         },
-        stage_elements: { type: Type.ARRAY, items: stageElementSchema },
-        screenplay:     { type: Type.ARRAY, items: screenplaySchema },
+        stage_elements: { type: Type.ARRAY, items: stageElementSchema, maxItems: 3 },
+        screenplay:     { type: Type.ARRAY, items: screenplaySchema, maxItems: 4 },
         concept_board: {
             type: Type.OBJECT,
             properties: {
                 title:         { type: Type.STRING },
                 formula:       { type: Type.STRING },
-                key_points:    { type: Type.ARRAY, items: { type: Type.STRING } },
+                key_points:    { type: Type.ARRAY, items: { type: Type.STRING }, maxItems: 3 },
                 tamil_analogy: { type: Type.STRING },
             },
             required: ["title", "formula", "key_points", "tamil_analogy"],
@@ -266,17 +267,32 @@ QUIZ: Exactly 3 multiple-choice questions, each with exactly 4 options, the corr
 Return the output strictly as JSON matching the provided schema. Do not include any markdown or commentary outside the JSON.`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: 'gemini-2.5-flash-lite',
             contents: prompt,
             config: {
-                temperature: 0.8,
+                temperature: 0.7,
                 responseMimeType: "application/json",
                 responseSchema: cinemaSchema,
+                thinkingConfig: { thinkingBudget: 0 },
             },
         });
 
         if (!response.text) throw new Error("Empty response from Gemini");
         const cinema: CinemaStory = JSON.parse(response.text.trim());
+
+        // Enrich exam_spotlight with real RAG question-bank frequency data
+        try {
+            const freq = await fetchExamFrequency({
+                query: topic,
+                subject: subject || cinema.subject,
+                grade: grade || cinema.grade,
+            });
+            if (freq.years.length > 0) {
+                (cinema.exam_spotlight as any).rag_years = freq.years;
+                (cinema.exam_spotlight as any).rag_count = freq.count;
+            }
+        } catch (_) { /* non-fatal */ }
+
         res.status(200).json({ cinema });
     } catch (error) {
         console.error('Gemini Cinema Story Generation Error:', error);
