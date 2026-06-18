@@ -267,13 +267,12 @@ QUIZ: Exactly 3 multiple-choice questions, each with exactly 4 options, the corr
 Return the output strictly as JSON matching the provided schema. Do not include any markdown or commentary outside the JSON.`;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-lite',
+            model: 'gemini-2.5-flash',
             contents: prompt,
             config: {
                 temperature: 0.7,
                 responseMimeType: "application/json",
                 responseSchema: cinemaSchema,
-                thinkingConfig: { thinkingBudget: 0 },
             },
         });
 

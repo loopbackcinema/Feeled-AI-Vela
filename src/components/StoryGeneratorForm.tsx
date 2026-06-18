@@ -201,7 +201,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
             // Save to chat_sessions for sidebar history — fire-and-forget
             addDoc(collection(db, 'chat_sessions'), {
                 userId: user.uid, title: `📖 Story: ${topic.trim().slice(0, 40)}`, subject: 'Story',
-                grade: std, board: '', language: apiLanguage, mode: 'story',
+                grade: `Grade ${grade}`, board: '', language: apiLanguage, mode: 'story',
                 messages: [], updatedAt: serverTimestamp(), createdAt: serverTimestamp(),
             }).catch(() => {});
             // Memory engine — fire-and-forget
