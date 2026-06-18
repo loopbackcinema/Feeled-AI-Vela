@@ -362,6 +362,18 @@ function QuizPanel({ quiz, onDone }: { quiz: CinemaStory['quiz']; onDone:(s:numb
 // ─── Main ─────────────────────────────────────────────────────────────────────
 const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
     const { user, userProfile } = useAuth();
+
+    // Fetch RAG exam frequency asynchronously after cinema loads (non-blocking)
+    useEffect(() => {
+        fetch('/api/cinema-examfreq', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic: cinema.cinema_title, subject: cinema.subject, grade: cinema.grade }),
+        }).then(r => r.ok ? r.json() : null).then(d => {
+            if (d && d.years && d.years.length > 0) { setRagYears(d.years); setRagCount(d.count || 0); }
+        }).catch(() => {});
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
     const containerRef = useRef<HTMLDivElement>(null);
     const acts = cinema.acts ?? [];
     const lastIdx = Math.max(0, acts.length - 1);
@@ -373,6 +385,8 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
     const [showInterval, setShowInterval] = useState(false);
     const [showEnd,      setShowEnd]      = useState(false);
     const [quizScore,    setQuizScore]    = useState<number | null>(null);
+    const [ragYears,     setRagYears]     = useState<string[]>([]);
+    const [ragCount,     setRagCount]     = useState(0);
     const [tick,         setTick]         = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showTranscript, setShowTranscript] = useState(false);
@@ -541,8 +555,7 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
         : 'rgba(3,0,9,.9)';
 
     // RAG exam years from API
-    const ragYears: string[] = (cinema.exam_spotlight as any)?.rag_years ?? [];
-    const ragCount: number   = (cinema.exam_spotlight as any)?.rag_count ?? 0;
+    // ragYears/ragCount loaded async via /api/cinema-examfreq
     const studentName = userProfile?.displayName || user?.displayName || 'Academic Explorer';
 
     return (

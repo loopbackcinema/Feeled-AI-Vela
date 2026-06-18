@@ -184,10 +184,16 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                         style: STYLE_CARDS[selectedStyle].tone,
                     }),
                 });
-                if (!res.ok) throw new Error('Cinema generation failed');
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    console.error('Cinema API error:', res.status, errData);
+                    throw new Error(errData.detail || errData.error || 'Cinema generation failed');
+                }
                 const data = await res.json();
+                if (!data.cinema) throw new Error('No cinema data in response');
                 setCinemaStory(data.cinema);
             } catch (err) {
+                console.error('Cinema error:', err);
                 setCinemaError('🎬 Cinema failed to load. Please try again.');
             } finally {
                 setCinemaLoading(false);
