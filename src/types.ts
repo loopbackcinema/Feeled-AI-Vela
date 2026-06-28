@@ -299,3 +299,148 @@ export interface LearningExperienceObject {
     learning_success_criteria: LearningSuccessCriteria;
     assessment_insight: AssessmentInsight;
 }
+
+// ─── Experience Planner Types ─────────────────────────────────────────────────
+// The Experience Planner takes a LEO + student context → ExperiencePlan
+// The Cinema Engine consumes ExperiencePlan. It knows nothing about LEOs.
+// No SVG, no React, no camera — only learning orchestration.
+
+export type ActType = 'arrival_curiosity' | 'exploration' | 'discovery' | 'integration' | 'mastery';
+export type InteractionLevel = 0 | 1 | 2 | 3 | 4;
+export type LearnerStrength = 'struggling' | 'developing' | 'confident' | 'advanced';
+export type SessionLength = 'short' | 'standard' | 'extended'; // 8min | 15min | 25min
+
+// ── Student Profile (what the planner knows about the learner) ────────────────
+export interface StudentProfile {
+    grade: number;
+    language: 'Tamil' | 'English' | 'Tanglish';
+    strength: LearnerStrength;
+    topics_completed: string[];         // previous lesson ids
+    misconceptions_held: string[];      // known misconceptions not yet corrected
+    preferred_connection_context: 'urban' | 'rural' | 'both';
+    session_length: SessionLength;
+}
+
+// ── Experience Act (one of five acts in the plan) ────────────────────────────
+export interface ExperienceAct {
+    act_number: 1 | 2 | 3 | 4 | 5;
+    act_type: ActType;
+    learning_goal: string;              // What the learner should achieve in this act
+    target_emotion: string;             // The emotional state the planner aims for
+    phenomenon_to_show: string;         // What the Cinema Engine should show (not how)
+    narration_points: string[];         // What should be communicated (not the script)
+    key_misconception_to_address: string | null;  // If any — one per act
+    interaction: PlannedInteraction | null;
+    pacing: ActPacing;
+    connections_to_use: RealWorldConnection[];   // Selected for this student's context
+}
+
+// ── Planned Interaction (what happens, not how it looks) ─────────────────────
+export interface PlannedInteraction {
+    level: InteractionLevel;
+    moment: 'pre_observation' | 'mid_act' | 'post_observation' | 'pre_reveal' | 'post_act';
+    purpose: string;                    // Educational purpose of this interaction
+    question: string;
+    options?: string[];                 // For level 2 (predict)
+    correct_index?: number;
+    misconception_targeted?: string;    // Which misconception this addresses
+    feedback_if_correct: string;        // Continues the story — not "Correct!"
+    feedback_if_wrong: string;          // Addresses misconception — not "Wrong!"
+    silence_before_seconds: number;     // Mandatory pause before interaction appears
+    silence_after_seconds: number;      // Mandatory pause after interaction resolves
+}
+
+// ── Act Pacing (timing rules for this act) ────────────────────────────────────
+export interface ActPacing {
+    estimated_duration_seconds: number;
+    silence_moments: SilenceMoment[];
+    freeze_frames: FreezeMoment[];      // When to pause and let student observe
+    replay_moments: string[];           // Which observations to replay after reveal
+}
+
+export interface SilenceMoment {
+    trigger: 'pre_prediction' | 'post_reveal' | 'memory_anchor' | 'reflection';
+    duration_seconds: number;           // Document 4 Rule A2 — mandatory minimums
+}
+
+export interface FreezeMoment {
+    observation_index: number;          // Which observation_sequence step to freeze
+    duration_seconds: number;           // Minimum 3s per Document 4 Rule T3
+    focus_point: string;                // What the student should look at
+}
+
+// ── Timing Plan (overall lesson rhythm) ──────────────────────────────────────
+export interface TimingPlan {
+    total_duration_seconds: number;
+    act_durations: Record<number, number>;
+    mandatory_silences_total: number;   // Sum of all silence moments
+    interaction_count: number;
+    estimated_cognitive_load: 'low' | 'medium' | 'high';
+}
+
+// ── Memory Plan (how the memory anchor is delivered) ─────────────────────────
+export interface MemoryPlan {
+    selected_memory_model: CandidateMemoryModel;  // Which model from LEO candidates
+    anchor: MemoryAnchor;
+    timing: {
+        appears_after_seconds: number;            // After final act completes
+        silence_before_image_seconds: number;     // Rule M2 — minimum 0
+        image_hold_seconds: number;               // Rule M2 — minimum 6
+        anchor_sentence_silence_before: number;   // Rule M3 — minimum 3
+        anchor_sentence_silence_after: number;    // Rule M3 — minimum 3
+    };
+    recurrence_trigger: string | null;            // Topic that triggers recall in future
+}
+
+// ── Subtitle Plan ─────────────────────────────────────────────────────────────
+export interface SubtitlePlan {
+    language: string;
+    bilingual: boolean;                           // Rule S4
+    keywords_to_highlight: string[];              // Rule S2 — first appearances
+    suppress_during_prediction: true;             // Rule S5 — always true
+    progressive_reveal: true;                     // Rule S3 — always true
+}
+
+// ── Audio Plan ────────────────────────────────────────────────────────────────
+export interface AudioPlan {
+    voice_language: string;
+    narrator_voice: string;                       // From multi-voice protocol Rule A6
+    protagonist_voice: string | null;
+    music_transitions: MusicTransition[];
+    ambient_sound_scenes: string[];               // Which acts have ambient sound
+    emphasis_terms: string[];                     // First-appearance terms Rule A5
+}
+
+export interface MusicTransition {
+    trigger: string;                              // What causes the music change
+    music_state: 'begins_softly' | 'swells' | 'stops' | 'single_note' | 'fades' | 'returns_gently';
+    educational_purpose: string;                  // Justification per Document 4 Rule A3
+}
+
+// ── Completion Criteria ───────────────────────────────────────────────────────
+export interface CompletionCriteria {
+    minimum_acts_completed: number;
+    prediction_accuracy_required: boolean;
+    reflection_answered: boolean;
+    memory_anchor_shown: boolean;
+    success_indicators: LearningSuccessCriteria;  // From LEO — what student should achieve
+}
+
+// ── The ExperiencePlan (what the Cinema Engine consumes) ─────────────────────
+export interface ExperiencePlan {
+    lesson_id: string;
+    topic: string;
+    grade: number;
+    subject: string;
+    language: string;
+    central_question: string;                     // Drives entire experience
+    learning_goal: string;                        // essential_idea from LEO
+    target_learner: StudentProfile;
+    acts: ExperienceAct[];                        // Always 5
+    timing_plan: TimingPlan;
+    memory_plan: MemoryPlan;
+    subtitle_plan: SubtitlePlan;
+    audio_plan: AudioPlan;
+    completion_criteria: CompletionCriteria;
+    adaptation_notes: string;                     // Why this plan was adapted for this student
+}
