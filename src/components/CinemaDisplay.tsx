@@ -418,7 +418,8 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
     const [muted,        setMuted]        = useState(false);
     const [isPlaying,    setIsPlaying]    = useState(false);
     const [loadingActs,  setLoadingActs]  = useState<Set<number>>(new Set());
-    const [readyActs,    setReadyActs]    = useState<Set<number>>(new Set());
+    // All acts are visually ready immediately — audio readiness tracked separately
+    const [audioReadyActs, setAudioReadyActs] = useState<Set<number>>(new Set());
 
     const audioCacheRef = useRef<Record<number, string>>({}); // actIdx → base64
     const audioCtxRef   = useRef<AudioContext | null>(null);
@@ -502,7 +503,7 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
             const { base64Audio } = await res.json();
             if (base64Audio) {
                 audioCacheRef.current[idx] = base64Audio;
-                setReadyActs(s => new Set(s).add(idx));
+                setAudioReadyActs(s => new Set(s).add(idx));
             }
         } catch (_) {}
         finally {
@@ -615,8 +616,9 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
         : currentSub?.speaker === 'protagonist' ? '#fde68a'
         : currentSub?.speaker === 'student_voice' ? '#bfdbfe' : '#f0abfc';
 
-    const allReady = readyActs.size >= acts.length;
-    const currentReady = readyActs.has(actIdx);
+    const allReady = audioReadyActs.size >= acts.length;
+    const currentReady = true; // Theatre never blocks on audio
+    const currentAudioReady = audioReadyActs.has(actIdx);
 
     return (
         <div ref={containerRef}
@@ -656,7 +658,7 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
                         {acts.map((a, i) => {
                             const c = ACOLOR[a.act_type] ?? '#a78bfa';
                             const active = i === actIdx;
-                            const ready = readyActs.has(i);
+                            const ready = audioReadyActs.has(i);
                             const loading = loadingActs.has(i);
                             return (
                                 <button key={i} onClick={() => playAct(i)} title={a.act_title}
@@ -689,28 +691,18 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
                     background: act ? ABGGRAD[act.act_type] : ABGGRAD['hook'],
                     overflow: 'hidden' }}>
 
-                    {/* Audio loading overlay */}
-                    {!currentReady && (
-                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
-                            justifyContent: 'center', background: 'rgba(3,0,9,.7)', zIndex: 20 }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <div style={{ width: 36, height: 36, border: `3px solid ${color}44`, borderTop: `3px solid ${color}`,
-                                    borderRadius: '50%', animation: 'cd-spin 1s linear infinite', margin: '0 auto 10px' }}/>
-                                <div style={{ color: '#a78bfa', fontSize: '.72rem' }}>Preparing cinema…</div>
-                                {/* Loading bar for all acts */}
-                                <div style={{ marginTop: 12, width: 160, height: 3, background: 'rgba(255,255,255,.1)', borderRadius: 9999 }}>
-                                    <div style={{ height: '100%', borderRadius: 9999, background: color,
-                                        width: `${(readyActs.size / Math.max(acts.length, 1)) * 100}%`,
-                                        transition: 'width .4s ease' }}/>
-                                </div>
-                                <div style={{ color: '#64748b', fontSize: '.62rem', marginTop: 5 }}>
-                                    {readyActs.size}/{acts.length} acts ready
-                                </div>
-                            </div>
+                    {/* Non-blocking audio indicator */}
+                    {loadingActs.has(actIdx) && (
+                        <div style={{ position: 'absolute', top: 8, left: 14, zIndex: 10,
+                            display: 'flex', alignItems: 'center', gap: 5, pointerEvents: 'none' }}>
+                            <div style={{ width: 10, height: 10,
+                                border: `2px solid ${color}44`, borderTop: `2px solid ${color}`,
+                                borderRadius: '50%', animation: 'cd-spin 1s linear infinite' }}/>
+                            <span style={{ color: '#64748b', fontSize: '.52rem' }}>audio loading…</span>
                         </div>
                     )}
 
-                    {/* Red curtains */}
+                                        {/* Red curtains */}
                     <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: '5%',
                         background: 'linear-gradient(90deg,#3d0a0e,#7f1d1d 65%,transparent)',
                         boxShadow: 'inset -10px 0 18px rgba(0,0,0,.6)', pointerEvents: 'none', zIndex: 8 }}/>
@@ -809,13 +801,11 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
                             if (isPlaying) { stopAudio(); }
                             else { playActAudio(actIdx); }
                         }}
-                        disabled={!currentReady}
-                        style={{ background: currentReady ? `${color}22` : 'rgba(255,255,255,.03)',
-                            border: `1px solid ${currentReady ? color + '66' : 'rgba(148,163,184,.12)'}`,
+                        style={{ background: `${color}22`,
+                            border: `1px solid ${color}66`,
                             borderRadius: 8, padding: '5px 11px',
-                            color: currentReady ? color : '#374151',
-                            cursor: currentReady ? 'pointer' : 'not-allowed', fontSize: '1rem' }}>
-                        {!currentReady ? '⏳' : isPlaying ? '⏸' : '▶'}
+                            color, cursor: 'pointer', fontSize: '1rem' }}>
+                        {loadingActs.has(actIdx) ? '⏳' : isPlaying ? '⏸' : '▶'}
                     </button>
 
                     {/* Next act */}
@@ -836,7 +826,7 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
                                 {act ? ALABEL[act.act_type] : ''}
                             </span>
                             <span style={{ color: '#475569', fontSize: '.56rem' }}>
-                                {actIdx + 1}/{acts.length} {allReady ? '✓' : `(${readyActs.size}/${acts.length} ready)`}
+                                {actIdx + 1}/{acts.length} {allReady ? '✓' : `(${audioReadyActs.size}/${acts.length} ready)`}
                             </span>
                         </div>
                         <div style={{ height: 3, background: 'rgba(255,255,255,.08)', borderRadius: 9999 }}>
@@ -1019,7 +1009,7 @@ const CinemaDisplay: React.FC<Props> = ({ cinema, language, onTryAnother }) => {
                 {!showEnd && (
                     <div style={{ padding: '10px 14px', textAlign: 'center' }}>
                         <div style={{ color: 'rgba(148,163,184,.25)', fontSize: '.62rem' }}>
-                            {allReady ? '✓ All acts ready · Press ▶ AUTO to play through' : `Preparing ${acts.length - readyActs.size} more acts…`}
+                            {allReady ? '✓ All acts ready · Press ▶ AUTO to play through' : `Preparing audio… ${acts.length - audioReadyActs.size} remaining…`}
                         </div>
                     </div>
                 )}
