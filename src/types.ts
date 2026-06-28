@@ -191,3 +191,81 @@ export interface CinemaStory {
     quiz: CinemaQuizItem[];
 }
 
+
+// ─── Learning Experience Object (LEO) ────────────────────────────────────────
+// Phase 1 validated schema — 10 topics, avg 22.9/24
+
+export type MisconceptionSeverity = 'minor' | 'dangerous' | 'complex';
+export type CorrectionStrategy = 'prediction' | 'reflection' | 'demonstration' | 'comparison' | 'experiment';
+export type ConceptRevealEmotion = 'satisfying' | 'surprising' | 'relieving' | 'awe-inspiring';
+
+export interface Misconception {
+    statement: string;
+    why_believable: string;
+    severity: MisconceptionSeverity;
+    correction_strategy: CorrectionStrategy;
+}
+
+export interface PredictionOpportunity {
+    moment: string;
+    question: string;
+    options: string[];
+    correct_index: number;
+    why_wrong_options_feel_right: string;
+}
+
+export interface ConceptReveal {
+    the_moment: string;
+    what_becomes_visible: string;
+    emotional_quality: ConceptRevealEmotion;
+}
+
+export interface CandidateMemoryModel {
+    name: string;
+    description: string;
+    why_memorable: string;
+    scientifically_accurate: boolean;
+    accuracy_note: string;
+}
+
+export interface RealWorldConnection {
+    example: string;
+    connection_to_concept: string;
+}
+
+export interface MemoryAnchor {
+    image_description: string;
+    anchor_sentence: string;
+    cognitive_hook: string;
+}
+
+export interface AssessmentInsight {
+    understanding_vs_memorization: string;
+    tn_board_pattern: string;
+    marks_tip: string;
+}
+
+export interface CuriosityHook {
+    phenomenon: string;
+    why_surprising: string;
+    opening_image: string;
+}
+
+export interface LearningExperienceObject {
+    topic: string;
+    grade: number;
+    subject: string;
+    language: string;
+    central_question: string;
+    essential_idea: string;
+    curiosity_hook: CuriosityHook;
+    common_misconceptions: Misconception[];
+    observation_sequence: string[];
+    prediction_opportunities: PredictionOpportunity[];
+    concept_reveal: ConceptReveal;
+    candidate_memory_models: CandidateMemoryModel[];
+    real_world_connections: RealWorldConnection[];
+    reflection_questions: string[];
+    memory_anchor: MemoryAnchor;
+    assessment_insight: AssessmentInsight;
+}
