@@ -1,3 +1,16 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/story-cinema.ts": {
+      "maxDuration": 60
+    },
+    "api/audio.ts": {
+      "maxDuration": 60
+    }
+  }
 }
