@@ -192,12 +192,17 @@ export interface CinemaStory {
 }
 
 
-// ─── Learning Experience Object (LEO) ────────────────────────────────────────
-// Phase 1 validated schema — 10 topics, avg 22.9/24
+// ─── Learning Experience Object v2 (refined schema) ─────────────────────────
+// Separation of concerns: NO cinematic/camera language in this layer.
+// Cinema Engine (Document 4) decides all visual/audio presentation.
 
-export type MisconceptionSeverity = 'minor' | 'dangerous' | 'complex';
-export type CorrectionStrategy = 'prediction' | 'reflection' | 'demonstration' | 'comparison' | 'experiment';
-export type ConceptRevealEmotion = 'satisfying' | 'surprising' | 'relieving' | 'awe-inspiring';
+export type MisconceptionSeverity   = 'minor' | 'dangerous' | 'complex';
+export type CorrectionStrategy      = 'prediction' | 'reflection' | 'demonstration' | 'comparison' | 'experiment';
+export type ConceptRevealEmotion    = 'satisfying' | 'surprising' | 'relieving' | 'awe-inspiring';
+export type ConnectionDifficulty    = 'concrete' | 'semi-abstract' | 'abstract';
+export type ConnectionContext       = 'urban' | 'rural' | 'both';
+export type EmotionStage            = 'Curious' | 'Confused' | 'Thinking' | 'Discovery' | 'Confidence';
+export type EmotionDuration         = 'brief' | 'moderate' | 'extended';
 
 export interface Misconception {
     statement: string;
@@ -214,10 +219,22 @@ export interface PredictionOpportunity {
     why_wrong_options_feel_right: string;
 }
 
+export interface LearningTransformation {
+    before_student_believes: string;
+    after_student_understands: string;
+}
+
 export interface ConceptReveal {
-    the_moment: string;
+    the_moment: string;             // Felt experience — no camera language
     what_becomes_visible: string;
+    learning_transformation: LearningTransformation;
     emotional_quality: ConceptRevealEmotion;
+}
+
+export interface EmotionalArcStage {
+    stage: EmotionStage;
+    trigger: string;                // What creates this emotion
+    duration: EmotionDuration;
 }
 
 export interface CandidateMemoryModel {
@@ -231,12 +248,22 @@ export interface CandidateMemoryModel {
 export interface RealWorldConnection {
     example: string;
     connection_to_concept: string;
+    difficulty: ConnectionDifficulty;
+    urban_rural: ConnectionContext;
+    age_relevance: string;
 }
 
 export interface MemoryAnchor {
-    image_description: string;
+    image_description: string;     // No camera language — plain scene description
     anchor_sentence: string;
     cognitive_hook: string;
+}
+
+export interface LearningSuccessCriteria {
+    student_can_explain: string[];
+    student_can_predict: string[];
+    student_can_identify: string[];
+    student_can_apply: string[];
 }
 
 export interface AssessmentInsight {
@@ -246,9 +273,9 @@ export interface AssessmentInsight {
 }
 
 export interface CuriosityHook {
-    phenomenon: string;
+    phenomenon: string;            // Zero explanation words
     why_surprising: string;
-    opening_image: string;
+    learning_tension: string;      // Replaces opening_image (cinema concern)
 }
 
 export interface LearningExperienceObject {
@@ -263,9 +290,12 @@ export interface LearningExperienceObject {
     observation_sequence: string[];
     prediction_opportunities: PredictionOpportunity[];
     concept_reveal: ConceptReveal;
+    emotional_arc: EmotionalArcStage[];
     candidate_memory_models: CandidateMemoryModel[];
     real_world_connections: RealWorldConnection[];
-    reflection_questions: string[];
+    reflection: string[];
+    application: string[];
     memory_anchor: MemoryAnchor;
+    learning_success_criteria: LearningSuccessCriteria;
     assessment_insight: AssessmentInsight;
 }
