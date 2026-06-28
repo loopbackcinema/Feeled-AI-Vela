@@ -1,0 +1,101 @@
+{
+  "meta": { "topic": "Newton's Laws of Motion", "grade": 10, "subject": "Physics" },
+  "leo": {
+    "central_question": "Why does everything that moves eventually stop — but the Moon never does?",
+    "essential_idea": "Objects don't need a force to keep moving; they need a force only to change their motion.",
+    "curiosity_hook": {
+      "phenomenon": "A hockey puck slides across ice and travels 50 meters without anyone touching it. A book slides across a table and stops after 30 centimeters.",
+      "why_surprising": "Students believe all moving things need a continuous push to keep moving — so why does the puck travel so far with no push at all?",
+      "opening_image": "A puck gliding silently across dark ice, moving, moving, moving — no one pushing it — the camera follows it until it slowly, very slowly, stops."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "A moving object needs a continuous force to keep moving",
+        "why_believable": "Everything students push in daily life — a box, a cycle, a ball — eventually stops. So stopping feels natural and motion feels like it needs effort.",
+        "severity": "dangerous",
+        "correction_strategy": "demonstration"
+      },
+      {
+        "statement": "Heavier objects fall faster than lighter objects",
+        "why_believable": "A stone and a feather dropped together confirms this — the stone arrives first. Students have never dropped them in a vacuum.",
+        "severity": "minor",
+        "correction_strategy": "prediction"
+      },
+      {
+        "statement": "When a bus brakes suddenly, a force pushes passengers forward",
+        "why_believable": "Passengers feel themselves thrown forward. The body's experience feels exactly like being pushed.",
+        "severity": "minor",
+        "correction_strategy": "reflection"
+      }
+    ],
+    "observation_sequence": [
+      "A cricket ball is hit hard. It travels through the air in a long curve. It reaches the boundary.",
+      "The same ball rolls along the ground. It slows down and stops before the boundary.",
+      "The ball is rolled on a polished marble floor. It travels much farther before stopping.",
+      "In a video, an astronaut pushes a wrench in space. The wrench floats away — never stopping — growing smaller until it disappears."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing the ball slow down on grass but travel far on marble...",
+        "question": "If we could make the floor perfectly smooth — zero friction — what would the ball do?",
+        "options": [
+          "It would still slow down, just more slowly",
+          "It would travel forever without stopping",
+          "It would speed up on its own"
+        ],
+        "correct_index": 1,
+        "why_wrong_options_feel_right": "Option A feels right because everything in experience eventually stops. Option C exploits the misconception that motion requires continuous force — so surely more smoothness means more push?"
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "The student sees the astronaut's wrench floating forever in space — and suddenly realizes: the wrench isn't being pushed. It's just... going. Nothing is making it go. And nothing is stopping it. The absence of force is what allows it to continue.",
+      "what_becomes_visible": "Friction was always the hidden force doing the stopping. Without friction, the natural state of a moving object is to keep moving. Motion doesn't need a cause — change of motion needs a cause.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Lazy Moon",
+        "description": "The Moon has been traveling through space for 4.5 billion years. No engine. No fuel. No push. It moves because nothing is stopping it. Newton's First Law is not a law about motion — it's a law about laziness: objects are too lazy to change what they're doing.",
+        "why_memorable": "The Moon is familiar, visible every night, and the idea that it's been 'lazy' for 4.5 billion years is both funny and accurate.",
+        "scientifically_accurate": true,
+        "accuracy_note": "The Moon is slowing very slightly due to tidal friction — but this is negligible at human timescales and does not undermine the principle."
+      },
+      {
+        "name": "The Invisible Enemy",
+        "description": "Every time something stops, there is an invisible enemy: friction, air resistance, or gravity changing its direction. Remove all enemies, and motion becomes eternal. Force is not what makes things move — force is what fights or creates motion change.",
+        "why_memorable": "Framing friction as an 'enemy' creates a narrative memory — students remember stories better than definitions.",
+        "scientifically_accurate": true,
+        "accuracy_note": "Friction is not always an enemy — it enables walking, braking, etc. The framing is pedagogically useful but should be balanced in Act 4."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Auto-rickshaw stopping suddenly in Chennai traffic",
+        "connection_to_concept": "Passengers lurch forward not because something pushed them, but because their bodies continue moving while the vehicle stops — First Law in action."
+      },
+      {
+        "example": "A kolam design drawn with rice flour powder — if you flick the tray, the powder moves forward",
+        "connection_to_concept": "The powder's inertia keeps it moving in its original direction when the tray changes motion."
+      },
+      {
+        "example": "A cricket ball bowled on a wet Chennai pitch versus a dry one",
+        "connection_to_concept": "The ball slows faster on a wet pitch because friction is higher — demonstrating that stopping requires a force (friction), not the natural state."
+      }
+    ],
+    "reflection_questions": [
+      "If all friction disappeared from Earth right now, describe three things that would happen differently in your morning routine.",
+      "You're sitting in an MTC bus. It starts moving. Describe exactly what you feel in your body and explain why using Newton's First Law.",
+      "Newton's First Law explains why seatbelts exist. It also explains why helmets exist. What is the connection?"
+    ],
+    "memory_anchor": {
+      "image_description": "A single wrench floating in the total blackness of space. No planets, no stars, no background. Just the wrench, moving slowly to the right. It never slows. It never stops. The frame is still. The wrench keeps moving.",
+      "anchor_sentence": "In space, a wrench thrown once travels forever — because there is nothing to stop it.",
+      "cognitive_hook": "The image is visually minimal — one object in black space — which makes it cognitively easy to hold. The emotional quality is slightly eerie and vast. The contrast between the familiar wrench and the infinite black space makes it hard to forget. The word 'forever' creates a strong temporal anchor."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: 'An object at rest stays at rest and an object in motion stays in motion unless acted on by an unbalanced force.' Understanding: Student can explain why a ball rolling on grass stops (friction) but the Moon doesn't stop (no friction in space), and can identify the force acting in any given scenario.",
+      "tn_board_pattern": "1-mark: State Newton's First Law. 3-mark: State all three laws with one example each. 5-mark: Problems using F=ma, or explain everyday phenomena using all three laws. TN Board frequently asks 'Why does a passenger lurch forward when a bus brakes?' as a 3-mark question.",
+      "marks_tip": "For 3-mark and 5-mark answers, always state the law first, then apply it to the example. Never give the example without stating the law. Write F=ma clearly for Second Law questions and show the calculation step by step."
+    }
+  }
+}

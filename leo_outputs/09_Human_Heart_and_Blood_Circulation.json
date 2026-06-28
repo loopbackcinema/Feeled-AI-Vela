@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "topic": "Human Heart and Blood Circulation",
+    "grade": 11,
+    "subject": "Biology"
+  },
+  "leo": {
+    "central_question": "How does your heart make sure that every single cell in your body receives oxygen — including the cells in the tip of your little finger — within 60 seconds, continuously, without stopping once in your lifetime?",
+    "essential_idea": "The heart is a double pump — one side sends blood to the lungs for oxygen, the other sends oxygenated blood to the entire body — and these two circuits work simultaneously and continuously.",
+    "curiosity_hook": {
+      "phenomenon": "Your heart beats approximately 100,000 times per day. In a 70-year life: 2.5 billion beats. It never rests more than a fraction of a second. No other muscle in your body comes close to this endurance.",
+      "why_surprising": "Every other muscle in your body tires and needs rest. Your heart cannot afford to rest even once. How does it sustain this for 70 years without failure — and what happens to the blood while it is doing this?",
+      "opening_image": "An animated heart beating in slow motion. The rhythm is regular. The camera holds on it — one beat, two beats, three beats. Time accelerates: 100 beats in 10 seconds. Then text: 2.5 billion beats in a lifetime."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "Blood becomes oxygen as it passes through the heart",
+        "why_believable": "The heart is the central organ — students assume it does everything, including producing oxygen.",
+        "severity": "dangerous",
+        "correction_strategy": "demonstration"
+      },
+      {
+        "statement": "Arteries carry oxygenated blood and veins carry deoxygenated blood — always",
+        "why_believable": "This is taught as a rule and memorized. Students don't realize pulmonary artery (from heart to lungs) carries deoxygenated blood — violating the rule.",
+        "severity": "minor",
+        "correction_strategy": "comparison"
+      }
+    ],
+    "observation_sequence": [
+      "Dye injected into right atrium: moves to right ventricle, pumped to lungs. In lungs: dye brightens (oxygenated). Returns to left atrium.",
+      "From left atrium: moves to left ventricle, pumped out to body through aorta. Dye reaches fingers, organs, toes.",
+      "Dye returns dark (deoxygenated) through veins to right atrium. Cycle complete.",
+      "ECG trace: P wave (atria contract), QRS complex (ventricles contract), T wave (ventricles relax). Pattern repeats 70 times per minute."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing blood go to lungs, return to heart, then go to body...",
+        "question": "Why does blood need to return to the heart between the lungs and the body — why not go directly from lungs to body?",
+        "options": [
+          "The heart cleans the blood before sending it to the body",
+          "The heart provides additional pumping pressure needed for the longer body circuit",
+          "The heart mixes oxygenated and deoxygenated blood before distributing it"
+        ],
+        "correct_index": 1,
+        "why_wrong_options_feel_right": "Option A appeals to the idea that the heart 'processes' blood. Option C feels right because mixing sounds efficient — combining everything before distributing."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "The student sees that the heart is actually two pumps side by side: right side (low pressure, short circuit to nearby lungs) and left side (high pressure, long circuit to entire body). The thicker left ventricle wall is visible in anatomy — it needs to push further. Structure reveals function.",
+      "what_becomes_visible": "The different wall thicknesses of the four chambers are not random — they reflect workload. Right ventricle wall thinner (low pressure needed). Left ventricle wall thick (high pressure needed). Every structural detail of the heart reflects its functional demand.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Double Pump Station",
+        "description": "Imagine two pumping stations side by side. Station R (right) pumps water through a small nearby tank (lungs) to refresh it. Station L (left) pumps the refreshed water through a vast city (body). Both stations work simultaneously, continuously. Station L has stronger pumps because the city is far.",
+        "why_memorable": "Pump stations are familiar in Tamil Nadu water supply infrastructure. The 'city' vs 'nearby tank' distance difference explains the wall thickness difference logically.",
+        "scientifically_accurate": true,
+        "accuracy_note": "The stations don't pump identical volumes simultaneously in reality — timing is coordinated. The analogy represents function accurately while simplifying timing."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Checking pulse at wrist after running in a Chennai PE class",
+        "connection_to_concept": "Radial artery pulse felt at wrist is the pressure wave from left ventricle contraction. Heart rate increases with exercise to deliver more oxygen to working muscles."
+      },
+      {
+        "example": "Heart attack awareness campaigns in Tamil Nadu hospitals",
+        "connection_to_concept": "Coronary arteries supply blood to heart muscle itself. Blockage cuts off heart's own oxygen supply — the pump fails because the pump's own engine stops receiving fuel."
+      },
+      {
+        "example": "Blood pressure measurement at Chennai government hospital",
+        "connection_to_concept": "Systolic pressure = left ventricle contraction force. Diastolic = resting pressure. Normal 120/80 mmHg reflects the double-pump timing."
+      }
+    ],
+    "reflection_questions": [
+      "Mammals have four-chambered hearts. Fish have two-chambered hearts. Using what you know about double circulation, what disadvantage do fish have compared to mammals?",
+      "During heavy exercise, heart rate increases from 70 to 150 beats/min. Calculate the additional volume of blood pumped per minute if each beat pumps 70mL.",
+      "Why is the left ventricle wall significantly thicker than the right ventricle wall? What would happen if both walls were the same thickness?"
+    ],
+    "memory_anchor": {
+      "image_description": "A cross-section of the heart cut vertically. Left ventricle visible — its wall noticeably thicker than the right ventricle. The four chambers labeled. Arrows showing: blue blood in right side, red blood in left side. Two circuits visible: short loop to lungs, long loop to body.",
+      "anchor_sentence": "The heart is two pumps: right sends blood to nearby lungs, left (with thicker walls) sends it all the way to the body.",
+      "cognitive_hook": "The visual asymmetry — one side thicker — is memorable because it is unexpected. Students expect a symmetric heart. The asymmetry has a reason, and the reason is the circuit length difference. Structural surprise plus functional explanation creates lasting memory."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: Four chambers, two circuits, valves, pulmonary vs systemic. Understanding: Student explains why left ventricle wall is thicker, traces a red blood cell through complete double circulation, and explains what happens during heart attack using circulation principles.",
+      "tn_board_pattern": "1-mark: Name the four chambers. Define systole and diastole. 3-mark: Explain double circulation. Describe the role of valves. 5-mark: Describe structure and function of heart with labeled diagram. Trace path of blood from right atrium back to right atrium.",
+      "marks_tip": "For blood circulation path questions: trace the complete path step by step, naming every structure the blood passes through. TN Board awards one mark per correct structure in sequence. Skipping 'left atrium' or 'pulmonary veins' costs marks — be exhaustive."
+    }
+  }
+}

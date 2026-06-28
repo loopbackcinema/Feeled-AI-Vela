@@ -1,0 +1,101 @@
+{
+  "meta": { "topic": "Photosynthesis", "grade": 10, "subject": "Biology" },
+  "leo": {
+    "central_question": "Plants eat soil — or do they? Where does the wood of a tree actually come from?",
+    "essential_idea": "Plants build their entire body from thin air — carbon dioxide from the atmosphere becomes the solid wood, leaves, and roots of a plant.",
+    "curiosity_hook": {
+      "phenomenon": "A tiny seed weighing 0.5 grams is planted in a pot with 100kg of soil. Twenty years later, a tree weighing 1000kg stands in the pot. The soil weighs almost exactly 100kg — unchanged.",
+      "why_surprising": "If the tree didn't come from the soil, and it didn't come from water alone — where did 999.5kg of tree come from? The answer is invisible.",
+      "opening_image": "Time-lapse: a seed in soil. Decades compress into seconds. A massive tree fills the frame. The camera slowly moves down to the soil — the same small pot, unchanged in size."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "Plants get their food from the soil through their roots",
+        "why_believable": "We water plants and put them in soil. When soil is removed, plants die. The causal connection feels obvious.",
+        "severity": "dangerous",
+        "correction_strategy": "demonstration"
+      },
+      {
+        "statement": "Photosynthesis happens only in leaves",
+        "why_believable": "Leaves are green, and students associate green with chlorophyll and food-making. Stems can also photosynthesize, but they're not obviously green.",
+        "severity": "minor",
+        "correction_strategy": "reflection"
+      },
+      {
+        "statement": "Plants need sunlight to grow, so sunlight is plant food",
+        "why_believable": "If you put a plant in a dark room, it dies. Sunlight keeps it alive. The logic that sunlight equals food is compelling.",
+        "severity": "complex",
+        "correction_strategy": "comparison"
+      }
+    ],
+    "observation_sequence": [
+      "A green leaf is placed in a sealed glass jar with only CO₂ inside, in bright sunlight. After one hour, the jar is tested: CO₂ has decreased and O₂ has appeared.",
+      "The same experiment in complete darkness: CO₂ level unchanged. No O₂ produced.",
+      "A leaf is boiled, decolorized with alcohol, and tested with iodine. In the sunlit area: iodine turns blue-black. In the shaded area of the same leaf: iodine stays orange-yellow.",
+      "Cross-section of a leaf under microscope: tiny green oval structures (chloroplasts) visible inside leaf cells, packed most densely near the surface facing light."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing that CO₂ decreases and O₂ appears in sunlight but not in dark...",
+        "question": "What is the leaf actually using to build itself?",
+        "options": [
+          "Sunlight — it converts light energy directly into solid matter",
+          "Water — plants are mostly water, they just reorganize it",
+          "Carbon dioxide from air — the leaf converts CO₂ gas into solid carbon-based structures"
+        ],
+        "correct_index": 2,
+        "why_wrong_options_feel_right": "Option A feels right because sunlight is clearly essential — remove it and photosynthesis stops. Option B feels right because plants are visibly wet and water is clearly consumed."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "The student realizes: that 1000kg tree grew from CO₂ gas — the same invisible gas that humans breathe out. The tree literally pulled itself out of thin air, atom by atom, using sunlight as energy. Every wooden chair, every sheet of paper, every mango — solidified air.",
+      "what_becomes_visible": "Carbon dioxide — invisible, intangible gas — is the raw material of all plant matter. Sunlight is the energy, not the material. This reverses the intuitive assumption.",
+      "emotional_quality": "awe-inspiring"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Air Sculptor",
+        "description": "A plant is an air sculptor. It reaches out invisible hands into the atmosphere, grabs CO₂ molecules, breaks them apart using sunlight as a chisel, and stacks the carbon atoms into solid wood, leaves, and fruit. The oxygen is the waste — thrown back into the air.",
+        "why_memorable": "The metaphor of 'sculpting from air' is visually vivid and physically impossible for humans — the impossibility makes it memorable. 'Throwing away oxygen' reframes waste in a surprising way.",
+        "scientifically_accurate": true,
+        "accuracy_note": "Plants also use water (H₂O), which provides hydrogen atoms for glucose. The metaphor simplifies by focusing on carbon fixation, which is the core insight."
+      },
+      {
+        "name": "The Sunlight Battery",
+        "description": "Photosynthesis is a battery charger. Sunlight is electricity. Glucose is the charged battery. When animals eat plants, they discharge the battery — releasing the stored sunlight as energy for movement and warmth.",
+        "why_memorable": "Every Tamil Nadu student has experienced a phone battery. The charging/discharging cycle maps directly to photosynthesis/respiration.",
+        "scientifically_accurate": true,
+        "accuracy_note": "Glucose is an energy-storage molecule, not literally a battery — but the energy transformation analogy is accurate."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Coconut tree on Marina Beach — grows to 20 meters with no visible food source",
+        "connection_to_concept": "The entire coconut tree — trunk, fronds, coconuts — came from CO₂ in the Chennai air, water, and sunlight. No soil nutrition created the solid matter."
+      },
+      {
+        "example": "Idli batter fermenting — rice is the stored photosynthesis product",
+        "connection_to_concept": "The starch in rice is glucose chains — solidified CO₂ from the atmosphere, stored by the rice plant using sunlight. The idli is literally compressed sunlight."
+      },
+      {
+        "example": "Burning firewood for cooking in villages",
+        "connection_to_concept": "Wood burning releases CO₂ back into atmosphere — reversing photosynthesis. The heat released is the same sunlight that was stored years ago when the tree was growing."
+      }
+    ],
+    "reflection_questions": [
+      "Your own body is partly made of carbon atoms. Trace where those carbon atoms came from, all the way back to their origin.",
+      "A farmer adds fertilizer to soil to help crops grow. If plants get their mass from air, not soil, why does fertilizer help?",
+      "What would happen to all life on Earth if the Sun disappeared for one week? Use photosynthesis to explain your answer step by step."
+    ],
+    "memory_anchor": {
+      "image_description": "A glass jar sealed tight. Inside: a single green leaf and nothing else. Above the jar: bright sun. Over 30 seconds, the jar slowly fills with tiny bubbles rising from the leaf — visible oxygen being released. The CO₂ inside is disappearing, becoming the leaf itself.",
+      "anchor_sentence": "A leaf in sunlight turns invisible gas into itself — and releases the leftover oxygen for us to breathe.",
+      "cognitive_hook": "Bubbles are visually satisfying and familiar (soap bubbles, boiling water). Watching oxygen appear from a leaf is a reversible mental image — you can 'replay' it. The connection to breathing makes it personally relevant."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: 6CO₂ + 6H₂O + sunlight → C₆H₁₂O₆ + 6O₂. Understanding: Student can explain why Van Helmont's willow experiment proved plants don't eat soil, can trace carbon from atmosphere to wood to CO₂ back to atmosphere, and can explain why photosynthesis is the foundation of all food chains.",
+      "tn_board_pattern": "1-mark: Define photosynthesis. Write the equation. 3-mark: Describe light reaction and dark reaction. Explain the role of chlorophyll. 5-mark: Describe the complete process of photosynthesis with diagram. TN Board frequently asks students to draw and label a chloroplast.",
+      "marks_tip": "Always write the balanced chemical equation for photosynthesis with conditions (sunlight, chlorophyll) shown above the arrow. For 5-mark answers, draw the chloroplast diagram — even a simple one adds marks. Mention both light-dependent and light-independent reactions by name."
+    }
+  }
+}

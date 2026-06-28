@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "topic": "Cell Division — Mitosis",
+    "grade": 11,
+    "subject": "Biology"
+  },
+  "leo": {
+    "central_question": "How does one cell become two identical cells — and how does your body replace 300 million cells every minute without making a single mistake?",
+    "essential_idea": "Before a cell divides, it makes a perfect copy of all its DNA — then carefully splits everything in two so each daughter cell gets exactly the same genetic information.",
+    "curiosity_hook": {
+      "phenomenon": "A single cell in a petri dish divides into two. Those two divide into four. After 40 rounds of division: one trillion cells — all from one original cell, all carrying identical DNA.",
+      "why_surprising": "Copying DNA perfectly one time would be difficult. Copying it accurately one trillion times seems impossible — yet your body does this right now.",
+      "opening_image": "Time-lapse microscopy: one glowing cell slowly pinches in the middle. Two cells where there was one. Both glow with same intensity. Cut to: billions of cells where one existed."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "Cells simply split in half during division",
+        "why_believable": "Division sounds like cutting in half. Students visualize a cell being cut into two equal pieces.",
+        "severity": "dangerous",
+        "correction_strategy": "demonstration"
+      },
+      {
+        "statement": "DNA is copied after cell division, during the new cell's life",
+        "why_believable": "It seems logical to copy DNA when needed, not before dividing.",
+        "severity": "minor",
+        "correction_strategy": "prediction"
+      }
+    ],
+    "observation_sequence": [
+      "Cell at rest: nucleus visible as dark oval. DNA diffuse, not visible as distinct structures.",
+      "Cell preparing: DNA condenses into visible, distinct rod-like chromosomes. Each chromosome appears doubled — two identical strands joined at center.",
+      "Chromosomes align along center of cell. Fibers attach to each chromosome from both sides.",
+      "Fibers pull: identical sets of chromosomes move to opposite poles. Cell pinches in middle. Two nuclei form. Cell separates into two."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing chromosomes align in center...",
+        "question": "What must happen before the cell can split into two?",
+        "options": [
+          "The chromosomes must be destroyed and remade in each new cell",
+          "Each chromosome must be pulled apart so one copy goes to each side",
+          "The nucleus must dissolve first so chromosomes can spread throughout the cell"
+        ],
+        "correct_index": 1,
+        "why_wrong_options_feel_right": "Option A feels logical if students think cells are rebuilt from scratch. Option C feels right because the nucleus does actually dissolve — students reason from partial truth."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "Student sees that every chromosome in the aligned row is already doubled — copied before division began. The spindle fibers don't create copies; they distribute pre-made copies. The copying happened quietly before the dramatic visible division.",
+      "what_becomes_visible": "DNA replication is the hidden, essential step that makes division possible. What looks like one event is actually two sequential events: copy first, then divide. The visible drama of chromosome movement is just delivery of pre-prepared packages.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Photocopier Before the Meeting",
+        "description": "Before a meeting where two teams each need the same document, a secretary photocopies the document first. Then tears the two copies apart and gives one to each team. Mitosis copies DNA first (S phase), then divides (mitosis proper). The copying happens before the drama begins.",
+        "why_memorable": "Office photocopier is familiar. The metaphor captures the chronological sequence — copy first, distribute second.",
+        "scientifically_accurate": true,
+        "accuracy_note": "S phase (DNA synthesis) happens hours before mitosis begins — the metaphor accurately represents the temporal separation."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Skin healing after a scrape on a Tamil child's knee",
+        "connection_to_concept": "Skin cells near the wound undergo mitosis — dividing to replace lost cells. The cells that divide are genetically identical to the original skin cells."
+      },
+      {
+        "example": "Onion root tip used in biology practicals across Tamil Nadu schools",
+        "connection_to_concept": "Onion root tips are used because they have rapidly dividing cells — mitosis stages visible under microscope. The classic TN Board practical."
+      },
+      {
+        "example": "Clonally propagated banana plants in Tamil Nadu farms",
+        "connection_to_concept": "Banana plants reproduced vegetatively are genetic clones — all cells from mitotic division of original plant. No genetic variation."
+      }
+    ],
+    "reflection_questions": [
+      "If one mistake occurs during DNA copying, what might happen to the daughter cells? What real-world condition does this relate to?",
+      "Cancer is uncontrolled cell division. Using your understanding of mitosis, explain what 'control' normally means in cell division.",
+      "Your liver can regenerate after partial removal. Which phase of the cell cycle is most active during this regeneration?"
+    ],
+    "memory_anchor": {
+      "image_description": "Under a microscope: one cell pinching in the middle like a balloon being squeezed. Two glowing nuclei visible — one on each side of the pinch. Both identical. The pinch completes. Two separate cells, both glowing, both identical.",
+      "anchor_sentence": "One cell becomes two identical cells — because DNA is copied first, then chromosomes are pulled apart perfectly.",
+      "cognitive_hook": "The pinching balloon image is physical and familiar — students can feel the constriction. The word 'identical' is emphasized through visual matching of the two glowing cells. Perfect copying against complexity creates wonder."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: Stages — Prophase, Metaphase, Anaphase, Telophase. Understanding: Student explains WHY each stage is necessary, describes what would happen if a stage was skipped, and connects mitosis to growth, repair, and cancer.",
+      "tn_board_pattern": "1-mark: Name phases of mitosis. Define karyokinesis. 3-mark: Describe events in any one phase with diagram. Distinguish mitosis from meiosis. 5-mark: Describe complete process of mitosis with labeled diagrams of each phase.",
+      "marks_tip": "For mitosis diagrams: draw chromosomes clearly — show them as paired (doubled) in prophase, aligned in metaphase, separated in anaphase. Label centromere, spindle fibers, and cell plate. TN Board awards marks for each correctly labeled structure."
+    }
+  }
+}

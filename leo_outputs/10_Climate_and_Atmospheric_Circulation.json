@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "topic": "Climate and Atmospheric Circulation",
+    "grade": 11,
+    "subject": "Geography"
+  },
+  "leo": {
+    "central_question": "Why does Chennai get rain from the northeast in winter while Mumbai gets rain from the southwest in summer — and why do both cities exist in a country called 'the land of monsoons'?",
+    "essential_idea": "Differential heating of land and sea drives giant air circulation cells that determine where on Earth it rains, when it rains, and why different regions have completely different climates.",
+    "curiosity_hook": {
+      "phenomenon": "Chennai (13°N) is hot and tropical. London (51°N) is cool and rainy. Yet Timbuktu (16°N, near Chennai's latitude) is a desert. Latitude alone doesn't determine climate.",
+      "why_surprising": "Students expect latitude to determine temperature and climate. Chennai and Timbuktu are at the same latitude but have completely different climates — the simple rule fails.",
+      "opening_image": "Side-by-side time-lapses: Chennai's Marina Beach during northeast monsoon rains. The Sahara Desert at the same time of year — cloudless, motionless, dry. Same band of latitude on globe shown connecting the two."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "Climate is determined only by distance from the equator (latitude)",
+        "why_believable": "Equatorial regions are hot, polar regions are cold — the rule seems reliable until students encounter desert cities at tropical latitudes.",
+        "severity": "dangerous",
+        "correction_strategy": "comparison"
+      },
+      {
+        "statement": "Monsoons are caused by clouds forming over the ocean",
+        "why_believable": "Monsoon rains come from the sea. Students reason backward from observation: rain → ocean clouds.",
+        "severity": "complex",
+        "correction_strategy": "demonstration"
+      }
+    ],
+    "observation_sequence": [
+      "Temperature map of Earth in June: land areas (especially continental interiors) are much hotter than ocean areas at the same latitude.",
+      "Air pressure map of same period: low pressure over hot land areas. High pressure over cooler oceans.",
+      "Wind direction map: winds blow from high pressure (ocean) to low pressure (land). In South Asia: from Indian Ocean toward Indian subcontinent.",
+      "Time-lapse monsoon satellite: moisture-laden winds hit Western Ghats. Forced upward. Cool. Condense. Rain falls on western slopes. Eastern side stays dry (rain shadow)."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing winds blow from ocean to hot land in summer...",
+        "question": "In winter, when land cools faster than sea, which direction will winds blow?",
+        "options": [
+          "Winds will still blow from sea to land — the ocean always drives wind",
+          "Winds will blow from cold land to relatively warmer sea — reversing direction",
+          "Winds will stop — temperature equalization means no pressure difference"
+        ],
+        "correct_index": 1,
+        "why_wrong_options_feel_right": "Option A feels right because students know monsoon from ocean to land. Option C feels logical — equal temperatures mean no pressure difference, so no wind."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "The student sees that monsoon is a giant, seasonal land-sea breeze. Same mechanism as a coastal breeze — land heats faster than sea by day, so air rises over land and sea air rushes in. Monsoon is just this phenomenon at continental scale, with seasonal reversal instead of daily reversal.",
+      "what_becomes_visible": "Climate patterns are not arbitrary — they follow from physics: hot air rises, cool air fills the gap, moisture-laden ocean air condenses when forced upward. Chennai's northeast monsoon and Mumbai's southwest monsoon are both the same physics — different seasons, different directions.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Seasonal Giant Breath",
+        "description": "In summer, the Asian continent heats up and the air rises — the continent breathes out. Moist ocean air rushes in to fill the gap — the southwest monsoon. In winter, the continent cools, air sinks and flows outward — the continent breathes in. Dry air flows from land to sea — the northeast monsoon. Chennai receives the northeast monsoon because it faces the Bay of Bengal on the northeast side.",
+        "why_memorable": "Breathing in and out is the most basic physical rhythm — it makes the seasonal reversal feel natural rather than arbitrary. The 'continent breathing' metaphor scales the familiar to the vast.",
+        "scientifically_accurate": true,
+        "accuracy_note": "Simplification — actual circulation involves Hadley cells, ITCZ, and jet stream interactions. But land-sea differential heating is the core driver accurately represented."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Chennai northeast monsoon flooding (October-December) — Kattupalli port area",
+        "connection_to_concept": "Bay of Bengal moisture-laden air hits Tamil Nadu coast during northeast monsoon. Chennai's east-facing coastline receives rain that Mumbai doesn't."
+      },
+      {
+        "example": "Kodaikanal hill station has different climate than Madurai 100km away",
+        "connection_to_concept": "Altitude creates temperature change (lapse rate) — Kodaikanal at 2133m is significantly cooler than Madurai at 146m despite same latitude."
+      },
+      {
+        "example": "Farmer in Thanjavur district timing planting by monsoon onset",
+        "connection_to_concept": "Tamil Nadu's Kaveri delta agriculture depends entirely on northeast monsoon timing. Differential heating patterns that drive monsoon directly determine crop cycles."
+      }
+    ],
+    "reflection_questions": [
+      "If global warming raises ocean temperatures by 2°C, predict two specific changes to the Indian monsoon pattern and explain your reasoning.",
+      "Why are deserts found at approximately 30°N and 30°S latitude globally, while rain forests are near the equator? Connect to atmospheric circulation cells.",
+      "Chennai has a sea breeze every afternoon. How is this daily sea breeze connected to the larger monsoon phenomenon you just learned?"
+    ],
+    "memory_anchor": {
+      "image_description": "Earth from space showing South Asia. Summer: red heat over Indian subcontinent. Blue-green over Indian Ocean. Arrows showing wind flowing from ocean toward land. Winter: colors reversed. Arrows reversed. Chennai marked on east coast receiving arrows from Bay of Bengal in winter.",
+      "anchor_sentence": "Land heats faster than sea — hot air rises over land, ocean air rushes in — and this giant seasonal breath is the monsoon.",
+      "cognitive_hook": "The reversal of arrows between summer and winter creates a visual story with clear cause (heat differential) and effect (wind direction). The 'seasonal breath' metaphor maps an invisible atmospheric process to a universally experienced physical sensation."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: Names of monsoon types, months, affected regions. Understanding: Student explains mechanism of monsoon using pressure and temperature principles, predicts climate of a location from geographic position, and explains why Tamil Nadu receives northeast while rest of India gets southwest monsoon.",
+      "tn_board_pattern": "1-mark: Define monsoon. Name the two monsoons affecting India. 3-mark: Explain mechanism of Indian monsoon. Describe northeast monsoon affecting Tamil Nadu. 5-mark: Describe atmospheric circulation cells (Hadley, Ferrel, Polar) with diagram. Explain distribution of rainfall in India.",
+      "marks_tip": "For atmospheric circulation diagrams: show three cells in each hemisphere clearly. Label ITCZ at equator, subtropical high at 30°, subpolar low at 60°, polar high at 90°. Tamil Nadu-specific application: explain why TN gets rain in October-December specifically — mention Bay of Bengal moisture source."
+    }
+  }
+}

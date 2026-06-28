@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "topic": "Quadratic Equations",
+    "grade": 10,
+    "subject": "Mathematics"
+  },
+  "leo": {
+    "central_question": "If you throw a ball upward, how do you find the exact moment it returns to your hand — without watching it?",
+    "essential_idea": "A quadratic equation describes any process that curves — and solving it finds the exact moments when the curved quantity hits a particular value.",
+    "curiosity_hook": {
+      "phenomenon": "A ball is thrown straight up at 20 m/s. Without watching it, using only numbers, someone writes h = 20t - 5t² and says 'It returns in exactly 4 seconds.' They are right.",
+      "why_surprising": "How can numbers predict the future behavior of a physical object without any visual observation? Mathematics describes reality before it happens.",
+      "opening_image": "A ball thrown upward in slow motion. A mathematician writes an equation on paper without looking at the ball. The ball reaches its peak and falls. The mathematician smiles before the ball returns."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "Quadratic equations always have two different answers",
+        "why_believable": "Students learn 'quadratic has two roots' as a rule. They don't realize roots can be equal or non-real.",
+        "severity": "minor",
+        "correction_strategy": "prediction"
+      },
+      {
+        "statement": "The formula b² - 4ac is just a step in the calculation, not meaningful itself",
+        "why_believable": "Students apply the formula mechanically without understanding that the discriminant predicts the nature of solutions before solving.",
+        "severity": "complex",
+        "correction_strategy": "reflection"
+      }
+    ],
+    "observation_sequence": [
+      "Ball thrown up: rises, slows, stops at peak, accelerates down. Graph of height vs time: smooth curve, rises to peak, falls symmetrically.",
+      "Area of a rectangle with length 2 more than width, total area 48m²: setting up l × w = 48 where l = w+2 gives w² + 2w - 48 = 0.",
+      "x² = 9: two solutions (x=3 and x=-3). x² = 0: one solution (x=0). x² = -1: no real solution.",
+      "Graphing y = x² - 5x + 6: parabola crosses x-axis at exactly two points. Those x-values are the solutions to x² - 5x + 6 = 0."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing the discriminant b²-4ac...",
+        "question": "If b²-4ac is negative (like -5), what will happen when we try to solve the equation?",
+        "options": [
+          "We get one repeated solution — the discriminant being negative means it doubles",
+          "We get two solutions but both are negative numbers",
+          "We get no real solution — the parabola doesn't cross the x-axis at all"
+        ],
+        "correct_index": 2,
+        "why_wrong_options_feel_right": "Option A connects 'negative' to 'repeated' in a confused way. Option B feels right because negative discriminant suggests negative answers."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "Student sees the parabola on a graph: when it crosses the x-axis twice, discriminant is positive. When it just touches once, discriminant is zero. When it never crosses, discriminant is negative. The formula isn't magic — it's asking: does this parabola reach the ground, and if so, where?",
+      "what_becomes_visible": "Quadratic equations describe parabolas. Solving the equation finds where the parabola crosses a line. The discriminant predicts whether a crossing exists before the work of finding it. Mathematics is visual geometry expressed as algebra.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Ball and the Ground",
+        "description": "Every quadratic equation is a ball thrown at some angle. Two solutions = ball hits ground twice (thrown and lands at different spots). One solution = ball is rolled along the ground (just touches). No real solution = ball thrown underground — impossible in our world, possible in math's extended world.",
+        "why_memorable": "Ball throwing is physically felt by every student. The three cases map to three physical scenarios that are intuitive.",
+        "scientifically_accurate": true,
+        "accuracy_note": "The ball analogy maps to parabolic trajectories — fully accurate for standard quadratic behavior."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "A farmer near Madurai fencing a rectangular field along a river — one side is free (river bank), needs minimum fencing for maximum area",
+        "connection_to_concept": "Optimization problem leads to quadratic equation. Maximizing area given fixed perimeter."
+      },
+      {
+        "example": "A Tamil Nadu road contractor calculating dimensions of a speed breaker cross-section (parabolic shape)",
+        "connection_to_concept": "Speed breaker profile is a parabola — designed by quadratic equation to meet road safely at both sides."
+      },
+      {
+        "example": "Profit calculation for a Chennai small business: profit = -x² + 100x - 1500, find units for breakeven",
+        "connection_to_concept": "Setting profit = 0 gives quadratic equation. Solutions are the two breakeven points — units where profit exactly covers costs."
+      }
+    ],
+    "reflection_questions": [
+      "You know a ball takes 6 seconds total to return to your hand when thrown upward. Without solving an equation, what can you say about when it reached its peak?",
+      "Why do engineers prefer quadratic equations with two solutions over one — what does having two solutions mean physically for a design problem?",
+      "The quadratic formula always works but factoring is faster when it works. When would you choose each method, and why?"
+    ],
+    "memory_anchor": {
+      "image_description": "A parabola drawn on graph paper. It crosses the x-axis at two points. Those two points are circled. Below the graph: the equation whose solutions are exactly those two x-values. Next to it: a ball's arc over time reaching the same peak shape.",
+      "anchor_sentence": "Solving a quadratic finds where a parabola touches the ground — the equation describes the curve, the solution finds the landing spots.",
+      "cognitive_hook": "The parabola image connects algebra to geometry — the abstract equation becomes a visible curve. Connecting to ball throwing creates a physical, kinesthetic anchor. The 'ground crossing' metaphor is concrete and spatially memorable."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: Quadratic formula, factoring steps, discriminant formula. Understanding: Student identifies when to use factoring vs formula, interprets discriminant without calculating full solution, and sets up quadratic equations from word problems.",
+      "tn_board_pattern": "1-mark: Write standard form of quadratic equation. State discriminant formula. 3-mark: Solve quadratic by factoring or formula. Find nature of roots using discriminant. 5-mark: Solve word problems involving quadratic equations — area, time, speed problems.",
+      "marks_tip": "For word problems: write the equation setup clearly before solving — TN Board awards marks for correct equation even if calculation has errors. Always check both solutions make physical sense (negative time is usually invalid)."
+    }
+  }
+}

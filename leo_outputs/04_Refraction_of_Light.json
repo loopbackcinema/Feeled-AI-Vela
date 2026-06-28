@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "topic": "Refraction of Light",
+    "grade": 10,
+    "subject": "Physics"
+  },
+  "leo": {
+    "central_question": "Why does a straight straw look bent in a glass of water — and why does a swimming pool always look shallower than it really is?",
+    "essential_idea": "Light bends when it crosses from one transparent material to another because it changes speed at the boundary.",
+    "curiosity_hook": {
+      "phenomenon": "A straight metal rod pushed into a clear glass of water appears sharply broken at the water surface — as if it snapped. Pulled out: perfectly straight.",
+      "why_surprising": "The rod is rigid and cannot bend. Something else must have changed.",
+      "opening_image": "Close-up: a straight ruler enters water at an angle. At the water surface, the ruler appears to snap — the underwater half is displaced sideways. The glass is crystal clear."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "Light travels at the same speed in all transparent materials",
+        "why_believable": "Light travels at 300,000 km/s — it seems impossible that glass or water could slow something so fast.",
+        "severity": "dangerous",
+        "correction_strategy": "demonstration"
+      },
+      {
+        "statement": "The bent appearance is because water distorts vision like a wavy mirror",
+        "why_believable": "Water surfaces ripple and distort reflections — students generalize this to all water-vision effects.",
+        "severity": "minor",
+        "correction_strategy": "comparison"
+      }
+    ],
+    "observation_sequence": [
+      "A laser beam enters a rectangular glass block at an angle. Inside: beam bends toward the perpendicular at entry surface.",
+      "Beam exits the other side: bends away from the perpendicular. Exiting beam is parallel to entering beam but displaced.",
+      "Laser aimed straight at glass (0° angle): no bending at all. Beam continues straight.",
+      "Laser enters water at increasing angles: at the critical angle, refracted beam runs along the surface. Beyond it: total reflection."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing light bend toward normal when entering glass...",
+        "question": "When light exits glass back into air, which way will it bend?",
+        "options": [
+          "Toward the normal again",
+          "Away from the normal",
+          "It will not bend — returns to original direction"
+        ],
+        "correct_index": 1,
+        "why_wrong_options_feel_right": "Option A feels symmetric and consistent. Option C feels right because 'returning to air should undo everything.'"
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "Soldiers marching in formation hit a sandy beach at an angle — front row slows first, back rows still fast — formation pivots. Light does the same. The wave front that hits glass first slows first. The rest catches up and the direction changes.",
+      "what_becomes_visible": "Speed difference causes direction change. Bending is not mysterious — it is the natural result of one part of a wave slowing before another part.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "Soldiers on Sand",
+        "description": "Soldiers marching in formation on hard ground reach a sandy beach at an angle. First soldier hits sand and slows. Others still fast. Formation pivots toward the sand. This is exactly how light waves bend at a glass surface — the wavefront pivots because one side slows first.",
+        "why_memorable": "Kinesthetic and spatial — students can feel the pivot in their own body.",
+        "scientifically_accurate": true,
+        "accuracy_note": "Represents Huygens wave model — fully accurate."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Fishing in Muttukadu backwaters — fish is never where it appears",
+        "connection_to_concept": "Refraction makes fish appear displaced upward. Fisherman must aim below apparent position."
+      },
+      {
+        "example": "Mirage on Rajiv Gandhi Salai on hot days — road appears wet",
+        "connection_to_concept": "Hot air layer near road refracts sky light — total internal reflection creates appearance of water."
+      },
+      {
+        "example": "Optical fibers carrying internet across Tamil Nadu",
+        "connection_to_concept": "Total internal reflection traps light inside fiber — same principle as critical angle observed in experiment."
+      }
+    ],
+    "reflection_questions": [
+      "A diamond sparkles more than glass. Both refract light. What property of diamond causes more sparkle?",
+      "If you were a fish looking up from underwater, would the entire above-water world appear compressed into a small circle? Why?",
+      "Optical fiber cables carry information as light pulses. How does total internal reflection make this possible?"
+    ],
+    "memory_anchor": {
+      "image_description": "A perfectly straight straw in a glass of water, viewed from the side. The straw appears sharply broken at the water surface — the underwater half visibly displaced to the right. Crystal clear glass. Unmistakably bent straw.",
+      "anchor_sentence": "A straight straw looks broken in water — because light slows down and bends when it moves from water to air.",
+      "cognitive_hook": "The visual wrongness — straight object appears broken — creates cognitive dissonance. Every student has seen this with a spoon. Personal memory plus explanation equals strong encoding."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: Snell's law n₁sinθ₁=n₂sinθ₂. Understanding: Student predicts bending direction for any material pair, explains why pool appears shallow, calculates depth error, explains optical fiber.",
+      "tn_board_pattern": "1-mark: Define refractive index. State Snell's Law. 3-mark: Explain total internal reflection with critical angle diagram. 5-mark: Refraction through glass slab or prism with diagram and all angles labeled.",
+      "marks_tip": "Always draw the normal line (dashed, perpendicular to surface) before drawing ray paths. Measure all angles from normal, never from surface — TN Board deducts marks for angles measured from surface."
+    }
+  }
+}

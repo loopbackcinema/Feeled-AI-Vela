@@ -1,0 +1,88 @@
+{
+  "meta": { "topic": "Ohm's Law and Electric Circuits", "grade": 10, "subject": "Physics" },
+  "leo": {
+    "central_question": "Why does a thin wire glow red-hot in a bulb but the thick wire in your wall stay completely cold?",
+    "essential_idea": "Resistance controls how much current flows for a given voltage — and current through resistance produces heat.",
+    "curiosity_hook": {
+      "phenomenon": "Two wires connected to the same battery: thin nichrome wire glows orange-hot. Thick copper wire stays cold. Same battery. Same time. Completely opposite outcomes.",
+      "why_surprising": "Same energy source, same amount of time — yet one wire glows and the other is untouched. Students expect the same cause to produce the same effect.",
+      "opening_image": "In darkness: two wires from the same battery. One slowly brightens to orange glow. The other remains invisible in the dark. Only the glowing wire is visible."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "Current gets used up as it travels around a circuit",
+        "why_believable": "Batteries run out. Bulbs dim. Water pressure drops along a pipe. The sense of electricity being consumed feels natural.",
+        "severity": "dangerous",
+        "correction_strategy": "comparison"
+      },
+      {
+        "statement": "Higher voltage always means higher current regardless of the circuit",
+        "why_believable": "More pressure from a tap gives more water. More voltage feels like it should always give more current.",
+        "severity": "minor",
+        "correction_strategy": "prediction"
+      }
+    ],
+    "observation_sequence": [
+      "A bulb connected to 1 battery: dim glow. 2 batteries: brighter. 3 batteries: brightest. Voltage increases, brightness increases.",
+      "Same 3 batteries, same bulb, but a long thin nichrome wire added in series: bulb dims significantly.",
+      "Replace thin wire with thick copper wire of same length: bulb returns to near-original brightness.",
+      "Ammeter readings: thin wire in circuit shows low current. Thick wire shows high current. Voltmeter across battery shows same voltage both times."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing thin wire reduces current...",
+        "question": "If we double the length of the thin nichrome wire, what happens to current?",
+        "options": [
+          "Current increases — more wire gives more path for electricity to flow",
+          "Current stays the same — only thickness of wire matters",
+          "Current decreases — longer wire means more resistance to fight"
+        ],
+        "correct_index": 2,
+        "why_wrong_options_feel_right": "Option A feels intuitive because more path seems like more opportunity. Option B feels right because thickness was just shown to matter — length seems irrelevant."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "Student sees that doubling resistance (R) while keeping voltage (V) constant exactly halves the current (I). V=IR is not a formula — it describes a physical negotiation happening inside every wire: voltage pushes, resistance fights, current is the result.",
+      "what_becomes_visible": "The wire is not passive — it actively resists. Every atom in the wire collides with moving electrons, slowing them down. Thin wire has more collisions per unit length. This collision energy appears as heat. The bulb glows because resistance converts current to light and heat.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Narrow Street",
+        "description": "Voltage is a festival crowd in Chennai determined to reach the stage. Current is how many people actually pass through per minute. Resistance is how narrow the street is. A narrow street (thin wire, high resistance) means fewer people reach per minute (low current) no matter how eager the crowd (high voltage).",
+        "why_memorable": "Chennai students know T. Nagar festival crowds and narrow Mylapore streets — the metaphor is physically felt, not just imagined.",
+        "scientifically_accurate": true,
+        "accuracy_note": "The crowd analogy breaks down for energy considerations — use only for V=IR relationship."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Electric heater coil glowing red versus electric fan motor staying cool",
+        "connection_to_concept": "Heater coil is made of high-resistance nichrome — converts electrical energy to heat. Fan motor coil has low resistance — converts to motion. Same current source, different resistance, different outcome."
+      },
+      {
+        "example": "Chennai power cuts — voltage fluctuation causing fans to run slowly",
+        "connection_to_concept": "V=IR: when voltage drops, current drops proportionally. Fan motor gets less current, produces less torque, spins slower."
+      },
+      {
+        "example": "Fuse wire in old Tamil Nadu homes melting during short circuit",
+        "connection_to_concept": "Short circuit means near-zero resistance — current becomes enormous. Thin fuse wire (low melting point, known resistance) heats and melts first, breaking the circuit before thicker house wires burn."
+      }
+    ],
+    "reflection_questions": [
+      "Your phone charger wire gets warm but does not glow. The heater coil glows orange. Both carry electrical current. Using V=IR, explain the difference.",
+      "Transmission lines carrying electricity across Tamil Nadu use very thick cables. Why not thin cables? What would happen if they were thin?",
+      "A short circuit is dangerous. Using Ohm's Law, explain exactly why — what changes about V, I, and R, and what is the consequence?"
+    ],
+    "memory_anchor": {
+      "image_description": "Side by side in complete darkness: a thin wire glowing orange-hot and a thick wire completely invisible. Both connected to the same battery. Same energy. One wire on fire, one wire cold.",
+      "anchor_sentence": "Same battery: thin wire glows, thick wire stays cold — because resistance controls current, and current through resistance makes heat.",
+      "cognitive_hook": "The visual contrast — glowing orange versus total darkness — against identical conditions creates a strong cognitive dissonance that demands explanation. The mystery creates the memory hook."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: V=IR and unit of resistance (ohm). Understanding: Student applies V=IR to calculate unknown quantities, explains series vs parallel circuits using resistance addition rules, and explains real devices using resistance principles.",
+      "tn_board_pattern": "1-mark: State Ohm's Law. Give SI unit of resistance. 3-mark: State Ohm's Law and verify experimentally. Solve: V=6V, R=3Ω, find I. 5-mark: Explain factors affecting resistance. Derive equivalent resistance for series and parallel circuits with diagrams.",
+      "marks_tip": "For numerical problems: write formula, substitute with units, solve, state unit of answer. TN Board allocates separate marks for formula, substitution, and answer — never skip steps."
+    }
+  }
+}

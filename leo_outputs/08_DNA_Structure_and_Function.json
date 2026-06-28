@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "topic": "DNA Structure and Function",
+    "grade": 12,
+    "subject": "Biology"
+  },
+  "leo": {
+    "central_question": "How does a molecule less than 2 nanometers wide contain the instructions for building an entire human being?",
+    "essential_idea": "DNA stores information using only four chemical letters — and the sequence of those letters, not their chemistry, is the code for all living things.",
+    "curiosity_hook": {
+      "phenomenon": "A single human cell contains 2 meters of DNA — yet the nucleus is 0.006 mm wide. If the DNA in one cell were stretched to its full length, it would reach from Chennai to Madurai and back many times.",
+      "why_surprising": "How can 2 meters of anything fit into an object visible only under a microscope? And how can the instructions for a complete human be stored in a molecule you could not see with your naked eye?",
+      "opening_image": "Animation: a human cell, visible under microscope. Camera zooms into nucleus. Then into chromosome. Then into the double helix — the zoom covers nine orders of magnitude. The helix is still clearly organized, structured, not random."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "DNA is the same in all cells of one person's body",
+        "why_believable": "Students learn 'all cells have your DNA' for identification purposes. They don't realize gene expression differs — a nerve cell and a skin cell use different parts of the same DNA.",
+        "severity": "complex",
+        "correction_strategy": "reflection"
+      },
+      {
+        "statement": "DNA directly makes proteins",
+        "why_believable": "Students hear DNA → protein as a chain. The RNA intermediate step feels like unnecessary complexity — why not go directly?",
+        "severity": "minor",
+        "correction_strategy": "comparison"
+      }
+    ],
+    "observation_sequence": [
+      "X-ray diffraction image of DNA: an X-shaped pattern of dots. The spacing of the pattern indicates helical structure with specific dimensions.",
+      "Chemical analysis: DNA from any species always has A=T and G=C in equal amounts — Chargaff's rules. The ratio is not 1:1:1:1 — A and T match, G and C match.",
+      "Model building: two sugar-phosphate strands twisting around each other. Bases point inward. A-T pairs fit perfectly. G-C pairs fit perfectly. Any other combination: too wide or too narrow.",
+      "When DNA is heated: strands separate. When cooled slowly: strands come back together — A finds T, G finds C, across the gap."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After learning that A always pairs with T and G always pairs with C...",
+        "question": "If one strand of DNA reads A-T-G-C-A, what does the complementary strand read?",
+        "options": [
+          "A-T-G-C-A (same sequence)",
+          "T-A-C-G-T (complementary)",
+          "U-A-C-G-U (RNA version)"
+        ],
+        "correct_index": 1,
+        "why_wrong_options_feel_right": "Option A confuses 'complementary' with 'identical' — students may think pairing means copying. Option C reflects RNA knowledge being misapplied."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "The student realizes: the sequence of bases is the code. A-T-G-C are not chemicals with meaning — they are letters in an alphabet. The meaning is in the sequence, not the chemistry. Changing one letter in a 3-billion-letter book changes one protein. Sometimes that change is invisible. Sometimes it is sickle cell disease.",
+      "what_becomes_visible": "Information in DNA is purely sequential — like a sentence. The chemistry (sugar-phosphate backbone, base pairing) is just the medium for storing sequence. The medium itself is nearly universal across all life — the code is what differs.",
+      "emotional_quality": "awe-inspiring"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Twisted Ladder with Rungs That Only Fit One Way",
+        "description": "DNA is a ladder twisted into a helix. The sides of the ladder (sugar-phosphate backbone) are always the same. The rungs (base pairs) can only be A-T or G-C — like puzzle pieces that only match their partner. The sequence of rungs, read from top to bottom, is the genetic code.",
+        "why_memorable": "The twisted ladder is the canonical image — already familiar. Adding 'rungs that only fit one way' adds the complementary pairing rule to a familiar structure.",
+        "scientifically_accurate": true,
+        "accuracy_note": "The ladder is a simplification — the bases don't alternate randomly as in a ladder's uniform rungs; their sequence varies. The model represents structure, not information content."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "DNA fingerprinting used in Chennai crime investigations",
+        "connection_to_concept": "Unique DNA sequence in every person allows identification from any cell sample. The sequence is the identity."
+      },
+      {
+        "example": "Sickle cell anemia prevalent in tribal communities in Tamil Nadu hills",
+        "connection_to_concept": "One base change in hemoglobin gene — A changed to T in one codon — changes one amino acid. The entire hemoglobin protein shape changes. Cells become sickle-shaped."
+      },
+      {
+        "example": "COVID-19 vaccine made using mRNA — discussed widely in Tamil Nadu during 2021",
+        "connection_to_concept": "mRNA vaccine delivers genetic instructions (sequence of bases) that cells use to make viral protein — same central dogma: DNA sequence → RNA → protein."
+      }
+    ],
+    "reflection_questions": [
+      "Every cell in your body has the same DNA, yet liver cells are completely different from brain cells. How is this possible?",
+      "If you could change one base pair in a 3-billion-base-pair genome, what is the probability it causes a noticeable change? What does this tell you about the reliability of DNA copying?",
+      "Forensic scientists identify individuals from DNA left at crime scenes. What specific property of DNA makes each person's DNA unique?"
+    ],
+    "memory_anchor": {
+      "image_description": "A twisted ladder: the sides are smooth rails (sugar-phosphate). The rungs are colored in pairs — red-yellow (A-T) and blue-green (G-C). The rungs never appear in any other color combination. The sequence of colored rungs from top to bottom varies — that variation is the code.",
+      "anchor_sentence": "DNA is a twisted ladder where the rungs only connect A to T and G to C — and the sequence of those rungs is the code for all life.",
+      "cognitive_hook": "Color coding the base pairs creates a visual pattern the brain can track. The 'only fits one way' principle gives the ladder a rule that is easy to remember and verify. The final sentence creates a direct link between structure (ladder rungs) and function (code for life)."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: Double helix, nucleotide components, base pairing rules, A=T and G≡C. Understanding: Student explains how complementary pairing enables DNA replication, applies base pairing to solve sequence problems, and connects DNA structure to mutation and genetic diseases.",
+      "tn_board_pattern": "1-mark: Name the scientists who proposed DNA model. Give base pairing rule. 3-mark: Describe structure of DNA with diagram. Explain Chargaff's rules. 5-mark: Describe DNA replication with diagram. Explain central dogma of molecular biology.",
+      "marks_tip": "For DNA structure diagram: label both strands with 5'→3' direction, show base pairs as horizontal lines between strands, label sugar-phosphate backbone on outside. TN Board awards separate marks for correct directionality (antiparallel strands) — this is often missed."
+    }
+  }
+}

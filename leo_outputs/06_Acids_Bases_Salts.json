@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "topic": "Acids, Bases and Salts",
+    "grade": 10,
+    "subject": "Chemistry"
+  },
+  "leo": {
+    "central_question": "Why does lemon juice clean rust from iron, but baking soda make a burn stop stinging — and what do they have in common?",
+    "essential_idea": "Acids donate H⁺ ions and bases accept them — and when an acid meets a base, they cancel each other out to form a salt and water.",
+    "curiosity_hook": {
+      "phenomenon": "Red cabbage juice is purple. Add lemon juice: turns pink. Add baking soda water: turns green. Add both together until fizzing stops: turns purple again.",
+      "why_surprising": "The same purple liquid transforms to pink, then to green, then back to original purple — purely from adding clear, colorless liquids. No dye was added. The color change came from chemistry, not pigment.",
+      "opening_image": "A clear glass of deep purple liquid. A few drops of clear liquid added: liquid slowly shifts to bright pink. A few drops of another clear liquid: slowly shifts to vivid green. Pause. Then mixed together: slowly returns to purple."
+    },
+    "common_misconceptions": [
+      {
+        "statement": "All acids burn and are dangerous; all bases are safe",
+        "why_believable": "Students know acid burns from warning labels. Baking soda is used in kitchens — feels safe. The mental categories are 'dangerous acid' vs 'safe base'.",
+        "severity": "dangerous",
+        "correction_strategy": "comparison"
+      },
+      {
+        "statement": "Neutral means no acid and no base present",
+        "why_believable": "Neutral sounds like 'empty' or 'nothing.' pH 7 sounds like the chemical equivalent of zero.",
+        "severity": "minor",
+        "correction_strategy": "reflection"
+      }
+    ],
+    "observation_sequence": [
+      "Zinc metal added to hydrochloric acid: immediate fizzing, bubbles form, zinc dissolves. Gas collected and tested: burns with a pop — hydrogen.",
+      "Copper metal added to same acid: no reaction. No bubbles. Copper unchanged.",
+      "Sodium hydroxide solution added to hydrochloric acid drop by drop: no visible change. Temperature of mixture increases measurably.",
+      "Universal indicator added: at start deep red (acid). As base added: orange, yellow, green, blue. At exact neutralization point: green."
+    ],
+    "prediction_opportunities": [
+      {
+        "moment": "After seeing zinc react with acid but copper not react...",
+        "question": "What determines whether a metal reacts with acid?",
+        "options": [
+          "The color of the metal — shiny metals react, dull metals don't",
+          "The reactivity of the metal — more reactive metals displace hydrogen from acid",
+          "The amount of acid — not enough acid for copper to react"
+        ],
+        "correct_index": 1,
+        "why_wrong_options_feel_right": "Option A uses visual cues students rely on. Option C feels right because students have intuition that quantities matter."
+      }
+    ],
+    "concept_reveal": {
+      "the_moment": "The temperature rise during acid-base mixing reveals energy: neutralization is not just a color change — it releases heat. H⁺ and OH⁻ ions are so eager to form water that they release energy doing so. The pH indicator shows the battle; the thermometer shows the outcome.",
+      "what_becomes_visible": "Neutralization is a chemical battle between H⁺ and OH⁻ ions. When exactly equal numbers meet, they annihilate each other into water. The salt is just the leftover ions from both sides — neutral bystanders from the battle.",
+      "emotional_quality": "satisfying"
+    },
+    "candidate_memory_models": [
+      {
+        "name": "The Tug of War",
+        "description": "H⁺ ions (acid team) and OH⁻ ions (base team) pull against each other. When the teams are equal, neither wins — the rope goes slack (neutralization). The spectators (Na⁺ and Cl⁻) who were cheering from the sidelines are left standing: they are the salt.",
+        "why_memorable": "Tug of war is a physical game Tamil students play. The 'spectator' ions become the salt — memorable role assignment.",
+        "scientifically_accurate": true,
+        "accuracy_note": "Spectator ion model accurately describes neutralization for strong acid-strong base reactions."
+      }
+    ],
+    "real_world_connections": [
+      {
+        "example": "Applying toothpaste to a bee sting in Tamil Nadu — the alkaline paste neutralizes formic acid from sting",
+        "connection_to_concept": "Bee sting injects formic acid. Toothpaste (slightly alkaline) partially neutralizes it, reducing pain. Neutralization in a first-aid context."
+      },
+      {
+        "example": "Adding tamarind (acidic) to dal — tastes sour because of tartaric acid",
+        "connection_to_concept": "Tamarind contains tartaric acid. The sour taste is a direct H⁺ ion sensation on taste receptors."
+      },
+      {
+        "example": "Farmers in Tamil Nadu adding lime (calcium hydroxide) to acidic red soil before planting",
+        "connection_to_concept": "Acidic soil (pH < 6) is hostile to most crops. Lime (base) neutralizes soil acidity — agricultural neutralization at scale."
+      }
+    ],
+    "reflection_questions": [
+      "Your stomach produces hydrochloric acid for digestion. Antacids are bases. Using neutralization, explain exactly how an antacid relieves indigestion.",
+      "Why do some fish die in lakes near coal plants? What is 'acid rain' and how does it use chemistry from this lesson?",
+      "A battery contains acid. A battery is also called a 'dry cell' or 'alkaline cell.' What do those names tell you about the chemistry inside?"
+    ],
+    "memory_anchor": {
+      "image_description": "A glass of red cabbage juice: deep purple. Drop by drop of lemon juice added: slowly turns shocking pink. Then drop by drop of baking soda solution: slowly turns vivid green. Then both mixed together until fizzing stops: slowly returns to original purple.",
+      "anchor_sentence": "Red cabbage juice turns pink in acid, green in base, and purple again when they cancel out — because acids have H⁺ and bases have OH⁻, and together they make water.",
+      "cognitive_hook": "Color transformation is visually dramatic and memorable. The return to original purple creates a satisfying narrative arc. The cabbage juice is available in any kitchen — students can reproduce the experiment."
+    },
+    "assessment_insight": {
+      "understanding_vs_memorization": "Memorization: pH scale, definitions of acid/base, salt examples. Understanding: Student predicts pH change from mixing, explains why neutralization releases heat, connects acid-base chemistry to biological contexts (stomach, blood pH).",
+      "tn_board_pattern": "1-mark: Define acids and bases. Give pH of neutral solution. 3-mark: Explain neutralization with equation. Give examples of salts formed. 5-mark: Describe properties of acids and bases with examples. Explain pH scale with diagram.",
+      "marks_tip": "For neutralization equations: always write the full ionic equation as well as the molecular equation. TN Board frequently asks for both. Show H⁺ + OH⁻ → H₂O as the core neutralization alongside the full molecular equation."
+    }
+  }
+}
