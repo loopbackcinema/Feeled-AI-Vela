@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { StoryRequest, CinemaStory } from '../types';
 import { NARRATOR_VOICE_OPTIONS } from '../constants';
 import CinemaDisplay from './CinemaDisplay';
+import CinemaViewport from './cinema/CinemaViewport';
 
 const STORY_GRADES = ['6','7','8','9','10','11','12'];
 
@@ -232,7 +233,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     // ── Cinema result state ────────────────────────────────────────────────────
     if (cinemaStory) {
         return (
-            <CinemaDisplay
+            <CinemaViewport
                 cinema={cinemaStory}
                 language={apiLanguage}
                 onTryAnother={() => {
