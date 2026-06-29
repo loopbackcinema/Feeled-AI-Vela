@@ -8,6 +8,7 @@
  */
 
 import { ExperiencePlan, ExperienceAct } from '../types';
+import { detectGrammar } from './scenes/SceneFactory';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -289,12 +290,17 @@ function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function sceneTypeForAct(actType: string): string {
+function sceneTypeForAct(actType: string, topic: string, subject: string): string {
+    // First: try to detect grammar from topic + subject keywords
+    const detected = detectGrammar(topic + ' ' + subject + ' ' + actType);
+    if (detected !== 'particles') return detected;
+
+    // Fallback: act-type defaults when topic detection fails
     const map: Record<string, string> = {
-        arrival_curiosity: 'particles',
-        exploration:       'wave',
-        discovery:         'force',
-        integration:       'journey',
+        arrival_curiosity: 'journey',
+        exploration:       'flow',
+        discovery:         'transformation',
+        integration:       'network',
         mastery:           'orbit',
     };
     return map[actType] ?? 'particles';
@@ -366,7 +372,7 @@ export class CinemaEngine {
         this.stateManager.set({ playbackState: 'playing', currentActIndex: index });
 
         this.stage.set({
-            sceneType:  sceneTypeForAct(act.act_type),
+            sceneType:  sceneTypeForAct(act.act_type, plan.topic, plan.subject),
             actType:    act.act_type,
             characters: charactersForAct(act),
             isFrozen:   false,
