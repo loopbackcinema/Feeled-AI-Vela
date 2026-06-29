@@ -16,19 +16,48 @@ Language: ${language || 'English'}. Style: ${style || 'Dramatic'}.
 
 Pick a historical protagonist (Newton/Raman/Einstein for Physics; Ramanujan for Maths; Curie/Mendel for Biology; Thiruvalluvar for Tamil; else a Tamil student named Priya or Arjun).
 
-CRITICAL CONTENT RULES:
-- Each act MUST have 6-8 screenplay lines minimum. This is mandatory.
-- Total screenplay lines across all 5 acts: 30-40 lines.
-- Each line should be 1-2 sentences that can be narrated in 3-5 seconds.
-- Target total lesson duration: 90-120 seconds of narration.
-- Create a genuine cinematic experience: build tension, reveal, wonder, resolution.
-- Act 1 (hook): Open with a surprising real-world phenomenon. Make student ask "why?".
-- Act 2 (rising_action): Show observations step by step. Build prediction moment.
-- Act 3 (climax): The concept reveal moment — the "aha!" — with is_concept_reveal:true on ONE key line.
-- Act 4 (resolution): Connect to daily life in Tamil Nadu. 2-3 vivid real-world examples.
-- Act 5 (exam_bridge): Consolidate. Exam tip. Memory anchor sentence.
+═══════════════════════════════════════
+CINEMATIC CONTENT RULES (MANDATORY)
+═══════════════════════════════════════
 
-Output ONLY valid JSON (no markdown):
+TARGET OUTPUT:
+- 30–40 screenplay beats total across all 5 acts.
+- Each beat spoken in approximately 2–4 seconds.
+- Total lesson naturally takes 90–120 seconds when narrated.
+- This means each act must have 6–8 screenplay beats minimum.
+
+EACH ACT MUST CONTAIN THESE BEAT TYPES IN ORDER:
+1. Opening visual beat — set the scene, no explanation yet (narrator)
+2. Character entrance/reaction — protagonist speaks, reacts to what they see
+3. Observation narration — narrator describes what is happening step by step
+4. Character dialogue — protagonist asks a question or makes a wrong prediction
+5. Visual transition beat — narrator describes a change in the scene
+6. Emotional beat — character feels wonder, confusion, or discovery
+7. Closing hook — narrator ends the act with tension or a question
+
+QUALITY RULES:
+- Do not summarize. Develop the scene gradually.
+- Every screenplay beat must either: reveal something new, deepen understanding, or increase curiosity.
+- Never repeat information already stated in a previous beat.
+- Each act must feel like a different scene — location, mood, and visual state must change.
+
+VISUAL PROGRESSION RULE:
+- Every visual state must correspond to a different SVG stage.
+- Do not keep the same visual while multiple dialogue lines are spoken.
+- Each act must describe 3–5 distinct visual moments in stage_elements.
+
+ACT STRUCTURE:
+- Act 1 (hook): Open with a surprising phenomenon. No explanation. End with "why does this happen?"
+- Act 2 (rising_action): Show observations step by step. Build a prediction moment. Surface a misconception.
+- Act 3 (climax): The concept reveal — the "aha!" moment. ONE line must have is_concept_reveal:true. Build up to it.
+- Act 4 (resolution): Connect to Tamil Nadu daily life. 3 vivid real-world examples. Student sees the concept everywhere.
+- Act 5 (exam_bridge): Consolidate understanding. Exam tip. One unforgettable memory anchor sentence.
+
+═══════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════
+
+Output ONLY valid JSON (no markdown, no explanation):
 {
   "cinema_title":"string",
   "subject":"string",
@@ -47,15 +76,18 @@ Output ONLY valid JSON (no markdown):
     },
     "stage_elements":[
       {"element_type":"character","name":"string","description":"string","position":"left","animation":"enter","highlight":true},
-      {"element_type":"prop","name":"string","description":"string","position":"center","animation":"appear","highlight":false}
+      {"element_type":"prop","name":"string","description":"string","position":"center","animation":"appear","highlight":false},
+      {"element_type":"environment","name":"string","description":"string","position":"right","animation":"fade_in","highlight":false}
     ],
     "screenplay":[
       {"speaker":"narrator","text":"string","emotion":"curious","is_concept_reveal":false},
       {"speaker":"protagonist","text":"string","emotion":"curious","is_concept_reveal":false},
-      {"speaker":"narrator","text":"string","emotion":"curious","is_concept_reveal":false},
+      {"speaker":"narrator","text":"string","emotion":"mysterious","is_concept_reveal":false},
       {"speaker":"narrator","text":"string","emotion":"tense","is_concept_reveal":false},
       {"speaker":"protagonist","text":"string","emotion":"confused","is_concept_reveal":false},
-      {"speaker":"narrator","text":"string","emotion":"curious","is_concept_reveal":false}
+      {"speaker":"narrator","text":"string","emotion":"curious","is_concept_reveal":false},
+      {"speaker":"protagonist","text":"string","emotion":"wondering","is_concept_reveal":false},
+      {"speaker":"narrator","text":"string","emotion":"hooks","is_concept_reveal":false}
     ],
     "concept_board":{
       "title":"string","formula":"string",
@@ -78,7 +110,12 @@ Output ONLY valid JSON (no markdown):
   ]
 }
 
-IMPORTANT: Generate all 5 acts. Each act must have exactly 6-8 screenplay entries. Do not truncate. The JSON must be complete and valid.`;
+FINAL CHECK BEFORE OUTPUT:
+- Count total screenplay beats. Must be 30–40.
+- Every act must have 6–8 beats.
+- No act may repeat information from a previous act.
+- Every visual stage_element must describe a distinct visual moment.
+- The JSON must be complete. Do not truncate.`;
 
     try {
         const response = await ai.models.generateContent({
