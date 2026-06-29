@@ -1,17 +1,18 @@
 /**
- * PresentationModelBuilder — assembles PresentationModel from CinemaEngine state.
+ * PresentationModelBuilder — src/cinema/presentation/PresentationModelBuilder.ts
  *
- * This is the only place where engine state is translated into render instructions.
- * React never touches engine state directly.
+ * FeelEd Runtime (FRT) — Assembles PresentationModel from RenderState.
  *
- * Input:  Raw engine outputs (SceneState, SubtitleState, InteractionUIState, etc.)
- * Output: PresentationModel — everything React needs, nothing more.
+ * Input:  RenderState (immutable snapshot from CinemaEngine)
+ * Output: PresentationModel (render instructions for CinemaViewport)
+ *
+ * This is the ONLY translation layer.
+ * No cinema logic here — only mapping.
+ * No React imports. No engine imports. Pure data transformation.
  */
-import { SceneState } from '../renderers/StageRenderer';
-import { SubtitleState } from '../renderers/SubtitleRenderer';
-import { InteractionUIState } from '../renderers/InteractionRenderer';
-import { PlaybackState } from '../state/CinemaState';
+import { RenderState } from '../state/RenderState';
 import { LearningExperienceObject } from '../../types';
+import { detectGrammar } from '../scenes/SceneFactory';
 import {
     PresentationModel,
     ScenePresentation,
@@ -23,14 +24,14 @@ import {
     ProgressPresentation,
     ControlsPresentation,
     PlaybackDisplayState,
+    ExamInsightPresentation,
     EMPTY_SUBTITLE,
     HIDDEN_INTERACTION,
     HIDDEN_MEMORY,
-    ExamInsightPresentation,
     makeLoadingPresentation,
 } from './PresentationModel';
 
-// ── Act metadata ──────────────────────────────────────────────────────────────
+// ── Act labels and colours ────────────────────────────────────────────────────
 const ACT_LABELS: Record<string, string> = {
     arrival_curiosity: 'Curiosity',
     exploration:       'Exploration',
@@ -45,188 +46,126 @@ const ACT_COLORS: Record<string, string> = {
     integration:       '#34d399',
     mastery:           '#a78bfa',
 };
-const STAGE_BG: Record<string, string> = {
-    arrival_curiosity: 'radial-gradient(ellipse at 38% 40%,#1c0540,#04000e)',
-    exploration:       'radial-gradient(ellipse at 62% 30%,#000d30,#04000e)',
-    discovery:         'radial-gradient(ellipse at 50% 35%,#250008,#04000e)',
-    integration:       'radial-gradient(ellipse at 45% 40%,#001e0a,#04000e)',
-    mastery:           'radial-gradient(ellipse at 50% 35%,#0e0028,#04000e)',
-};
 
-// ── Speaker label and colour ──────────────────────────────────────────────────
-function speakerLabel(speaker: string, protagonistEmoji: string, protagonistName: string): string {
-    if (speaker === 'narrator')       return '🎙 Narrator';
-    if (speaker === 'student_voice')  return '🎓 Student';
-    if (speaker === 'concept_voice')  return '💡 Concept';
-    if (speaker === 'memory_anchor')  return '';
-    return `${protagonistEmoji} ${protagonistName}`;
-}
-function speakerColor(speaker: string, isReveal: boolean): string {
-    if (isReveal)                     return '#f0abfc';
-    if (speaker === 'narrator')       return '#c4b5fd';
-    if (speaker === 'student_voice')  return '#bfdbfe';
-    if (speaker === 'concept_voice')  return '#f0abfc';
-    return '#fde68a'; // protagonist
-}
-
-// ── Playback state mapping ────────────────────────────────────────────────────
-function mapPlayback(state: PlaybackState): PlaybackDisplayState {
-    const map: Record<PlaybackState, PlaybackDisplayState> = {
-        idle:        'starting',
-        loading:     'loading',
-        playing:     'playing',
-        paused:      'paused',
-        interaction: 'interaction',
-        silence:     'silence',
-        complete:    'complete',
+function mapPhase(phase: string): PlaybackDisplayState {
+    const map: Record<string, PlaybackDisplayState> = {
+        idle: 'starting', starting: 'starting', narrating: 'playing',
+        frozen: 'playing', pre_silence: 'silence', interacting: 'interaction',
+        post_silence: 'silence', revealing: 'playing', memory_anchor: 'playing',
+        complete: 'complete',
     };
-    return map[state] ?? 'playing';
+    return map[phase] ?? 'playing';
 }
 
-// ── Audio visualizer bars (animated by tick) ──────────────────────────────────
-function visualizerBars(tick: number, isPlaying: boolean): number[] {
+function visualizerBars(renderTimestamp: number, isPlaying: boolean): number[] {
     if (!isPlaying) return [0.1, 0.1, 0.1, 0.1];
-    return [0, 1, 2, 3].map(j => 0.2 + 0.8 * Math.abs(Math.sin(tick * 0.13 + j * 0.9)));
+    const t = renderTimestamp * 0.001;
+    return [0, 1, 2, 3].map(j => 0.2 + 0.8 * Math.abs(Math.sin(t * 2.6 + j * 0.9)));
 }
 
-// ── Main builder function ─────────────────────────────────────────────────────
-export interface BuilderInput {
-    // Engine outputs
-    scene:           SceneState | null;
-    subtitle:        SubtitleState;
-    interaction:     InteractionUIState;
-    playback:        PlaybackState;
-    currentActIndex: number;
-    actsCompleted:   number[];
-    elapsedSeconds:  number;
-    animationTick:   number;
-    lessonComplete:  boolean;
+// ── Main build function ───────────────────────────────────────────────────────
+export function buildFromRenderState(
+    rs: RenderState,
+    animationTick: number,          // From requestAnimationFrame — drives SVG
+    isFullscreen: boolean,
+    leo: LearningExperienceObject | null,
+    topic: string,
+    grade: number,
+): PresentationModel {
+    if (!leo) return makeLoadingPresentation(topic, grade);
 
-    // Memory anchor
-    memoryVisible:   boolean;
-    memorySentence:  string | null;
-    memoryImageDesc: string;
-
-    // Audio
-    isMuted:  boolean;
-    volume:   number;
-    isPlaying: boolean;
-
-    // Fullscreen
-    isFullscreen: boolean;
-
-    // LEO content (for post-lesson + protagonist info)
-    leo: LearningExperienceObject | null;
-
-    // Lesson identity
-    topic:    string;
-    grade:    number;
-    subject:  string;
-    language: string;
-}
-
-export function buildPresentationModel(input: BuilderInput): PresentationModel {
-    if (!input.leo) return makeLoadingPresentation(input.topic, input.grade);
-
-    const leo = input.leo;
-    const actType = input.scene?.actType ?? 'arrival_curiosity';
+    const actType = rs.scene?.actPhase ?? 'arrival_curiosity';
     const accentColor = ACT_COLORS[actType] ?? '#a78bfa';
-    const tick = input.animationTick;
 
-    // ── Scene ────────────────────────────────────────────────────────────────
-    const scene: ScenePresentation | null = input.scene ? {
-        sceneId:    input.scene.sceneType,
-        background: STAGE_BG[actType] ?? STAGE_BG['exploration'],
+    // ── Scene — sceneType is a string from ConceptGrammarType ─────────────────
+    const scene: ScenePresentation | null = rs.scene ? {
+        // sceneType is string only — CinemaViewport calls SceneFactory.loadScene(sceneType)
+        sceneId:    detectGrammar(rs.scene.sceneType + ' ' + (rs.scene.characters.map(c=>c.label).join(' '))),
+        background: '',     // CinemaViewport computes from sceneId
         accentColor,
-        characters: input.scene.characters.map((c, i) => ({
+        characters: rs.scene.characters.map((c, i) => ({
             emoji:       c.emoji,
             label:       c.label,
             position:    c.position,
             highlighted: c.highlighted,
             floatPhase:  i * 1.2,
         })),
-        isFrozen:   input.scene.isFrozen,
-        isDark:     input.scene.isDark,
-        isReveal:   input.scene.isReveal,
-        animationTick: tick,
+        isFrozen:      rs.scene.isFrozen,
+        isDark:        rs.scene.isDark,
+        isReveal:      rs.scene.isReveal,
+        animationTick: rs.scene.isFrozen ? 0 : animationTick,
     } : null;
 
-    // ── Subtitle ─────────────────────────────────────────────────────────────
-    const sub = input.subtitle;
+    // ── Subtitle ──────────────────────────────────────────────────────────────
+    const sub = rs.subtitle;
     const subtitle: SubtitlePresentation = sub.visible ? {
-        visible:          true,
-        text:             sub.text,
-        speakerLabel:     speakerLabel('narrator', '🧑', leo.topic), // simplified for now
-        speakerColor:     speakerColor('narrator', sub.isConceptReveal),
-        isConceptReveal:  sub.isConceptReveal,
-        highlightedWords: sub.highlightedWords,
-        isBilingual:      sub.isBilingual,
-        secondaryText:    sub.secondaryText,
-        key:              sub.text.slice(0, 20) + tick,
+        visible:         true,
+        text:            sub.text,
+        speakerLabel:    sub.speaker === 'narrator' ? '🎙 Narrator'
+                       : sub.speaker === 'student_voice' ? '🎓 Student'
+                       : sub.speaker === 'concept_voice' ? '💡 Concept'
+                       : sub.speaker === 'memory_anchor' ? ''
+                       : `🧑 ${sub.speaker}`,
+        speakerColor:    sub.isConceptReveal ? '#f0abfc'
+                       : sub.speaker === 'narrator' ? '#c4b5fd'
+                       : sub.speaker === 'student_voice' ? '#bfdbfe'
+                       : '#fde68a',
+        isConceptReveal: sub.isConceptReveal,
+        highlightedWords:sub.highlightedWords,
+        isBilingual:     sub.isBilingual,
+        secondaryText:   sub.secondaryText,
+        key:             `${sub.text.slice(0,12)}-${rs.timestamp}`,
     } : EMPTY_SUBTITLE;
 
     // ── Interaction ───────────────────────────────────────────────────────────
-    const ia = input.interaction;
-    let interaction: InteractionPresentation = HIDDEN_INTERACTION;
-
-    if (ia.active) {
-        const mode = ia.answered ? 'feedback'
-            : ia.level === 1 ? 'reflect'
-            : 'predict';
-
-        const options: OptionPresentation[] = ia.options.map((text, i) => ({
-            text,
-            index: i,
+    const ia = rs.interaction;
+    const interaction: InteractionPresentation = ia.active ? {
+        mode: ia.answered ? 'feedback' : ia.level === 1 ? 'reflect' : 'predict',
+        question: ia.question,
+        options: ia.options.map((text, i): OptionPresentation => ({
+            text, index: i,
             state: !ia.answered ? (ia.selectedIndex === i ? 'selected' : 'default')
-                : i === ia.selectedIndex
-                    ? (ia.isCorrect ? 'correct' : 'wrong')
-                    : 'default',
-        }));
+                : i === ia.selectedIndex ? (ia.isCorrect ? 'correct' : 'wrong') : 'default',
+        })),
+        feedback:      ia.feedback,
+        feedbackColor: ia.isCorrect ? '#86efac' : '#a78bfa',
+    } : HIDDEN_INTERACTION;
 
-        interaction = {
-            mode,
-            question:      ia.question,
-            options,
-            feedback:      ia.feedback,
-            feedbackColor: ia.isCorrect ? '#86efac' : '#a78bfa',
-        };
-    }
-
-    // ── Memory ───────────────────────────────────────────────────────────────
+    // ── Memory ────────────────────────────────────────────────────────────────
     const memory: MemoryPresentation = {
-        visible:          input.memoryVisible,
-        imageDescription: input.memoryImageDesc || leo.memory_anchor.image_description,
-        sentence:         input.memorySentence ?? '',
-        sentenceVisible:  !!input.memorySentence,
+        visible:          rs.memory.visible,
+        imageDescription: rs.memory.imageDescription || leo.memory_anchor.image_description,
+        sentence:         rs.memory.sentence,
+        sentenceVisible:  rs.memory.sentenceVisible,
     };
 
     // ── Audio ─────────────────────────────────────────────────────────────────
     const audio: AudioPresentation = {
-        isMuted:        input.isMuted,
-        volume:         input.volume,
-        isPlaying:      input.isPlaying,
-        isSilence:      input.playback === 'silence',
-        visualizerBars: visualizerBars(tick, input.isPlaying),
+        isMuted:        rs.audio.isMuted,
+        volume:         rs.audio.volume,
+        isPlaying:      rs.audio.isPlaying,
+        isSilence:      rs.audio.isSilencePhase,
+        visualizerBars: visualizerBars(rs.timestamp, rs.audio.isPlaying && !rs.audio.isMuted),
     };
 
-    // ── Progress ─────────────────────────────────────────────────────────────
+    // ── Progress ──────────────────────────────────────────────────────────────
     const progress: ProgressPresentation = {
-        actIndex:        input.currentActIndex,
-        actTotal:        5,
+        actIndex:        rs.progress.actIndex,
+        actTotal:        rs.progress.actTotal,
         actLabel:        ACT_LABELS[actType] ?? '',
         accentColor,
-        progressPercent: Math.round(((input.currentActIndex + 1) / 5) * 100),
-        actsCompleted:   input.actsCompleted,
-        playbackState:   mapPlayback(input.playback),
-        lessonComplete:  input.lessonComplete,
+        progressPercent: Math.round(((rs.progress.actIndex + 1) / rs.progress.actTotal) * 100),
+        actsCompleted:   rs.progress.actsCompleted,
+        playbackState:   mapPhase(rs.phase),
+        lessonComplete:  rs.phase === 'complete',
     };
 
-    // ── Controls ─────────────────────────────────────────────────────────────
+    // ── Controls ──────────────────────────────────────────────────────────────
     const controls: ControlsPresentation = {
-        canPlay:        input.playback !== 'playing' && input.playback !== 'interaction',
-        canPause:       input.playback === 'playing',
-        showScrollHint: input.lessonComplete,
-        isFullscreen:   input.isFullscreen,
+        canPlay:        rs.phase !== 'narrating' && rs.phase !== 'interacting',
+        canPause:       rs.phase === 'narrating',
+        showScrollHint: rs.phase === 'complete',
+        isFullscreen,
     };
 
     // ── Exam insight ──────────────────────────────────────────────────────────
@@ -236,8 +175,8 @@ export function buildPresentationModel(input: BuilderInput): PresentationModel {
     };
 
     return {
-        lessonTitle:     leo.central_question,
-        centralQuestion: leo.central_question,
+        lessonTitle:           leo.central_question,
+        centralQuestion:       leo.central_question,
         scene,
         subtitle,
         interaction,

@@ -1,200 +1,220 @@
 /**
- * useCinemaEngine — React hook that wires ExperiencePlan to CinemaEngine.
+ * useCinemaEngine — src/hooks/useCinemaEngine.ts
  *
- * Manages:
- * - CinemaEngine lifecycle (create, run, stop)
- * - Scene state subscription (stage renderer output)
- * - Subtitle state subscription
- * - Interaction state subscription
- * - Memory anchor state subscription
- * - Playback controls (play, pause, skip act)
+ * FeelEd Runtime (FRT) — React bridge.
  *
- * The hook is the bridge between React and the Cinema Engine.
- * React components never touch the engine directly.
+ * Uses:
+ *   - Event-based updates for educational state changes (SubtitleState, etc.)
+ *   - requestAnimationFrame for SVG animation tick only
+ *   NOT setInterval — avoids unnecessary renders.
+ *
+ * Input:  LEO + StudentProfile + isFullscreen
+ * Output: [PresentationModel, CinemaControls, status]
+ *
+ * React never touches RenderState or CinemaEngine directly.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ExperiencePlan, StudentProfile } from '../types';
-import { LearningExperienceObject } from '../types';
+import { StudentProfile, LearningExperienceObject } from '../types';
 import { CinemaEngine } from '../cinema/CinemaEngine';
-import { SceneState } from '../cinema/renderers/StageRenderer';
-import { SubtitleState } from '../cinema/renderers/SubtitleRenderer';
-import { InteractionUIState } from '../cinema/renderers/InteractionRenderer';
-import { PlaybackState } from '../cinema/state/CinemaState';
 import { plan as planExperience } from '../lib/experiencePlanner';
+import { PresentationModel, makeLoadingPresentation } from '../cinema/presentation/PresentationModel';
+import { buildFromRenderState } from '../cinema/presentation/PresentationModelBuilder';
+import { RenderState, RenderStateEmitter, EMPTY_RENDER_STATE } from '../cinema/state/RenderState';
 
-export interface CinemaEngineState {
-    // Playback
-    playback: PlaybackState;
-    currentActIndex: number;
-    actsCompleted: number[];
-    elapsedSeconds: number;
-
-    // Renderer outputs
-    scene: SceneState | null;
-    subtitle: SubtitleState | null;
-    interaction: InteractionUIState | null;
-    memoryAnchorVisible: boolean;
-    memoryAnchorSentence: string | null;
-
-    // Controls
-    isAudioMuted: boolean;
-    volume: number;
-
-    // Status
-    loading: boolean;
-    error: string | null;
-    lessonComplete: boolean;
+export interface CinemaControls {
+    play:                  () => void;
+    pause:                 () => void;
+    setMuted:              (muted: boolean) => void;
+    setVolume:             (vol: number) => void;
+    respondToInteraction:  (answerIndex: number) => void;
+    acknowledgeReflection: () => void;
 }
-
-export interface CinemaEngineControls {
-    start: () => void;
-    stop: () => void;
-    setMuted: (muted: boolean) => void;
-    setVolume: (vol: number) => void;
-    skipToAct: (index: number) => void;
-    respondToInteraction: (answer: string | number) => void;
-}
-
-const DEFAULT_STATE: CinemaEngineState = {
-    playback: 'idle',
-    currentActIndex: 0,
-    actsCompleted: [],
-    elapsedSeconds: 0,
-    scene: null,
-    subtitle: null,
-    interaction: null,
-    memoryAnchorVisible: false,
-    memoryAnchorSentence: null,
-    isAudioMuted: false,
-    volume: 0.9,
-    loading: false,
-    error: null,
-    lessonComplete: false,
-};
 
 export function useCinemaEngine(
     leo: LearningExperienceObject | null,
-    studentProfile: StudentProfile,
+    profile: StudentProfile,
+    isFullscreen: boolean,
     autoStart = true,
-): [CinemaEngineState, CinemaEngineControls] {
-    const engineRef = useRef<CinemaEngine | null>(null);
-    const [state, setState] = useState<CinemaEngineState>(DEFAULT_STATE);
-    const [plan, setPlan] = useState<ExperiencePlan | null>(null);
+): [PresentationModel, CinemaControls, { loading: boolean; error: string | null }] {
 
-    // Build ExperiencePlan from LEO + profile
+    const engineRef   = useRef<CinemaEngine | null>(null);
+    const emitterRef  = useRef<RenderStateEmitter>(new RenderStateEmitter());
+    const rafRef      = useRef<number>(0);
+    const animTick    = useRef(0);
+
+    const [presentation, setPresentation] = useState<PresentationModel>(
+        makeLoadingPresentation(leo?.topic ?? '', leo?.grade ?? 10)
+    );
+    const [loading, setLoading] = useState(false);
+    const [error, setError]     = useState<string | null>(null);
+
+    // Build PresentationModel from current RenderState + animation tick
+    const publish = useCallback((rs: RenderState) => {
+        if (!leo) return;
+        setPresentation(
+            buildFromRenderState(rs, animTick.current, isFullscreen, leo, leo.topic, leo.grade)
+        );
+    }, [leo, isFullscreen]);
+
+    // requestAnimationFrame loop — only drives SVG animation tick
+    // Educational state changes come from event subscriptions (more efficient)
+    useEffect(() => {
+        let running = true;
+        function frame() {
+            if (!running) return;
+            animTick.current += 1;
+            // Only re-publish if currently animating (playing state)
+            const rs = emitterRef.current.getCurrent();
+            if (rs.phase === 'narrating' || rs.phase === 'revealing') {
+                publish(rs);
+            }
+            rafRef.current = requestAnimationFrame(frame);
+        }
+        rafRef.current = requestAnimationFrame(frame);
+        return () => { running = false; cancelAnimationFrame(rafRef.current); };
+    }, [publish]);
+
+    // Wire CinemaEngine to RenderStateEmitter when LEO arrives
     useEffect(() => {
         if (!leo) return;
-        try {
-            const ep = planExperience(leo, studentProfile);
-            setPlan(ep);
-        } catch (e) {
-            setState(s => ({ ...s, error: `Planning failed: ${String(e)}` }));
-        }
-    }, [leo, studentProfile.grade, studentProfile.language, studentProfile.strength]);
+        setLoading(true);
+        setError(null);
 
-    // Create engine and subscribe to events
-    useEffect(() => {
-        if (!plan) return;
+        // Build plan
+        let ep;
+        try { ep = planExperience(leo, profile); }
+        catch (e) { setError(`Planning failed: ${String(e)}`); setLoading(false); return; }
 
         const engine = new CinemaEngine();
         engineRef.current = engine;
+        const emitter = emitterRef.current;
         const bus = engine.bus;
 
-        // Subscribe stage renderer updates
-        const unsubStage = engine.stage.onUpdate(() => {
-            setState(s => ({ ...s, scene: engine.stage.getScene() }));
-        });
+        // On every meaningful engine event → snapshot → publish
+        function syncAndPublish() {
+            const snap = engine.stateManager.get();
+            const sceneState = engine.stage.getScene();
+            const subState   = engine.subtitles.getState() as any;
+            const iaState    = engine.interaction.getUI() as any;
 
-        // Subscribe subtitle renderer updates
-        const unsubSub = engine.subtitles.onUpdate(() => {
-            setState(s => ({ ...s, subtitle: engine.subtitles.getState() }));
-        });
+            emitter.emit({
+                phase: (snap.playbackState as any),
+                scene: sceneState ? {
+                    sceneType:  sceneState.sceneType,
+                    actPhase:   sceneState.actType as any,
+                    accentColor:'',
+                    characters: sceneState.characters,
+                    isFrozen:   sceneState.isFrozen,
+                    isDark:     sceneState.isDark,
+                    isReveal:   sceneState.isReveal,
+                } : null,
+                subtitle: {
+                    visible:         subState.visible,
+                    text:            subState.text,
+                    speaker:         subState.speaker,
+                    isConceptReveal: subState.isConceptReveal,
+                    highlightedWords:subState.highlightedWords ?? [],
+                    isBilingual:     subState.isBilingual,
+                    secondaryText:   subState.secondaryText,
+                },
+                interaction: {
+                    active:        iaState.active,
+                    level:         iaState.level,
+                    question:      iaState.question,
+                    options:       iaState.options,
+                    selectedIndex: iaState.selectedIndex,
+                    answered:      iaState.answered,
+                    isCorrect:     iaState.isCorrect,
+                    feedback:      iaState.feedback,
+                },
+                audio: {
+                    isPlaying:     snap.playbackState === 'playing',
+                    isMuted:       false,
+                    volume:        0.9,
+                    isSilencePhase:snap.playbackState === 'silence' as any,
+                },
+                progress: {
+                    actIndex:     snap.currentActIndex,
+                    actTotal:     5,
+                    actsCompleted:snap.actsCompleted,
+                    elapsedSeconds:snap.elapsedSeconds,
+                },
+            });
 
-        // Subscribe interaction renderer updates
-        const unsubInteract = engine.interaction.onUpdate(() => {
-            setState(s => ({ ...s, interaction: engine.interaction.getUI() }));
-        });
+            publish(emitter.getCurrent());
+        }
 
-        // Subscribe memory renderer updates
-        const unsubMem = bus.on('MEMORY_ANCHOR_START', () =>
-            setState(s => ({ ...s, memoryAnchorVisible: true }))
-        );
-        const unsubMemSent = bus.on('MEMORY_ANCHOR_SENTENCE', (e) =>
-            setState(s => ({ ...s, memoryAnchorSentence: e.payload['sentence'] as string }))
-        );
-        const unsubMemEnd = bus.on('MEMORY_ANCHOR_END', () =>
-            setState(s => ({ ...s, memoryAnchorVisible: false, memoryAnchorSentence: null }))
-        );
+        // Subscribe to all renderer changes
+        const unsubs = [
+            engine.stage.onUpdate(syncAndPublish),
+            engine.subtitles.onUpdate(syncAndPublish),
+            engine.interaction.onUpdate(syncAndPublish),
+            bus.onAll((e) => {
+                // Memory anchor events
+                if (e.type === 'MEMORY_ANCHOR_START') {
+                    emitter.emit({ memory: { visible:true, imageDescription:e.payload['image_description'] as string ?? '', sentenceVisible:false, sentence:'' }});
+                }
+                if (e.type === 'MEMORY_ANCHOR_SENTENCE') {
+                    emitter.emit({ memory: { ...emitterRef.current.getCurrent().memory, sentenceVisible:true, sentence: e.payload['sentence'] as string ?? '' }});
+                }
+                if (e.type === 'MEMORY_ANCHOR_END') {
+                    emitter.emit({ memory: { visible:false, imageDescription:'', sentenceVisible:false, sentence:'' }});
+                }
+                syncAndPublish();
+            }),
+        ];
 
-        // Subscribe state manager updates
-        const unsubPlayback = bus.onAll((e) => {
-            if (['ACT_START', 'ACT_END', 'INTERACTION_START', 'INTERACTION_END',
-                 'SILENCE_START', 'SILENCE_END', 'LESSON_COMPLETE'].includes(e.type)) {
-                const snap = engine.stateManager.get();
-                setState(s => ({
-                    ...s,
-                    playback: snap.playbackState,
-                    currentActIndex: snap.currentActIndex,
-                    actsCompleted: snap.actsCompleted,
-                    elapsedSeconds: snap.elapsedSeconds,
-                    lessonComplete: e.type === 'LESSON_COMPLETE',
-                }));
-            }
-        });
+        setLoading(false);
+
+        if (autoStart) {
+            engine.run(ep).catch(e => setError(String(e)));
+        }
 
         return () => {
-            unsubStage();
-            unsubSub();
-            unsubInteract();
-            unsubMem();
-            unsubMemSent();
-            unsubMemEnd();
-            unsubPlayback();
+            unsubs.forEach(fn => fn());
             engine.stop();
         };
-    }, [plan]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [leo?.topic, leo?.grade, leo?.subject]);
 
-    // Auto-start when plan is ready
-    useEffect(() => {
-        if (!plan || !engineRef.current || !autoStart) return;
-        setState(s => ({ ...s, loading: false, error: null }));
-        engineRef.current.run(plan).catch(e => {
-            setState(s => ({ ...s, error: String(e) }));
-        });
-    }, [plan, autoStart]);
+    const controls: CinemaControls = {
+        play: useCallback(() => {
+            if (!engineRef.current || !leo) return;
+            try {
+                const ep = planExperience(leo, profile);
+                engineRef.current.run(ep).catch(e => setError(String(e)));
+            } catch (e) { setError(String(e)); }
+        }, [leo, profile]),
 
-    const controls: CinemaEngineControls = {
-        start: useCallback(() => {
-            if (!plan || !engineRef.current) return;
-            engineRef.current.run(plan).catch(e =>
-                setState(s => ({ ...s, error: String(e) }))
-            );
-        }, [plan]),
-
-        stop: useCallback(() => {
+        pause: useCallback(() => {
             engineRef.current?.stop();
-            setState(s => ({ ...s, playback: 'idle' }));
-        }, []),
+            emitter.emit({ phase: 'idle' });
+            publish(emitterRef.current.getCurrent());
+        }, [publish]),
 
         setMuted: useCallback((muted: boolean) => {
             engineRef.current?.audio.setMuted(muted);
-            setState(s => ({ ...s, isAudioMuted: muted }));
-        }, []),
+            emitterRef.current.emit({ audio: { ...emitterRef.current.getCurrent().audio, isMuted: muted }});
+            publish(emitterRef.current.getCurrent());
+        }, [publish]),
 
         setVolume: useCallback((vol: number) => {
             engineRef.current?.audio.setVolume(vol);
-            setState(s => ({ ...s, volume: vol }));
+            emitterRef.current.emit({ audio: { ...emitterRef.current.getCurrent().audio, volume: vol, isMuted: vol===0 }});
+            publish(emitterRef.current.getCurrent());
+        }, [publish]),
+
+        respondToInteraction: useCallback((idx: number) => {
+            engineRef.current?.interaction.submitAnswer(idx);
         }, []),
 
-        skipToAct: useCallback((_index: number) => {
-            // Future: implement act navigation
-            // For now: stop and restart from act index
-        }, []),
-
-        respondToInteraction: useCallback((answer: string | number) => {
-            engineRef.current?.bus.emit('INTERACTION_RESPONSE', { answer });
+        acknowledgeReflection: useCallback(() => {
+            engineRef.current?.interaction.acknowledge();
         }, []),
     };
 
-    return [state, controls];
+    // closure needs emitter ref (extracted for pause control)
+    const emitter = emitterRef.current;
+
+    return [presentation, controls, { loading, error }];
 }
