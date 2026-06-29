@@ -105,7 +105,7 @@ const STARS = [
 ];
 
 // ── cinemaV2 flag — default false ──────────────────────────────────────────────
-const CINEMA_V2 = true;
+const CINEMA_V2 = false;
 
 // ── CinemaV2Player — mounts useCinemaEngine + CinemaViewport ──────────────────
 function CinemaV2Player({
