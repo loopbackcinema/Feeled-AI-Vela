@@ -291,19 +291,12 @@ function sleep(ms: number): Promise<void> {
 }
 
 function sceneTypeForAct(actType: string, topic: string, subject: string): string {
-    // First: try to detect grammar from topic + subject keywords
-    const detected = detectGrammar(topic + ' ' + subject + ' ' + actType);
+    // Detect grammar from topic + subject — this is the PRIMARY signal.
+    // act_type should NOT change the grammar — same topic, same visual grammar throughout.
+    const detected = detectGrammar(topic + ' ' + subject);
     if (detected !== 'particles') return detected;
-
-    // Fallback: act-type defaults when topic detection fails
-    const map: Record<string, string> = {
-        arrival_curiosity: 'journey',
-        exploration:       'flow',
-        discovery:         'transformation',
-        integration:       'network',
-        mastery:           'orbit',
-    };
-    return map[actType] ?? 'particles';
+    // Only fall back to particles if topic detection completely fails
+    return 'particles';
 }
 
 function charactersForAct(_act: ExperienceAct) {
