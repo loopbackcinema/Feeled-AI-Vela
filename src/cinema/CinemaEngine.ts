@@ -2,21 +2,9 @@
  * CinemaEngine — src/cinema/CinemaEngine.ts
  *
  * Runtime executor for ExperiencePlan.
- * Loops through 5 acts in sequence, emits RenderState at each step.
- *
- * API surface (consumed by useCinemaEngine):
- *   engine.bus           — event bus
- *   engine.stage         — scene state
- *   engine.subtitles     — subtitle state
- *   engine.interaction   — interaction state
- *   engine.audio         — audio controller
- *   engine.stateManager  — mutable runtime state
- *   engine.run(ep)       — execute ExperiencePlan → Promise<void>
- *   engine.stop()        — halt execution
+ * Loops through 5 acts, emits RenderState, plays Gemini TTS audio.
  *
  * Engineering rule: "Working first. Stable second. Beautiful third."
- * This commit answers one question:
- *   "Can we execute all 5 acts of an ExperiencePlan reliably?"
  */
 
 import { ExperiencePlan, ExperienceAct } from '../types';
@@ -77,9 +65,7 @@ class StageController {
         this.callbacks.forEach(cb => cb());
     }
 
-    getScene(): SceneState | null {
-        return this.scene;
-    }
+    getScene(): SceneState | null { return this.scene; }
 
     onUpdate(cb: UpdateCallback): Unsub {
         this.callbacks.push(cb);
@@ -114,13 +100,8 @@ class SubtitleController {
         this.callbacks.forEach(cb => cb());
     }
 
-    clear(): void {
-        this.set(EMPTY_SUBTITLE);
-    }
-
-    getState(): SubtitleState {
-        return this.state;
-    }
+    clear(): void { this.set(EMPTY_SUBTITLE); }
+    getState(): SubtitleState { return this.state; }
 
     onUpdate(cb: UpdateCallback): Unsub {
         this.callbacks.push(cb);
@@ -163,32 +144,22 @@ class InteractionController {
         this.resolveAcknowledge = null;
     }
 
-    getUI(): InteractionUI {
-        return this.state;
-    }
+    getUI(): InteractionUI { return this.state; }
 
     submitAnswer(idx: number): void {
-        if (this.resolveAnswer) {
-            this.resolveAnswer(idx);
-        }
+        if (this.resolveAnswer) this.resolveAnswer(idx);
     }
 
     acknowledge(): void {
-        if (this.resolveAcknowledge) {
-            this.resolveAcknowledge();
-        }
+        if (this.resolveAcknowledge) this.resolveAcknowledge();
     }
 
     waitForAnswer(): Promise<number> {
-        return new Promise(resolve => {
-            this.resolveAnswer = resolve;
-        });
+        return new Promise(resolve => { this.resolveAnswer = resolve; });
     }
 
     waitForAcknowledge(): Promise<void> {
-        return new Promise(resolve => {
-            this.resolveAcknowledge = resolve;
-        });
+        return new Promise(resolve => { this.resolveAcknowledge = resolve; });
     }
 
     onUpdate(cb: UpdateCallback): Unsub {
@@ -202,14 +173,91 @@ class InteractionController {
 class AudioController {
     private muted = false;
     private volume = 0.9;
+    private audioCtx: AudioContext | null = null;
+    private currentSource: AudioBufferSourceNode | null = null;
 
-    setMuted(muted: boolean): void { this.muted = muted; }
+    setMuted(muted: boolean): void {
+        this.muted = muted;
+        if (muted) this.stop();
+    }
+
     setVolume(vol: number): void {
         this.volume = Math.max(0, Math.min(1, vol));
         if (this.volume === 0) this.muted = true;
     }
+
     isMuted(): boolean { return this.muted; }
     getVolume(): number { return this.volume; }
+
+    stop(): void {
+        try { this.currentSource?.stop(); } catch (_) {}
+        this.currentSource = null;
+    }
+
+    /**
+     * Fetch TTS from /api/audio, decode, play via Web Audio API.
+     * Resolves when audio finishes playing.
+     */
+    async speak(text: string, voiceName: string, emotionTone: string): Promise<void> {
+        if (this.muted || !text.trim()) return;
+
+        try {
+            const res = await fetch('/api/audio', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fullStoryText: text,
+                    voiceName,
+                    emotionTone,
+                }),
+            });
+
+            if (!res.ok) {
+                console.warn('[Audio] TTS fetch failed:', res.status);
+                return;
+            }
+
+            const { base64Audio } = await res.json();
+            if (!base64Audio) return;
+
+            // Decode base64 → ArrayBuffer
+            const binary = atob(base64Audio);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+
+            // Web Audio API
+            if (!this.audioCtx || this.audioCtx.state === 'closed') {
+                this.audioCtx = new AudioContext();
+            }
+            if (this.audioCtx.state === 'suspended') {
+                await this.audioCtx.resume();
+            }
+
+            const audioBuffer = await this.audioCtx.decodeAudioData(bytes.buffer);
+            const source = this.audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+
+            const gainNode = this.audioCtx.createGain();
+            gainNode.gain.value = this.volume;
+            source.connect(gainNode);
+            gainNode.connect(this.audioCtx.destination);
+
+            this.currentSource = source;
+
+            // Wait for playback to finish
+            await new Promise<void>(resolve => {
+                source.onended = () => resolve();
+                source.start(0);
+            });
+
+            this.currentSource = null;
+
+        } catch (err) {
+            console.warn('[Audio] speak error:', err);
+        }
+    }
 }
 
 // ── StateManager ──────────────────────────────────────────────────────────────
@@ -290,10 +338,7 @@ export class CinemaEngine {
                 if (!this.running) break;
                 await this.executeAct(plan.acts[i], i, plan);
             }
-
-            if (this.running) {
-                await this.completeLesson(plan);
-            }
+            if (this.running) await this.completeLesson(plan);
         } catch (err) {
             console.error('[CinemaEngine] Runtime error:', err);
             this.bus.emit({ type: 'ENGINE_ERROR', payload: { error: String(err) } });
@@ -305,6 +350,7 @@ export class CinemaEngine {
     stop(): void {
         if (!this.running) return;
         this.running = false;
+        this.audio.stop();
         this.stateManager.set({ playbackState: 'idle' });
         this.subtitles.clear();
         this.interaction.clear();
@@ -333,12 +379,10 @@ export class CinemaEngine {
             payload: { act_number: act.act_number, act_type: act.act_type },
         });
 
-        // Narration points — distribute evenly across act duration
-        const pointDuration = Math.max(
-            2000,
-            Math.floor((act.pacing.estimated_duration_seconds * 1000) / Math.max(act.narration_points.length, 1))
-        );
+        const voiceName  = plan.audio_plan.narrator_voice;
+        const emotionTone = act.target_emotion;
 
+        // Narration points — show subtitle + speak
         for (let p = 0; p < act.narration_points.length; p++) {
             if (!this.running) return;
             const point = act.narration_points[p];
@@ -365,7 +409,12 @@ export class CinemaEngine {
                 secondaryText: '',
             });
 
-            await sleep(pointDuration);
+            // Speak + wait for audio to finish (or 3s fallback if muted)
+            if (!this.audio.isMuted()) {
+                await this.audio.speak(point, voiceName, emotionTone);
+            } else {
+                await sleep(3000);
+            }
         }
 
         // Pre-interaction silence
@@ -408,11 +457,15 @@ export class CinemaEngine {
 
     // ── Interaction executor ──────────────────────────────────────────────────
 
-    private async executeInteraction(act: ExperienceAct, _plan: ExperiencePlan): Promise<void> {
+    private async executeInteraction(act: ExperienceAct, plan: ExperiencePlan): Promise<void> {
         const ia = act.interaction!;
+        const voiceName = plan.audio_plan.narrator_voice;
         this.stateManager.set({ playbackState: 'interacting' });
 
         if (ia.level === 2 && ia.options && ia.options.length > 0) {
+            // Speak question
+            await this.audio.speak(ia.question, voiceName, 'curious');
+
             this.interaction.set({
                 active: true, level: 2,
                 question: ia.question, options: ia.options,
@@ -421,17 +474,20 @@ export class CinemaEngine {
 
             const answerIdx = await this.interaction.waitForAnswer();
             const isCorrect = answerIdx === (ia.correct_index ?? 0);
+            const feedback = isCorrect ? ia.feedback_if_correct : ia.feedback_if_wrong;
 
             this.interaction.set({
-                selectedIndex: answerIdx, answered: true,
-                isCorrect,
-                feedback: isCorrect ? ia.feedback_if_correct : ia.feedback_if_wrong,
+                selectedIndex: answerIdx, answered: true, isCorrect, feedback,
             });
 
-            await sleep(3000);
+            // Speak feedback
+            await this.audio.speak(feedback, voiceName, isCorrect ? 'encouraging' : 'gentle');
+            await sleep(1500);
 
         } else {
-            // Level 1 reflect (or level 3 fallback)
+            // Level 1 reflect — speak question, wait for acknowledge
+            await this.audio.speak(ia.question, voiceName, 'reflective');
+
             this.interaction.set({
                 active: true, level: ia.level,
                 question: ia.question, options: [],
@@ -450,6 +506,7 @@ export class CinemaEngine {
 
     private async executeMemoryAnchor(plan: ExperiencePlan): Promise<void> {
         if (!this.running) return;
+        const voiceName = plan.audio_plan.narrator_voice;
 
         this.bus.emit({
             type: 'MEMORY_ANCHOR_START',
@@ -459,10 +516,15 @@ export class CinemaEngine {
         await sleep(plan.memory_plan.timing.anchor_sentence_silence_before * 1000);
         if (!this.running) return;
 
+        const anchorSentence = plan.memory_plan.anchor.anchor_sentence;
+
         this.bus.emit({
             type: 'MEMORY_ANCHOR_SENTENCE',
-            payload: { sentence: plan.memory_plan.anchor.anchor_sentence },
+            payload: { sentence: anchorSentence },
         });
+
+        // Speak memory anchor sentence
+        await this.audio.speak(anchorSentence, voiceName, 'memorable');
 
         await sleep(plan.memory_plan.timing.image_hold_seconds * 1000);
         if (!this.running) return;
