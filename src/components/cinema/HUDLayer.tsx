@@ -5,7 +5,7 @@
  * Input:  ProgressPresentation + AudioPresentation + CinemaControls
  * Output: Top bar (title + act dots + fullscreen) + Control bar (play/pause/vol/progress)
  */
-import React from 'react';
+import React, { useState } from 'react';
 import {
     ProgressPresentation,
     AudioPresentation,
@@ -13,7 +13,6 @@ import {
 } from '../../cinema/presentation/PresentationModel';
 import { CinemaControls } from '../../hooks/useCinemaEngine';
 
-// Act colours — same as CinemaDisplay for visual consistency
 const ACT_COLORS = ['#f59e0b', '#60a5fa', '#f43f5e', '#34d399', '#a78bfa'];
 
 interface Props {
@@ -37,9 +36,80 @@ const HUDLayer: React.FC<Props> = ({
 }) => {
     const isPlaying = progress.playbackState === 'playing';
     const isLoading = progress.playbackState === 'loading' || progress.playbackState === 'starting';
+    const [confirmExit, setConfirmExit] = useState(false);
+
+    const handleExitClick = () => setConfirmExit(true);
+    const handleExitConfirm = () => { setConfirmExit(false); onExit?.(); };
+    const handleExitCancel = () => setConfirmExit(false);
 
     return (
         <>
+            {/* ── EXIT CONFIRMATION OVERLAY ───────────────────── */}
+            {confirmExit && (
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 100,
+                    background: 'rgba(4,0,14,.92)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 16,
+                }}>
+                    <div style={{ fontSize: '2rem' }}>🎬</div>
+                    <p style={{
+                        color: '#e2e8f0',
+                        fontSize: '.9rem',
+                        fontWeight: 700,
+                        textAlign: 'center',
+                        margin: 0,
+                    }}>
+                        Lesson is still playing.
+                    </p>
+                    <p style={{
+                        color: '#6b7280',
+                        fontSize: '.75rem',
+                        textAlign: 'center',
+                        margin: 0,
+                    }}>
+                        Are you sure you want to exit?
+                    </p>
+                    <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                        <button
+                            onClick={handleExitCancel}
+                            style={{
+                                background: `${accentColor}20`,
+                                border: `1px solid ${accentColor}60`,
+                                borderRadius: 8,
+                                padding: '8px 20px',
+                                color: accentColor,
+                                fontWeight: 700,
+                                fontSize: '.8rem',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            ▶ Continue
+                        </button>
+                        <button
+                            onClick={handleExitConfirm}
+                            style={{
+                                background: 'rgba(239,68,68,.12)',
+                                border: '1px solid rgba(239,68,68,.4)',
+                                borderRadius: 8,
+                                padding: '8px 20px',
+                                color: '#ef4444',
+                                fontWeight: 700,
+                                fontSize: '.8rem',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            Exit Lesson
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* ── TOP BAR ────────────────────────────────────── */}
             <div style={{
                 flexShrink: 0,
@@ -92,7 +162,8 @@ const HUDLayer: React.FC<Props> = ({
 
                 {onExit && (
                     <button
-                        onClick={onExit}
+                        onClick={handleExitClick}
+                        title="Exit lesson"
                         style={{
                             background: 'none',
                             border: '1px solid rgba(148,163,184,.14)',
@@ -109,11 +180,10 @@ const HUDLayer: React.FC<Props> = ({
                 )}
             </div>
 
-            {/* ── CONTROL BAR (bottom of theatre) ────────────── */}
-            {/* Rendered by CinemaViewport below SubtitleLayer — placed here via absolute */}
+            {/* ── CONTROL BAR ────────────────────────────────── */}
             <div style={{
                 position: 'absolute',
-                bottom: 54, // sits above SubtitleLayer (~54px min-height)
+                bottom: 54,
                 left: 0, right: 0,
                 zIndex: 15,
                 flexShrink: 0,
@@ -124,8 +194,6 @@ const HUDLayer: React.FC<Props> = ({
                 gap: 6,
                 alignItems: 'center',
             }}>
-
-                {/* Play / Pause */}
                 <button
                     onClick={isPlaying ? controls.pause : controls.play}
                     disabled={isLoading}
@@ -143,7 +211,6 @@ const HUDLayer: React.FC<Props> = ({
                     {isLoading ? '⏳' : isPlaying ? '⏸' : '▶'}
                 </button>
 
-                {/* Progress bar */}
                 <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
                         <span style={{ color: accentColor, fontSize: '.5rem', fontWeight: 800 }}>
@@ -164,7 +231,6 @@ const HUDLayer: React.FC<Props> = ({
                     </div>
                 </div>
 
-                {/* Mute */}
                 <button
                     onClick={() => controls.setMuted(!audio.isMuted)}
                     style={{
@@ -180,7 +246,6 @@ const HUDLayer: React.FC<Props> = ({
                     {audio.isMuted ? '🔇' : '🔊'}
                 </button>
 
-                {/* Volume */}
                 <input
                     type="range" min="0" max="1" step="0.05"
                     value={audio.isMuted ? 0 : audio.volume}
