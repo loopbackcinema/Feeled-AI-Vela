@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StoryRequest, CinemaStory } from '../types';
+import { StoryRequest, CinemaStory, LearningExperienceObject, StudentProfile } from '../types';
 import { NARRATOR_VOICE_OPTIONS } from '../constants';
 import CinemaDisplay from './CinemaDisplay';
+import CinemaViewport from './cinema/CinemaViewport';
+import { useCinemaEngine } from '../hooks/useCinemaEngine';
+import { buildLEOFromCinemaStory } from '../lib/buildLEOFromCinemaStory';
 
 const STORY_GRADES = ['6','7','8','9','10','11','12'];
 
@@ -101,6 +104,36 @@ const STARS = [
     { top: '42%', left: '55%', size: 5, color: '#60a5fa', dur: '4.2s', delay: '1.9s' },
 ];
 
+// ── cinemaV2 flag — default false ──────────────────────────────────────────────
+const CINEMA_V2 = false;
+
+// ── CinemaV2Player — mounts useCinemaEngine + CinemaViewport ──────────────────
+function CinemaV2Player({
+    leo,
+    language,
+    grade,
+    onExit,
+}: {
+    leo: LearningExperienceObject;
+    language: string;
+    grade: string;
+    onExit: () => void;
+}) {
+    const profile: StudentProfile = {
+        grade: parseInt(grade, 10) || 10,
+        language: language as 'Tamil' | 'English' | 'Tanglish',
+        strength: 'visual',
+        topics_completed: [],
+        misconceptions_held: [],
+        preferred_connection_context: 'both',
+        session_length: 'standard',
+    };
+
+    const [model, controls] = useCinemaEngine(leo, profile, false, true);
+
+    return <CinemaViewport model={model} controls={controls} onExit={onExit} />;
+}
+
 const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoading, error }) => {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -121,6 +154,7 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
     const [cinemaStory, setCinemaStory]     = useState<CinemaStory | null>(null);
     const [cinemaLoading, setCinemaLoading] = useState(false);
     const [cinemaError, setCinemaError]     = useState<string | null>(null);
+    const [leo, setLeo]                     = useState<LearningExperienceObject | null>(null);
 
     useEffect(() => {
         if (isLoading) return;
@@ -191,7 +225,13 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
                 }
                 const data = await res.json();
                 if (!data.cinema) throw new Error('No cinema data in response');
-                setCinemaStory(data.cinema);
+
+                // ── cinemaV2 branch ──────────────────────────────────────────
+                if (CINEMA_V2) {
+                    setLeo(buildLEOFromCinemaStory(data.cinema, apiLanguage));
+                } else {
+                    setCinemaStory(data.cinema);
+                }
             } catch (err) {
                 console.error('Cinema error:', err);
                 setCinemaError('🎬 Cinema failed to load. Please try again.');
@@ -228,6 +268,18 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         r.onresult = (ev: any) => setTopic(ev.results[0][0].transcript);
         r.start();
     };
+
+    // ── cinemaV2 render branch ─────────────────────────────────────────────────
+    if (leo) {
+        return (
+            <CinemaV2Player
+                leo={leo}
+                language={apiLanguage}
+                grade={grade}
+                onExit={() => { setLeo(null); setCinemaError(null); }}
+            />
+        );
+    }
 
     // ── Cinema result state ────────────────────────────────────────────────────
     if (cinemaStory) {
