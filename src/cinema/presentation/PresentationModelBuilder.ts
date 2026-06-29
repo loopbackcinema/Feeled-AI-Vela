@@ -31,6 +31,25 @@ import {
     makeLoadingPresentation,
 } from './PresentationModel';
 
+// ── Grammar → StageLayer sceneId mapping ─────────────────────────────────────
+function grammarToSceneId(grammar: string): string {
+    const map: Record<string, string> = {
+        force:          'physics_force',
+        wave:           'physics_wave',
+        orbit:          'physics_gravity',
+        flow:           'physics_electricity',
+        growth:         'biology_cell',
+        transformation: 'chemistry_molecule',
+        network:        'biology_cell',
+        comparison:     'physics_force',
+        journey:        'physics_gravity',
+        spiral:         'biology_cell',
+        graph:          'mathematics_graph',
+        particles:      'particles',
+    };
+    return map[grammar] ?? 'particles';
+}
+
 // ── Act labels and colours ────────────────────────────────────────────────────
 const ACT_LABELS: Record<string, string> = {
     arrival_curiosity: 'Curiosity',
@@ -66,7 +85,7 @@ function visualizerBars(renderTimestamp: number, isPlaying: boolean): number[] {
 // ── Main build function ───────────────────────────────────────────────────────
 export function buildFromRenderState(
     rs: RenderState,
-    animationTick: number,          // From requestAnimationFrame — drives SVG
+    animationTick: number,
     isFullscreen: boolean,
     leo: LearningExperienceObject | null,
     topic: string,
@@ -77,11 +96,10 @@ export function buildFromRenderState(
     const actType = rs.scene?.actPhase ?? 'arrival_curiosity';
     const accentColor = ACT_COLORS[actType] ?? '#a78bfa';
 
-    // ── Scene — sceneType is a string from ConceptGrammarType ─────────────────
+    // ── Scene ─────────────────────────────────────────────────────────────────
     const scene: ScenePresentation | null = rs.scene ? {
-        // sceneType is string only — CinemaViewport calls SceneFactory.loadScene(sceneType)
-        sceneId:    detectGrammar(rs.scene.sceneType + ' ' + (rs.scene.characters.map(c=>c.label).join(' '))),
-        background: '',     // CinemaViewport computes from sceneId
+        sceneId:    grammarToSceneId(detectGrammar(rs.scene.sceneType + ' ' + (rs.scene.characters.map(c=>c.label).join(' ')))),
+        background: '',
         accentColor,
         characters: rs.scene.characters.map((c, i) => ({
             emoji:       c.emoji,
