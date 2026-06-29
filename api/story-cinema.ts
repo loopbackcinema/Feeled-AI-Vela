@@ -10,112 +10,155 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!topic) return res.status(400).json({ error: 'topic is required' });
     const gradeNum = parseInt(String(grade ?? '').replace(/\D/g, ''), 10) || 10;
 
-    const prompt = `You are the director of "மாயக் கற்றல் திரையரங்கம்" (Magical Learning Theatre).
-Stage "${topic}" (${subject || 'Science'}, Grade ${gradeNum}) as a 5-act cinematic lesson for Tamil Nadu students.
-Language: ${language || 'English'}. Style: ${style || 'Dramatic'}.
+    const prompt = `You are the AI Director of "மாயக் கற்றல் திரையரங்கம்" (Magical Learning Cinema).
 
-Pick a historical protagonist (Newton/Raman/Einstein for Physics; Ramanujan for Maths; Curie/Mendel for Biology; Thiruvalluvar for Tamil; else a Tamil student named Priya or Arjun).
+Your job is NOT to write a story. Your job is to PLAN a cinematic lesson like a film director.
 
-═══════════════════════════════════════
-CINEMATIC CONTENT RULES (MANDATORY)
-═══════════════════════════════════════
-
-TARGET OUTPUT:
-- 30–40 screenplay beats total across all 5 acts.
-- Each beat spoken in approximately 2–4 seconds.
-- Total lesson naturally takes 90–120 seconds when narrated.
-- This means each act must have 6–8 screenplay beats minimum.
-
-EACH ACT MUST CONTAIN THESE BEAT TYPES IN ORDER:
-1. Opening visual beat — set the scene, no explanation yet (narrator)
-2. Character entrance/reaction — protagonist speaks, reacts to what they see
-3. Observation narration — narrator describes what is happening step by step
-4. Character dialogue — protagonist asks a question or makes a wrong prediction
-5. Visual transition beat — narrator describes a change in the scene
-6. Emotional beat — character feels wonder, confusion, or discovery
-7. Closing hook — narrator ends the act with tension or a question
-
-QUALITY RULES:
-- Do not summarize. Develop the scene gradually.
-- Every screenplay beat must either: reveal something new, deepen understanding, or increase curiosity.
-- Never repeat information already stated in a previous beat.
-- Each act must feel like a different scene — location, mood, and visual state must change.
-
-VISUAL PROGRESSION RULE:
-- Every visual state must correspond to a different SVG stage.
-- Do not keep the same visual while multiple dialogue lines are spoken.
-- Each act must describe 3–5 distinct visual moments in stage_elements.
-
-ACT STRUCTURE:
-- Act 1 (hook): Open with a surprising phenomenon. No explanation. End with "why does this happen?"
-- Act 2 (rising_action): Show observations step by step. Build a prediction moment. Surface a misconception.
-- Act 3 (climax): The concept reveal — the "aha!" moment. ONE line must have is_concept_reveal:true. Build up to it.
-- Act 4 (resolution): Connect to Tamil Nadu daily life. 3 vivid real-world examples. Student sees the concept everywhere.
-- Act 5 (exam_bridge): Consolidate understanding. Exam tip. One unforgettable memory anchor sentence.
+TOPIC: "${topic}"
+SUBJECT: ${subject || 'Science'}
+GRADE: ${gradeNum}
+LANGUAGE: ${language || 'English'}
+STYLE: ${style || 'Dramatic'}
 
 ═══════════════════════════════════════
-OUTPUT FORMAT
+STEP 1 — CONCEPT ANALYSIS
 ═══════════════════════════════════════
 
-Output ONLY valid JSON (no markdown, no explanation):
+First, analyze what type of scientific concept this is.
+
+AVAILABLE VISUAL GRAMMARS:
+- "force" — objects, pushes, pulls, motion vectors, F=ma, Newton, pressure, friction
+- "flow" — movement through systems: blood, electricity, water, photosynthesis, current
+- "orbit" — circular paths, attraction: gravity, electrons, planets, atomic structure
+- "wave" — oscillation, propagation: light, sound, EM radiation, frequency
+- "growth" — progressive development: cell division, population, compound interest
+- "reaction" — state change: chemical reactions, phase transitions, acid-base
+- "network" — connected nodes: DNA, neural, circuit, ecosystem
+- "field" — invisible forces: magnetic field, electric field, gravitational field
+- "cycle" — repeating process: water cycle, carbon cycle, rock cycle, seasons
+- "comparison" — side-by-side contrast: mitosis vs meiosis, acids vs bases
+- "journey" — discovery narrative: historical scientist story, evolutionary timeline
+- "graph" — mathematical functions, data visualization, statistics
+
+Select the PRIMARY grammar and up to 2 secondary grammars.
+
+═══════════════════════════════════════
+STEP 2 — SCENE PLAN (5 scenes, one per act)
+═══════════════════════════════════════
+
+For each scene, plan:
+- visual_grammar: which grammar drives this scene
+- camera: how the camera frames this moment
+  Options: wide_establishing, close_up, follow_object, orbit_around, zoom_in, zoom_out, pov_inside, cutaway, freeze_frame
+- key_visual: ONE specific thing the student must see (e.g. "apple falling", "force arrow appearing", "cell splitting")
+- scientific_overlay: labels, formulas, or arrows that appear (e.g. "F=ma label", "gravity arrow", "ATP molecule")
+- animation_type: how it moves (e.g. "object_falls", "arrow_extends", "particles_flow", "cell_divides")
+- duration_seconds: how long this scene lasts (8-20 seconds)
+- emotional_target: what the student should feel (curious/confused/tense/discovering/confident)
+
+═══════════════════════════════════════
+STEP 3 — CINEMATIC DIALOGUE (30-40 beats total)
+═══════════════════════════════════════
+
+Write dialogue that DESCRIBES what the student is SEEING on screen.
+- Narrator describes the visual in real time
+- Protagonist reacts to what they observe
+- Never explain before showing
+- Every dialogue beat must reference something visible on screen
+- Each beat: 1-2 sentences, spoken in 3-5 seconds
+
+RULE: Never invent visuals randomly. Every visual must help the student understand the concept.
+NEVER use: floating stars, random particles, generic glowing circles.
+ALWAYS use: force arrows, water flow, orbit paths, field lines, cell structures — things that TEACH.
+
+═══════════════════════════════════════
+OUTPUT FORMAT — valid JSON only, no markdown
+═══════════════════════════════════════
+
 {
-  "cinema_title":"string",
-  "subject":"string",
-  "grade":"string",
-  "protagonist":{
-    "name":"string","era":"string","role":"string",
-    "tamil_connection":"string","avatar_emoji":"string"
+  "cinema_title": "string",
+  "subject": "string",
+  "grade": "string",
+
+  "concept_analysis": {
+    "primary_grammar": "force",
+    "secondary_grammars": ["motion", "field"],
+    "scientific_domain": "string",
+    "core_misconception": "string",
+    "aha_moment": "string"
   },
-  "acts":[{
-    "act_number":1,
-    "act_title":"string",
-    "act_type":"hook",
-    "setting":{
-      "place":"string","tamil_parallel":"string",
-      "time_of_day":"string","mood":"string"
-    },
-    "stage_elements":[
-      {"element_type":"character","name":"string","description":"string","position":"left","animation":"enter","highlight":true},
-      {"element_type":"prop","name":"string","description":"string","position":"center","animation":"appear","highlight":false},
-      {"element_type":"environment","name":"string","description":"string","position":"right","animation":"fade_in","highlight":false}
-    ],
-    "screenplay":[
-      {"speaker":"narrator","text":"string","emotion":"curious","is_concept_reveal":false},
-      {"speaker":"protagonist","text":"string","emotion":"curious","is_concept_reveal":false},
-      {"speaker":"narrator","text":"string","emotion":"mysterious","is_concept_reveal":false},
-      {"speaker":"narrator","text":"string","emotion":"tense","is_concept_reveal":false},
-      {"speaker":"protagonist","text":"string","emotion":"confused","is_concept_reveal":false},
-      {"speaker":"narrator","text":"string","emotion":"curious","is_concept_reveal":false},
-      {"speaker":"protagonist","text":"string","emotion":"wondering","is_concept_reveal":false},
-      {"speaker":"narrator","text":"string","emotion":"hooks","is_concept_reveal":false}
-    ],
-    "concept_board":{
-      "title":"string","formula":"string",
-      "key_points":["string","string","string"],
-      "tamil_analogy":"string"
-    },
-    "curtain_question":"string"
-  }],
-  "interval_card":{"recap":"string","teaser":"string"},
-  "exam_spotlight":{
-    "most_asked_question":"string",
-    "model_answer_structure":["string","string","string"],
-    "marks_tip":"string",
-    "previous_year_hint":"string"
+
+  "protagonist": {
+    "name": "string",
+    "era": "string",
+    "role": "string",
+    "tamil_connection": "string",
+    "avatar_emoji": "string"
   },
-  "quiz":[
-    {"question":"string","options":["A","B","C","D"],"answer":"A","explanation":"string","concept_connection":"string"},
-    {"question":"string","options":["A","B","C","D"],"answer":"B","explanation":"string","concept_connection":"string"},
-    {"question":"string","options":["A","B","C","D"],"answer":"C","explanation":"string","concept_connection":"string"}
+
+  "scene_plan": [
+    {
+      "scene_number": 1,
+      "act_type": "hook",
+      "act_title": "string",
+      "visual_grammar": "force",
+      "camera": "wide_establishing",
+      "key_visual": "string — what student sees",
+      "scientific_overlay": "string — labels/formulas/arrows visible",
+      "animation_type": "string — how it moves",
+      "duration_seconds": 12,
+      "emotional_target": "curious",
+      "setting": {
+        "place": "string",
+        "tamil_parallel": "string",
+        "mood": "string"
+      }
+    }
+  ],
+
+  "acts": [
+    {
+      "act_number": 1,
+      "act_title": "string",
+      "act_type": "hook",
+      "scene_ref": 1,
+      "screenplay": [
+        {"speaker": "narrator", "text": "string", "emotion": "curious", "is_concept_reveal": false},
+        {"speaker": "protagonist", "text": "string", "emotion": "curious", "is_concept_reveal": false},
+        {"speaker": "narrator", "text": "string", "emotion": "mysterious", "is_concept_reveal": false},
+        {"speaker": "narrator", "text": "string", "emotion": "tense", "is_concept_reveal": false},
+        {"speaker": "protagonist", "text": "string", "emotion": "confused", "is_concept_reveal": false},
+        {"speaker": "narrator", "text": "string", "emotion": "curious", "is_concept_reveal": false},
+        {"speaker": "protagonist", "text": "string", "emotion": "wondering", "is_concept_reveal": false},
+        {"speaker": "narrator", "text": "string", "emotion": "hooks", "is_concept_reveal": false}
+      ],
+      "concept_board": {
+        "title": "string",
+        "formula": "string",
+        "key_points": ["string", "string", "string"],
+        "tamil_analogy": "string"
+      },
+      "curtain_question": "string"
+    }
+  ],
+
+  "interval_card": {"recap": "string", "teaser": "string"},
+
+  "exam_spotlight": {
+    "most_asked_question": "string",
+    "model_answer_structure": ["string", "string", "string"],
+    "marks_tip": "string",
+    "previous_year_hint": "string"
+  },
+
+  "quiz": [
+    {"question": "string", "options": ["A","B","C","D"], "answer": "A", "explanation": "string", "concept_connection": "string"},
+    {"question": "string", "options": ["A","B","C","D"], "answer": "B", "explanation": "string", "concept_connection": "string"},
+    {"question": "string", "options": ["A","B","C","D"], "answer": "C", "explanation": "string", "concept_connection": "string"}
   ]
 }
 
-FINAL CHECK BEFORE OUTPUT:
-- Count total screenplay beats. Must be 30–40.
-- Every act must have 6–8 beats.
-- No act may repeat information from a previous act.
-- Every visual stage_element must describe a distinct visual moment.
-- The JSON must be complete. Do not truncate.`;
+CRITICAL: Generate all 5 scenes in scene_plan and all 5 acts. Each act must have 6-8 screenplay beats. Total screenplay beats: 30-40. JSON must be complete and valid.`;
 
     try {
         const response = await ai.models.generateContent({
@@ -124,7 +167,7 @@ FINAL CHECK BEFORE OUTPUT:
             config: {
                 temperature: 0.8,
                 responseMimeType: 'application/json',
-                thinkingConfig: { thinkingBudget: 1024 },
+                thinkingConfig: { thinkingBudget: 2048 },
             },
         });
         if (!response.text) throw new Error('Empty response');
