@@ -203,6 +203,9 @@ const StoryGeneratorForm: React.FC<StoryGeneratorFormProps> = ({ onSubmit, isLoa
         }
 
         if (parseInt(grade) >= 10) {
+            // Pre-warm AudioContext on user gesture — required by browser autoplay policy
+            try { const _ac = new AudioContext(); _ac.resume().catch(() => {}); } catch (_) {}
+
             // FeelEd Cinema path
             setCinemaLoading(true);
             setCinemaError(null);
