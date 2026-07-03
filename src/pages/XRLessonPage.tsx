@@ -45,7 +45,17 @@ export default function XRLessonPage() {
   const [explanation, setExplanation] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [showHint, setShowHint] = useState<boolean>(true);
   const lastExplanation = useRef<string>('');
+  const viewerRef = useRef<any>(null);
+
+  const resetCamera = () => {
+    const el = viewerRef.current;
+    if (el) {
+      el.cameraOrbit = '35deg 65deg 130%';
+      el.fieldOfView = '30deg';
+    }
+  };
 
   const topic = XR_TOPICS.find(t => t.id === selection?.topicId);
 
@@ -112,10 +122,15 @@ export default function XRLessonPage() {
           <h1>{topic.emoji} {isTamil ? topic.nameTa : topic.nameEn}</h1>
           <p>வகுப்பு {selection.grade} · {styleLabel}</p>
         </div>
+        <span className="xrl-lang-badge">
+          {selection.language === 'english' ? 'English' : selection.language === 'tanglish' ? 'Tanglish' : 'தமிழ்'}
+        </span>
       </header>
 
       <div className="xrl-viewer-wrap">
         <model-viewer
+          ref={viewerRef}
+          onPointerDown={() => setShowHint(false)}
           src={topic.glbUrl}
           ios-src={topic.usdzUrl}
           alt={topic.nameEn}
@@ -142,7 +157,12 @@ export default function XRLessonPage() {
             </button>
           ))}
         </model-viewer>
-        <p className="xrl-hint">விரலால் சுழற்றுங்கள் · இரு விரல்களால் zoom · 📱 AR button-ஐ தொட்டு உங்கள் அறையில் பாருங்கள்</p>
+        {showHint && (
+          <div className="xrl-drag-hint">👆 இழுத்து சுழற்றுங்கள் · pinch-ல் zoom</div>
+        )}
+        <button className="xrl-reset" onClick={resetCamera} aria-label="காட்சியை மீட்டமை">
+          🔄 மீட்டமை
+        </button>
       </div>
 
       <section className="xrl-panel">

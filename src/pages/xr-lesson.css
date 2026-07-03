@@ -67,8 +67,14 @@
 }
 .xrl-coming { margin: 0; color: var(--xr-muted); font-size: 0.9rem; }
 
-.xrl-questions { display: flex; flex-direction: column; gap: 8px; }
+.xrl-questions {
+  display: flex; flex-direction: row; gap: 8px;
+  overflow-x: auto; padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.xrl-questions::-webkit-scrollbar { display: none; }
 .xrl-q {
+  flex: 0 0 auto; max-width: 260px;
   text-align: left; padding: 12px 14px; border-radius: var(--xr-radius);
   border: 1px solid var(--xr-surface-2); background: transparent;
   color: var(--xr-text); font-size: 0.9rem; cursor: pointer;
@@ -108,3 +114,25 @@
   white-space: nowrap;
   backdrop-filter: blur(2px);
 }
+
+/* V2 additions */
+.xrl-lang-badge {
+  margin-left: auto; padding: 4px 10px; border-radius: 999px;
+  background: var(--xr-surface); border: 1px solid var(--xr-surface-2);
+  color: var(--xr-muted); font-size: 0.72rem; font-weight: 700;
+}
+.xrl-drag-hint {
+  position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+  background: rgba(11, 16, 38, 0.82); color: var(--xr-text);
+  padding: 7px 14px; border-radius: 999px; font-size: 0.78rem;
+  border: 1px solid var(--xr-surface-2); pointer-events: none;
+  animation: xrl-hint-pulse 2.2s ease-in-out infinite;
+}
+@keyframes xrl-hint-pulse { 0%,100% { opacity: 0.65; } 50% { opacity: 1; } }
+.xrl-reset {
+  position: absolute; bottom: 12px; left: 24px;
+  background: rgba(11, 16, 38, 0.82); color: var(--xr-text);
+  border: 1px solid var(--xr-surface-2); border-radius: 999px;
+  padding: 8px 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) { .xrl-drag-hint { animation: none; } }
