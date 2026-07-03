@@ -1,0 +1,111 @@
+/* FeelEd XR Lab — V1 styles
+   Space-dark theme: 3D models இருண்ட பின்னணியில் அழகாக glow ஆகும்.
+   Mobile-first — மாணவர்களின் primary device phone/tablet. */
+
+.xr-page {
+  --xr-bg: #0b1026;          /* deep space navy */
+  --xr-surface: #161d3d;
+  --xr-surface-2: #1f2850;
+  --xr-text: #eef1ff;
+  --xr-muted: #9aa3cc;
+  --xr-accent: #ffb547;      /* sun-gold — start/selected */
+  --xr-accent-ink: #241500;
+  --xr-radius: 14px;
+
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, #232f6b 0%, transparent 60%),
+    var(--xr-bg);
+  color: var(--xr-text);
+  padding: 20px 16px 96px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.xr-header { text-align: center; margin-bottom: 20px; }
+.xr-header h1 {
+  display: inline; font-size: 1.6rem; font-weight: 800;
+  letter-spacing: 0.5px; margin: 0;
+}
+.xr-beta {
+  display: inline-block; margin-left: 8px; padding: 2px 8px;
+  font-size: 0.7rem; font-weight: 700; border-radius: 999px;
+  background: var(--xr-accent); color: var(--xr-accent-ink);
+  vertical-align: super;
+}
+.xr-tagline { color: var(--xr-muted); margin: 6px 0 0; font-size: 0.95rem; }
+
+.xr-section { margin: 22px 0; }
+.xr-section h2 {
+  font-size: 0.85rem; font-weight: 700; color: var(--xr-muted);
+  text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 10px;
+}
+
+/* Chips — grade / language / style */
+.xr-chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.xr-chip {
+  padding: 10px 16px; border-radius: 999px; border: 1px solid var(--xr-surface-2);
+  background: var(--xr-surface); color: var(--xr-text);
+  font-size: 0.95rem; font-weight: 600; cursor: pointer;
+  transition: transform 0.1s ease, background 0.15s ease;
+  min-height: 44px; /* touch target */
+}
+.xr-chip:active { transform: scale(0.96); }
+.xr-chip--on {
+  background: var(--xr-accent); color: var(--xr-accent-ink);
+  border-color: var(--xr-accent);
+}
+.xr-chip:focus-visible { outline: 2px solid var(--xr-accent); outline-offset: 2px; }
+
+/* Topic cards */
+.xr-topic-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+}
+@media (min-width: 640px) {
+  .xr-topic-grid { grid-template-columns: repeat(3, 1fr); }
+  .xr-page { max-width: 720px; margin: 0 auto; }
+}
+.xr-topic-card {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  gap: 4px; padding: 14px; border-radius: var(--xr-radius);
+  border: 1px solid var(--xr-surface-2); background: var(--xr-surface);
+  color: var(--xr-text); cursor: pointer; text-align: left;
+  transition: transform 0.1s ease, border-color 0.15s ease;
+  min-height: 100px;
+}
+.xr-topic-card:active { transform: scale(0.97); }
+.xr-topic-card--on {
+  border-color: var(--xr-accent);
+  box-shadow: 0 0 0 1px var(--xr-accent), 0 0 24px rgba(255, 181, 71, 0.25);
+}
+.xr-topic-card--soon { opacity: 0.45; cursor: not-allowed; }
+.xr-topic-card:focus-visible { outline: 2px solid var(--xr-accent); outline-offset: 2px; }
+
+.xr-topic-emoji { font-size: 1.6rem; }
+.xr-topic-name { font-weight: 700; font-size: 0.95rem; }
+.xr-topic-badge {
+  font-size: 0.7rem; color: var(--xr-muted);
+  border: 1px solid var(--xr-surface-2); border-radius: 999px; padding: 1px 8px;
+}
+.xr-soon {
+  position: absolute; top: 8px; right: 8px; font-size: 0.65rem;
+  background: var(--xr-surface-2); color: var(--xr-muted);
+  padding: 2px 6px; border-radius: 6px;
+}
+
+/* Start button — fixed bottom, thumb-reachable */
+.xr-start {
+  position: fixed; left: 16px; right: 16px; bottom: 16px;
+  max-width: 688px; margin: 0 auto;
+  padding: 16px; border-radius: var(--xr-radius); border: none;
+  background: var(--xr-accent); color: var(--xr-accent-ink);
+  font-size: 1.1rem; font-weight: 800; cursor: pointer;
+  box-shadow: 0 8px 24px rgba(255, 181, 71, 0.35);
+  transition: transform 0.1s ease;
+}
+.xr-start:active { transform: scale(0.98); }
+.xr-start:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .xr-chip, .xr-topic-card, .xr-start { transition: none; }
+}

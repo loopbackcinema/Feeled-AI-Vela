@@ -1,3 +1,4 @@
+import XRLabPage from './pages/XRLabPage';
 import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ChatPage from './features/chat/ChatPage';
@@ -268,6 +269,7 @@ const App: React.FC = () => {
                 } />
                 <Route path="/game"      element={<GameMode />} />
                 <Route path="/exam-mock" element={<ExamMock />} />
+                <Route path="/xr" element={<XRLabPage />} />
 
                 {/* ── Public informational pages (no login required) ── */}
                 <Route path="/about"     element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
