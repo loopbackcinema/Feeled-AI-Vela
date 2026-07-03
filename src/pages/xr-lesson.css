@@ -87,3 +87,10 @@
 @media (min-width: 640px) {
   .xrl-page { max-width: 720px; margin: 0 auto; }
 }
+
+/* Task 3 additions — AI states */
+.xrl-text { margin: 0; }
+.xrl-thinking { margin: 0; color: var(--xr-muted); animation: xrl-pulse 1.2s ease-in-out infinite; }
+.xrl-error { margin: 0; color: #ff9d9d; font-size: 0.9rem; }
+@keyframes xrl-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .xrl-thinking { animation: none; } }

@@ -1,8 +1,8 @@
-// FeelEd XR Lab — Lesson Screen (V1, Task 2)
+// FeelEd XR Lab — Lesson Screen (V1, Task 3 — AI live)
 // Route: /xr/lesson
-// 3D model-viewer + AR button. AI explanation Task 3-ல் இணையும்.
+// 3D model-viewer + Gemini explanation + Ask AI + இன்னும் எளிதாக + மீண்டும்.
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '@google/model-viewer';
 import {
@@ -40,18 +40,62 @@ export default function XRLessonPage() {
   const location = useLocation();
   const selection = location.state as XRSelection | null;
 
-  // நேரடியாக /xr/lesson-க்கு வந்தால் (selection இல்லாமல்) selector-க்கு திருப்பு
+  const [explanation, setExplanation] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const lastExplanation = useRef<string>('');
+
+  const topic = XR_TOPICS.find(t => t.id === selection?.topicId);
+
+  const callXR = useCallback(
+    async (opts: { question?: string; easier?: boolean } = {}) => {
+      if (!selection || !topic) return;
+      setLoading(true);
+      setError('');
+      try {
+        const resp = await fetch('/api/concept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'xr',
+            topicName: selection.language === 'english' ? topic.nameEn : topic.nameTa,
+            factSheet: topic.factSheet,
+            grade: selection.grade,
+            language: selection.language,
+            style: selection.style,
+            question: opts.question,
+            easier: opts.easier,
+            previousExplanation: opts.easier ? lastExplanation.current : undefined,
+          }),
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (!data.explanation) throw new Error('Empty');
+        lastExplanation.current = data.explanation;
+        setExplanation(data.explanation);
+      } catch {
+        setError('விளக்கம் வர தாமதம் ஆகிறது — மீண்டும் முயற்சிக்கவும் 🔁');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selection, topic]
+  );
+
+  // நேரடியாக /xr/lesson-க்கு வந்தால் selector-க்கு திருப்பு
   useEffect(() => {
-    if (!selection) navigate('/xr', { replace: true });
-  }, [selection, navigate]);
+    if (!selection || !topic || !topic.active) {
+      navigate('/xr', { replace: true });
+    }
+  }, [selection, topic, navigate]);
 
-  if (!selection) return null;
+  // Page திறந்ததும் முதல் விளக்கம்
+  useEffect(() => {
+    if (selection && topic?.active) callXR();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const topic = XR_TOPICS.find(t => t.id === selection.topicId);
-  if (!topic || !topic.active) {
-    navigate('/xr', { replace: true });
-    return null;
-  }
+  if (!selection || !topic || !topic.active) return null;
 
   const styleLabel = XR_STYLES.find(s => s.id === selection.style)?.labelTa ?? '';
   const isTamil = selection.language !== 'english';
@@ -68,7 +112,6 @@ export default function XRLessonPage() {
         </div>
       </header>
 
-      {/* 3D Viewer — touch: rotate, pinch: zoom. AR button model-viewer தானாக காட்டும் */}
       <div className="xrl-viewer-wrap">
         <model-viewer
           src={topic.glbUrl}
@@ -90,25 +133,37 @@ export default function XRLessonPage() {
         <p className="xrl-hint">விரலால் சுழற்றுங்கள் · இரு விரல்களால் zoom · 📱 AR button-ஐ தொட்டு உங்கள் அறையில் பாருங்கள்</p>
       </div>
 
-      {/* Explanation panel — Task 3-ல் Gemini இணையும் */}
       <section className="xrl-panel">
-        <div className="xrl-explanation">
-          <p className="xrl-coming">
-            🤖 AI விளக்கம் விரைவில் இங்கே வரும் (Task 3)
-          </p>
+        <div className="xrl-explanation" aria-live="polite">
+          {loading ? (
+            <p className="xrl-thinking">🤖 யோசிக்கிறேன்…</p>
+          ) : error ? (
+            <p className="xrl-error">{error}</p>
+          ) : (
+            <p className="xrl-text">{explanation}</p>
+          )}
         </div>
 
         <div className="xrl-questions">
           {topic.suggestedQuestions.map((q, i) => (
-            <button key={i} className="xrl-q" disabled>
+            <button
+              key={i}
+              className="xrl-q"
+              disabled={loading}
+              onClick={() => callXR({ question: isTamil ? q.ta : q.en })}
+            >
               {isTamil ? q.ta : q.en}
             </button>
           ))}
         </div>
 
         <div className="xrl-actions">
-          <button className="xrl-action" disabled>😊 இன்னும் எளிதாக</button>
-          <button className="xrl-action" disabled>🔁 மீண்டும் சொல்</button>
+          <button className="xrl-action" disabled={loading} onClick={() => callXR({ easier: true })}>
+            😊 இன்னும் எளிதாக
+          </button>
+          <button className="xrl-action" disabled={loading} onClick={() => callXR()}>
+            🔁 மீண்டும் சொல்
+          </button>
         </div>
       </section>
     </div>
