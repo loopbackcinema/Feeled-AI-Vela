@@ -28,6 +28,8 @@ declare global {
         'camera-controls'?: boolean;
         'auto-rotate'?: boolean;
         'shadow-intensity'?: string;
+        'camera-orbit'?: string;
+        exposure?: string;
         'touch-action'?: string;
         loading?: string;
       };
@@ -121,14 +123,24 @@ export default function XRLessonPage() {
           ar-modes="scene-viewer webxr quick-look"
           camera-controls
           auto-rotate
-          shadow-intensity="1"
+          shadow-intensity="0.6"
+          camera-orbit="35deg 65deg 130%"
+          exposure="1.15"
           touch-action="pan-y"
           loading="eager"
           style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
         >
-          <div slot="progress-bar" className="xrl-progress">
-            3D ஏற்றுகிறது…
-          </div>
+          {topic.hotspots?.map((h, i) => (
+            <button
+              key={i}
+              slot={`hotspot-${i}`}
+              className="xrl-hotspot"
+              data-position={h.position}
+              data-normal="0 1 0"
+            >
+              {h.label}
+            </button>
+          ))}
         </model-viewer>
         <p className="xrl-hint">விரலால் சுழற்றுங்கள் · இரு விரல்களால் zoom · 📱 AR button-ஐ தொட்டு உங்கள் அறையில் பாருங்கள்</p>
       </div>

@@ -94,3 +94,17 @@
 .xrl-error { margin: 0; color: #ff9d9d; font-size: 0.9rem; }
 @keyframes xrl-pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .xrl-thinking { animation: none; } }
+
+/* Planet name labels (model-viewer hotspots) */
+.xrl-hotspot {
+  background: rgba(11, 16, 38, 0.78);
+  color: var(--xr-text);
+  border: 1px solid rgba(255, 181, 71, 0.45);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  pointer-events: none;
+  white-space: nowrap;
+  backdrop-filter: blur(2px);
+}

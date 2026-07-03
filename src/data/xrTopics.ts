@@ -15,6 +15,7 @@ export interface XRTopic {
   active: boolean;
   factSheet: string; // Gemini grounding — hallucination தடுக்க
   suggestedQuestions: { ta: string; en: string }[];
+  hotspots?: { label: string; position: string }[]; // 3D-ல் பெயர் labels
 }
 
 export const XR_TOPICS: XRTopic[] = [
@@ -28,6 +29,17 @@ export const XR_TOPICS: XRTopic[] = [
     grades: [6, 7, 8, 9, 10, 11, 12],
     glbUrl: '/models/solar-system.glb',  // bundled in public/models/
     usdzUrl: '',  // iOS USDZ — V2 (Android/desktop 3D+AR இப்போது வேலை செய்யும்)
+    hotspots: [
+      { label: 'சூரியன்', position: '0.00 2.50 0.00' },
+      { label: 'புதன்', position: '2.79 0.69 -1.95' },
+      { label: 'வெள்ளி', position: '2.96 0.85 3.52' },
+      { label: 'பூமி', position: '1.55 0.87 -5.80' },
+      { label: 'செவ்வாய்', position: '-6.41 0.77 3.70' },
+      { label: 'வியாழன்', position: '-8.31 1.50 -4.80' },
+      { label: 'சனி', position: '11.06 1.33 5.16' },
+      { label: 'யுரேனஸ்', position: '-2.54 1.01 14.38' },
+      { label: 'நெப்டியூன்', position: '-5.68 0.99 -15.60' },
+    ],
     active: true,
     factSheet: `சூரிய குடும்பத்தில் 8 கோள்கள்: புதன், வெள்ளி, பூமி, செவ்வாய், வியாழன், சனி, யுரேனஸ், நெப்டியூன்.
 சூரியன் ஒரு நட்சத்திரம்; சூரிய குடும்பத்தின் மொத்த நிறையில் 99.8% சூரியனே.
