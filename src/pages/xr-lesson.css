@@ -1,0 +1,89 @@
+/* FeelEd XR Lab — Lesson screen styles (Task 2)
+   xr-lab.css-ன் அதே space theme. Viewer மேலே 55vh, panel கீழே scroll. */
+
+.xrl-page {
+  --xr-bg: #0b1026;
+  --xr-surface: #161d3d;
+  --xr-surface-2: #1f2850;
+  --xr-text: #eef1ff;
+  --xr-muted: #9aa3cc;
+  --xr-accent: #ffb547;
+  --xr-accent-ink: #241500;
+  --xr-radius: 14px;
+
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 0%, #232f6b 0%, transparent 60%),
+    var(--xr-bg);
+  color: var(--xr-text);
+}
+
+.xrl-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px 8px;
+}
+.xrl-back {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid var(--xr-surface-2); background: var(--xr-surface);
+  color: var(--xr-text); font-size: 1.2rem; cursor: pointer;
+  flex-shrink: 0;
+}
+.xrl-back:focus-visible { outline: 2px solid var(--xr-accent); outline-offset: 2px; }
+.xrl-title h1 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.xrl-title p { margin: 2px 0 0; font-size: 0.8rem; color: var(--xr-muted); }
+
+/* Viewer */
+.xrl-viewer-wrap {
+  height: 52vh; min-height: 300px;
+  padding: 0 12px; position: relative;
+}
+.xrl-viewer-wrap model-viewer {
+  border-radius: var(--xr-radius);
+  background: radial-gradient(circle at 50% 40%, #1a2350 0%, #0d1330 70%);
+  border: 1px solid var(--xr-surface-2);
+}
+.xrl-progress {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  color: var(--xr-muted); font-size: 0.9rem;
+}
+.xrl-hint {
+  margin: 8px 4px 0; font-size: 0.72rem; color: var(--xr-muted);
+  text-align: center;
+}
+
+/* Panel */
+.xrl-panel {
+  flex: 1; margin-top: 12px; padding: 16px 16px 24px;
+  background: var(--xr-surface);
+  border-radius: 20px 20px 0 0;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.xrl-explanation {
+  background: var(--xr-surface-2); border-radius: var(--xr-radius);
+  padding: 14px; min-height: 72px;
+  font-size: 0.98rem; line-height: 1.65;
+}
+.xrl-coming { margin: 0; color: var(--xr-muted); font-size: 0.9rem; }
+
+.xrl-questions { display: flex; flex-direction: column; gap: 8px; }
+.xrl-q {
+  text-align: left; padding: 12px 14px; border-radius: var(--xr-radius);
+  border: 1px solid var(--xr-surface-2); background: transparent;
+  color: var(--xr-text); font-size: 0.9rem; cursor: pointer;
+  min-height: 44px;
+}
+.xrl-q:disabled, .xrl-action:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.xrl-actions { display: flex; gap: 10px; }
+.xrl-action {
+  flex: 1; padding: 13px; border-radius: var(--xr-radius); border: none;
+  background: var(--xr-accent); color: var(--xr-accent-ink);
+  font-weight: 700; font-size: 0.92rem; cursor: pointer;
+  min-height: 48px;
+}
+
+@media (min-width: 640px) {
+  .xrl-page { max-width: 720px; margin: 0 auto; }
+}

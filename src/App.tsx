@@ -1,3 +1,4 @@
+import XRLessonPage from './pages/XRLessonPage';
 import XRLabPage from './pages/XRLabPage';
 import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
@@ -270,6 +271,7 @@ const App: React.FC = () => {
                 <Route path="/game"      element={<GameMode />} />
                 <Route path="/exam-mock" element={<ExamMock />} />
                 <Route path="/xr" element={<XRLabPage />} />
+                <Route path="/xr/lesson" element={<XRLessonPage />} />
 
                 {/* ── Public informational pages (no login required) ── */}
                 <Route path="/about"     element={<PageShell showNav><AboutUs onNavigate={navigateTo} /></PageShell>} />
