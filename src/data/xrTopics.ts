@@ -26,9 +26,8 @@ export const XR_TOPICS: XRTopic[] = [
     subjectTa: 'அறிவியல்',
     emoji: '🪐',
     grades: [6, 7, 8, 9, 10, 11, 12],
-    // TODO: Firebase Storage-ல் upload செய்த பிறகு URL மாற்றவும்
-    glbUrl: 'உங்கள்-FIREBASE-URL', // placeholder
-    usdzUrl: 'https://modelviewer.dev/shared-assets/models/NeilArmstrong.usdz', // placeholder
+    glbUrl: '/models/solar-system.glb',  // bundled in public/models/
+    usdzUrl: '',  // iOS USDZ — V2 (Android/desktop 3D+AR இப்போது வேலை செய்யும்)
     active: true,
     factSheet: `சூரிய குடும்பத்தில் 8 கோள்கள்: புதன், வெள்ளி, பூமி, செவ்வாய், வியாழன், சனி, யுரேனஸ், நெப்டியூன்.
 சூரியன் ஒரு நட்சத்திரம்; சூரிய குடும்பத்தின் மொத்த நிறையில் 99.8% சூரியனே.
