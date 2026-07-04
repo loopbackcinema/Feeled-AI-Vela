@@ -214,3 +214,45 @@
 }
 .xrl-voice:hover { background: rgba(91, 108, 255, 0.22); }
 .xrl-voice:disabled { opacity: 0.6; }
+
+/* ── Session 5, Commit 5: Progress strip + celebration ── */
+.xrl-steps {
+  display: flex; align-items: center; gap: 6px;
+  overflow-x: auto; padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.xrl-steps::-webkit-scrollbar { display: none; }
+.xrl-step {
+  flex: 0 0 auto;
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid var(--xr-surface-2);
+  color: var(--xr-muted); font-size: 0.75rem; font-weight: 700;
+  white-space: nowrap;
+}
+.xrl-step:not(:last-child)::after {
+  content: '›'; margin-left: 10px; margin-right: -4px;
+  color: var(--xr-muted); opacity: 0.5;
+}
+.xrl-step--done {
+  color: #7ee8a2; border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.08);
+}
+.xrl-step--now {
+  color: #fff; border-color: transparent;
+  background: linear-gradient(135deg, var(--xr-accent), var(--xr-accent-2));
+  box-shadow: 0 4px 14px rgba(91, 108, 255, 0.35);
+}
+
+.xrl-celebrate { text-align: center; }
+.xrl-celebrate-title {
+  margin: 0 0 4px; font-size: 1.15rem; font-weight: 800;
+}
+.xrl-score-big {
+  margin: 4px 0 6px;
+  font-size: 2.6rem; font-weight: 800; line-height: 1;
+  background: linear-gradient(90deg, #a9b4ff 0%, var(--xr-gold) 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.xrl-celebrate .xrl-text { text-align: left; }
+.xrl-celebrate .xrl-text:first-of-type { text-align: center; }
