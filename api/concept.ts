@@ -52,8 +52,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.body?.task === 'tts') return handleXRTTS(req, res, ai);
         if (req.body?.task === 'quiz') return handleXRQuiz(req, res, ai);
         if (req.body?.task === 'summary') return handleXRSummary(req, res, ai);
-        if (req.body?.task === 'explain') return handleXRExplain(req, res, ai);
-        return res.status(400).json({ error: 'Invalid task for XR mode' });
+        return handleXRExplain(req, res, ai);
     }
 
     try {
