@@ -289,7 +289,7 @@ useEffect(() => {
   return (
     <div className="xrl-page">
       <header className="xrl-header">
-        <button className="xrl-back" onClick={() => navigate('/xr')} aria-label="பின் செல்">
+        <button className="xrl-back" onClick={() => navigate('/xr/select')} aria-label="பின் செல்">
           ←
         </button>
         <div className="xrl-title">

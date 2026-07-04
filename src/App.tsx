@@ -1,5 +1,6 @@
 import XRLessonPage from './pages/XRLessonPage';
 import XRLabPage from './pages/XRLabPage';
+import XRLandingPage from './pages/XRLandingPage';
 import React, { useState, useCallback, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ChatPage from './features/chat/ChatPage';
@@ -38,6 +39,7 @@ import { db } from './firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useStudentStore } from './stores/studentStore';
 import { useSessionStore } from './stores/sessionStore';
+import XRLandingPage from './pages/XRLandingPage';
 
 const PAGE_TO_PATH: Record<Page, string> = {
     home: '/',
@@ -270,7 +272,8 @@ const App: React.FC = () => {
                 } />
                 <Route path="/game"      element={<GameMode />} />
                 <Route path="/exam-mock" element={<ExamMock />} />
-                <Route path="/xr" element={<XRLabPage />} />
+                <Route path="/xr" element={<XRLandingPage />} />
+                <Route path="/xr/select" element={<XRLabPage />} />
                 <Route path="/xr/lesson" element={<XRLessonPage />} />
 
                 {/* ── Public informational pages (no login required) ── */}
