@@ -52,6 +52,13 @@ export default function XRLessonPage() {
   const viewerRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCache = useRef<{ text: string; src: string } | null>(null);
+  type XRQuizQ = { question: string; options: string[]; correctIndex: number; feedback: string[] };
+  const [phase, setPhase] = useState<'explore' | 'quiz' | 'summary'>('explore');
+  const [quiz, setQuiz] = useState<XRQuizQ[]>([]);
+  const [qIdx, setQIdx] = useState<number>(0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [score, setScore] = useState<number>(0);
+  const [summary, setSummary] = useState<string>('');
 
   const stopAudio = () => {
     audioRef.current?.pause();
@@ -135,6 +142,80 @@ export default function XRLessonPage() {
     },
     [selection, topic]
   );
+  const startQuiz = async () => {
+    if (!selection || !topic) return;
+    stopAudio();
+    setLoading(true);
+    setError('');
+    try {
+      const resp = await fetch('/api/concept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'xr',
+          task: 'quiz',
+          topicName: selection.language === 'english' ? topic.nameEn : topic.nameTa,
+          factSheet: topic.factSheet,
+          grade: selection.grade,
+          language: selection.language,
+        }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      if (!data.questions?.length) throw new Error('Empty');
+      setQuiz(data.questions);
+      setQIdx(0);
+      setPicked(null);
+      setScore(0);
+      setPhase('quiz');
+    } catch {
+      setError('வினாடி வினா வர தாமதம் — மீண்டும் முயற்சிக்கவும் 🔁');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const pickOption = (i: number) => {
+    if (picked !== null) return;
+    setPicked(i);
+    if (i === quiz[qIdx].correctIndex) setScore(s => s + 1);
+  };
+
+  const fetchSummary = async () => {
+    if (!selection || !topic) return;
+    setPhase('summary');
+    setLoading(true);
+    try {
+      const resp = await fetch('/api/concept', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'xr',
+          task: 'summary',
+          topicName: selection.language === 'english' ? topic.nameEn : topic.nameTa,
+          factSheet: topic.factSheet,
+          grade: selection.grade,
+          language: selection.language,
+        }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      setSummary(data.summary || '');
+    } catch {
+      setSummary('சுருக்கம் வரவில்லை — ஆனால் நீங்கள் பாடத்தை முடித்துவிட்டீர்கள்! 🎉');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const nextQuestion = () => {
+    if (qIdx < quiz.length - 1) {
+      setQIdx(qIdx + 1);
+      setPicked(null);
+    } else {
+      fetchSummary();
+    }
+  };
 
   // நேரடியாக /xr/lesson-க்கு வந்தால் selector-க்கு திருப்பு
   useEffect(() => {
@@ -208,43 +289,111 @@ export default function XRLessonPage() {
       </div>
 
       <section className="xrl-panel">
-        <div className="xrl-explanation" aria-live="polite">
-          {loading ? (
-            <p className="xrl-thinking">🤖 யோசிக்கிறேன்…</p>
-          ) : error ? (
-            <p className="xrl-error">{error}</p>
-          ) : (
-            <p className="xrl-text">{explanation}</p>
-          )}
-        </div>
+        {phase === 'quiz' && quiz.length > 0 ? (
+          <>
+            <div className="xrl-explanation" aria-live="polite">
+              <p className="xrl-text">📝 கேள்வி {qIdx + 1}/{quiz.length}</p>
+              <p className="xrl-text">{quiz[qIdx].question}</p>
+            </div>
+            <div className="xrl-questions">
+              {quiz[qIdx].options.map((opt, i) => (
+                <button
+                  key={i}
+                  className="xrl-q"
+                  disabled={picked !== null}
+                  style={picked !== null ? {
+                    opacity: i === quiz[qIdx].correctIndex || i === picked ? 1 : 0.45,
+                    border: i === quiz[qIdx].correctIndex
+                      ? '2px solid #22c55e'
+                      : i === picked ? '2px solid #ef4444' : undefined,
+                  } : undefined}
+                  onClick={() => pickOption(i)}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+            {picked !== null && (
+              <>
+                <div className="xrl-explanation" aria-live="polite">
+                  <p className="xrl-text">
+                    {picked === quiz[qIdx].correctIndex ? '✅ ' : '💡 '}
+                    {quiz[qIdx].feedback[picked]}
+                  </p>
+                </div>
+                <div className="xrl-actions">
+                  <button className="xrl-action" onClick={nextQuestion}>
+                    {qIdx < quiz.length - 1 ? '➡️ அடுத்த கேள்வி' : '📋 சுருக்கம் பார்'}
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        ) : phase === 'summary' ? (
+          <>
+            <div className="xrl-explanation" aria-live="polite">
+              {loading ? (
+                <p className="xrl-thinking">🤖 சுருக்கம் தயாராகிறது…</p>
+              ) : (
+                <>
+                  <p className="xrl-text">🏆 மதிப்பெண்: {score}/{quiz.length}</p>
+                  <p className="xrl-text">{summary}</p>
+                </>
+              )}
+            </div>
+            <div className="xrl-actions">
+              <button className="xrl-action" disabled={loading} onClick={startQuiz}>
+                🔁 மீண்டும் வினாடி வினா
+              </button>
+              <button className="xrl-action" disabled={loading} onClick={() => setPhase('explore')}>
+                👀 மீண்டும் ஆராய்
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="xrl-explanation" aria-live="polite">
+              {loading ? (
+                <p className="xrl-thinking">🤖 யோசிக்கிறேன்…</p>
+              ) : error ? (
+                <p className="xrl-error">{error}</p>
+              ) : (
+                <p className="xrl-text">{explanation}</p>
+              )}
+            </div>
 
-        {topic.capabilities?.voice && explanation && !loading && (
-          <button className="xrl-voice" onClick={speakExplanation} disabled={audioLoading}>
-            {audioLoading ? '🔊 தயாராகிறது…' : playing ? '⏸ நிறுத்து' : '🔊 விளக்கத்தை கேள்'}
-          </button>
+            {topic.capabilities?.voice && explanation && !loading && (
+              <button className="xrl-voice" onClick={speakExplanation} disabled={audioLoading}>
+                {audioLoading ? '🔊 தயாராகிறது…' : playing ? '⏸ நிறுத்து' : '🔊 விளக்கத்தை கேள்'}
+              </button>
+            )}
+
+            <div className="xrl-questions">
+              {topic.suggestedQuestions.map((q, i) => (
+                <button
+                  key={i}
+                  className="xrl-q"
+                  disabled={loading}
+                  onClick={() => callXR({ question: isTamil ? q.ta : q.en })}
+                >
+                  {isTamil ? q.ta : q.en}
+                </button>
+              ))}
+            </div>
+
+            <div className="xrl-actions">
+              <button className="xrl-action" disabled={loading} onClick={() => callXR({ easier: true })}>
+                😊 இன்னும் எளிதாக
+              </button>
+              <button className="xrl-action" disabled={loading} onClick={() => callXR()}>
+                🔁 மீண்டும் சொல்
+              </button>
+              <button className="xrl-action" disabled={loading} onClick={startQuiz}>
+                📝 வினாடி வினா
+              </button>
+            </div>
+          </>
         )}
-
-        <div className="xrl-questions">
-          {topic.suggestedQuestions.map((q, i) => (
-            <button
-              key={i}
-              className="xrl-q"
-              disabled={loading}
-              onClick={() => callXR({ question: isTamil ? q.ta : q.en })}
-            >
-              {isTamil ? q.ta : q.en}
-            </button>
-          ))}
-        </div>
-
-        <div className="xrl-actions">
-          <button className="xrl-action" disabled={loading} onClick={() => callXR({ easier: true })}>
-            😊 இன்னும் எளிதாக
-          </button>
-          <button className="xrl-action" disabled={loading} onClick={() => callXR()}>
-            🔁 மீண்டும் சொல்
-          </button>
-        </div>
       </section>
     </div>
   );
