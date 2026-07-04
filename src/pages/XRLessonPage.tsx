@@ -1,8 +1,8 @@
-// FeelEd XR Lab — Lesson Screen (V1, Session 5 — progress strip + celebration)
+// FeelEd XR Lab — Lesson Screen (V1.1, Session 1 — orientation stage)
 // Route: /xr/lesson
 // 3D model-viewer + Gemini explanation + Ask AI + இன்னும் எளிதாக + மீண்டும்.
 // Flow order now comes from topic.stages (default: explore → quiz → summary).
-// Session 5: xrl-steps progress strip + summary 🎉 celebration.
+// V1.1 S1: orientation stage (client-only, no API) + XRStageType Partial records.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -42,21 +42,25 @@ declare global {
 const DEFAULT_STAGES: XRStageType[] = ['explore', 'quiz', 'summary'];
 
 // "அடுத்த stage" button labels (data-driven CTA)
-const NEXT_LABEL: Record<XRStageType, string> = {
+// Partial — 'experiment' V1.5-ல் வரும்; key இருந்தால் மட்டுமே stage implemented (filter reads this)
+const NEXT_LABEL: Partial<Record<XRStageType, string>> = {
+  orientation: '🧭 அறிமுகம்',
   explore: '👀 மீண்டும் ஆராய்',
   quiz: '📝 வினாடி வினா',
   summary: '📋 சுருக்கம் பார்',
 };
 
 // English sub-labels — bilingual buttons (Session 5, Commit 7)
-const NEXT_SUB: Record<XRStageType, string> = {
+const NEXT_SUB: Partial<Record<XRStageType, string>> = {
+  orientation: 'Intro',
   explore: 'Explore again',
   quiz: 'Quiz',
   summary: 'Summary',
 };
 
 // Progress strip labels (Session 5)
-const STAGE_LABEL: Record<XRStageType, string> = {
+const STAGE_LABEL: Partial<Record<XRStageType, string>> = {
+  orientation: '🧭 அறிமுகம்',
   explore: '👀 ஆராய்',
   quiz: '📝 வினா',
   summary: '📋 சுருக்கம்',
@@ -262,7 +266,7 @@ export default function XRLessonPage() {
     }
     if (next === 'quiz') { startQuiz(nextIdx); return; }
     if (next === 'summary') { fetchSummary(nextIdx); return; }
-    // next === 'explore'
+    // next === 'explore' (orientation-ல் இருந்து வருவதும் இதே வழி — explanation prefetch ஆகியிருக்கும்)
     stopAudio();
     setStageIdx(nextIdx);
     if (!lastExplanation.current) callXR();
@@ -379,7 +383,42 @@ useEffect(() => {
           </nav>
         )}
 
-        {phase === 'quiz' && quiz.length > 0 ? (
+        {phase === 'orientation' ? (
+          <>
+            <div className="xrl-explanation xrl-orient" aria-live="polite">
+              <p className="xrl-orient-title">
+                🧭 {isTamil ? 'வணக்கம்! இன்றைய பயணம்' : 'Welcome! Today\'s journey'}
+              </p>
+              <p className="xrl-text">
+                {stages.map(s => STAGE_LABEL[s]).join(' › ')}
+              </p>
+              <p className="xrl-text">
+                👆 இழுத்து சுழற்றுங்கள் · Drag to rotate<br />
+                🤏 விரல்களால் பெரிதாக்குங்கள் · Pinch to zoom<br />
+                🏷️ பெயர்களை தொடுங்கள் · Tap the labels
+              </p>
+              {(topic.knowledgeSheet?.vocabulary?.length ?? 0) > 0 && (
+                <>
+                  <p className="xrl-text xrl-orient-sub">
+                    📚 {isTamil ? 'இன்று கற்கப்போகும் சொற்கள்' : 'Words you\'ll learn today'}
+                  </p>
+                  <div className="xrl-vocab">
+                    {topic.knowledgeSheet!.vocabulary.map((v, i) => (
+                      <span key={i} className="xrl-vocab-chip">
+                        {v.ta} · {v.en}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="xrl-actions">
+              <button className="xrl-action" onClick={advance}>
+                🚀 ஆராய தொடங்கு<small>Start exploring</small>
+              </button>
+            </div>
+          </>
+        ) : phase === 'quiz' && quiz.length > 0 ? (
           <>
             <div className="xrl-explanation" aria-live="polite">
               <p className="xrl-text">📝 கேள்வி {qIdx + 1}/{quiz.length}</p>

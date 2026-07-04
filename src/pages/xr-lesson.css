@@ -280,3 +280,28 @@
 }
 .xrl-q { font-size: 0.84rem; padding: 10px 12px; max-width: 240px; }
 .xrl-explanation { font-size: 0.94rem; }
+
+/* ─── V1.1 S1: Orientation stage ─── */
+.xrl-orient-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+.xrl-orient-sub {
+  margin-top: 14px;
+  font-weight: 600;
+}
+.xrl-vocab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.xrl-vocab-chip {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
