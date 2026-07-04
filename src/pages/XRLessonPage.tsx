@@ -5,7 +5,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import '@google/model-viewer';
 import {
   XR_TOPICS, XR_STYLES,
   type XRSelection, type XRStageType,
@@ -59,6 +58,7 @@ export default function XRLessonPage() {
   const [showHint, setShowHint] = useState<boolean>(true);
   const [audioLoading, setAudioLoading] = useState<boolean>(false);
   const [playing, setPlaying] = useState<boolean>(false);
+  const [viewerReady, setViewerReady] = useState<boolean>(false);
   const lastExplanation = useRef<string>('');
   const viewerRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -269,6 +269,12 @@ export default function XRLessonPage() {
   }, [selection, topic, navigate]);
 
   // Page திறந்ததும் முதல் விளக்கம்
+  // model-viewer lazy-load — bundle-ல் இருந்து 2.5MB பிரிக்க
+useEffect(() => {
+  let alive = true;
+  import('@google/model-viewer').then(() => { if (alive) setViewerReady(true); });
+  return () => { alive = false; };
+}, []);
   useEffect(() => {
     if (selection && topic?.active) callXR();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -324,9 +330,11 @@ export default function XRLessonPage() {
             </button>
           ))}
         </model-viewer>
-        {showHint && (
-          <div className="xrl-drag-hint">👆 இழுத்து சுழற்றுங்கள் · pinch-ல் zoom</div>
-        )}
+        {!viewerReady ? (
+  <div className="xrl-drag-hint">🧊 3D மாதிரி ஏற்றப்படுகிறது…</div>
+) : showHint && (
+  <div className="xrl-drag-hint">👆 இழுத்து சுழற்றுங்கள் · pinch-ல் zoom</div>
+)}
         <button className="xrl-reset" onClick={resetCamera} aria-label="காட்சியை மீட்டமை">
           🔄 மீட்டமை
         </button>
