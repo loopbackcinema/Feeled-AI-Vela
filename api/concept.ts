@@ -20,6 +20,25 @@ const schema = {
     },
     required: ['textbookAnswer', 'examFormat', 'simpleExplanation', 'keyKeywords', 'markBasedAnswers'],
 };
+const xrQuizSchema = {
+    type: Type.OBJECT,
+    properties: {
+        questions: {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    question:     { type: Type.STRING },
+                    options:      { type: Type.ARRAY, items: { type: Type.STRING } },
+                    correctIndex: { type: Type.INTEGER },
+                    feedback:     { type: Type.ARRAY, items: { type: Type.STRING } },
+                },
+                required: ['question', 'options', 'correctIndex', 'feedback'],
+            },
+        },
+    },
+    required: ['questions'],
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
@@ -31,7 +50,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // mode இல்லாத எல்லா calls-ம் பழைய flow-க்கே போகும் (backward compatible).
     if (req.body?.mode === 'xr') {
         if (req.body?.task === 'tts') return handleXRTTS(req, res, ai);
-        return handleXRExplain(req, res, ai);
+        if (req.body?.task === 'quiz') return handleXRQuiz(req, res, ai);
+        if (req.body?.task === 'summary') return handleXRSummary(req, res, ai);
+        if (req.body?.task === 'explain') return handleXRExplain(req, res, ai);
+        return res.status(400).json({ error: 'Invalid task for XR mode' });
     }
 
     try {
@@ -201,5 +223,95 @@ async function handleXRTTS(req: VercelRequest, res: VercelResponse, ai: GoogleGe
     } catch (error) {
         console.error('XR TTS Error:', error);
         res.status(500).json({ error: 'TTS failed' });
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// FeelEd XR — Quiz (3 MCQ, misconception-aware feedback)
+// Session 3 · V1 Build Plan
+// ─────────────────────────────────────────────────────────────
+function xrLangRule(language?: string): string {
+    return language === 'english'
+        ? 'Write entirely in simple English.'
+        : language === 'tanglish'
+        ? 'Write in Tanglish: friendly spoken-style Tamil written in Tamil script, naturally mixing common English technical words in Latin script.'
+        : 'Write entirely in simple, friendly, natural Tamil (தமிழ்).';
+}
+
+async function handleXRQuiz(req: VercelRequest, res: VercelResponse, ai: GoogleGenAI) {
+    try {
+        const { topicName, factSheet, grade, language } = req.body;
+        if (!topicName || !factSheet || !grade) {
+            return res.status(400).json({ error: 'topicName, factSheet, grade required' });
+        }
+
+        const prompt = `You are FeelEd, a friendly AI tutor for Tamil Nadu school students (TN Samacheer board). The student is in Grade ${grade} and just explored a 3D model of "${topicName}".
+
+FACTS — your ONLY source of truth. Every question and answer must come from these:
+${factSheet}
+
+TASK: Create exactly 3 multiple-choice questions testing understanding of the FACTS.
+
+RULES:
+1. ${xrLangRule(language)}
+2. Each question has exactly 4 options and exactly ONE correct option (correctIndex 0-3). Vary correctIndex across the 3 questions.
+3. Wrong options must be REAL misconceptions a Grade ${grade} student might genuinely hold — never silly filler options.
+4. feedback: exactly 4 strings per question, one for each option in the same order.
+   - Correct option: warm one-line praise + WHY it is right.
+   - Each wrong option: gently name the misconception behind choosing it, then correct it in 1-2 short lines. Never mock the student.
+5. Plain text only — no markdown symbols (no **, no ###).
+6. Difficulty must match Grade ${grade}.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { responseMimeType: 'application/json', responseSchema: xrQuizSchema, thinkingConfig: { thinkingBudget: 0 } },
+        });
+
+        if (!response.text) throw new Error('Empty response');
+        const data = JSON.parse(response.text.trim());
+        if (!Array.isArray(data.questions) || data.questions.length < 3) throw new Error('Bad quiz shape');
+        res.status(200).json({ questions: data.questions.slice(0, 3) });
+    } catch (error) {
+        console.error('XR Quiz Error:', error);
+        res.status(500).json({ error: 'Failed to generate quiz' });
+    }
+}
+
+// ─────────────────────────────────────────────────────────────
+// FeelEd XR — Summary (lesson முடிவு சுருக்கம்)
+// Session 3 · V1 Build Plan
+// ─────────────────────────────────────────────────────────────
+async function handleXRSummary(req: VercelRequest, res: VercelResponse, ai: GoogleGenAI) {
+    try {
+        const { topicName, factSheet, grade, language } = req.body;
+        if (!topicName || !factSheet || !grade) {
+            return res.status(400).json({ error: 'topicName, factSheet, grade required' });
+        }
+
+        const prompt = `You are FeelEd, a friendly AI tutor for Tamil Nadu school students (TN Samacheer board). The student is in Grade ${grade} and just finished exploring "${topicName}" with a 3D model and a quiz.
+
+FACTS — your ONLY source of truth:
+${factSheet}
+
+TASK: Write a warm closing summary of the lesson — the 3-4 most important takeaways the student should remember, as short flowing sentences (not a list).
+
+RULES:
+1. ${xrLangRule(language)}
+2. 50-90 words. Plain text only — no markdown symbols, no bullets.
+3. End with one short encouraging line.
+4. Match depth to Grade ${grade}. Never invent beyond the FACTS.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { maxOutputTokens: 300, thinkingConfig: { thinkingBudget: 0 } },
+        });
+
+        if (!response.text) throw new Error('Empty response');
+        res.status(200).json({ summary: response.text.trim() });
+    } catch (error) {
+        console.error('XR Summary Error:', error);
+        res.status(500).json({ error: 'Failed to generate summary' });
     }
 }
