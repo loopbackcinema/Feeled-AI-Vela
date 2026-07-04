@@ -1691,6 +1691,36 @@ const callAPI = useCallback(async (
                                   <rect x="19" y="193" width="130" height="14" rx="10" fill="#78350f" opacity=".5"/>
                                   <text x="84" y="213" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="#fde047">📝 Exam Mode</text>
                                 </svg>
+                                {/* XR Lab (Beta) card */}
+                              <div
+                                style={cardStyle('floatC 5.2s ease-in-out infinite')}
+                                onClick={() => navigate('/xr')}
+                              >
+                                <svg width="160" height="220" viewBox="0 0 168 230" xmlns="http://www.w3.org/2000/svg">
+                                  <defs>
+                                    <radialGradient id="xrBg" cx="40%" cy="35%" r="75%"><stop offset="0%" stopColor="#1b1040"/><stop offset="60%" stopColor="#0d0824"/><stop offset="100%" stopColor="#040210"/></radialGradient>
+                                    <radialGradient id="xrPlanet" cx="35%" cy="30%" r="75%"><stop offset="0%" stopColor="#c4b5fd"/><stop offset="45%" stopColor="#8b5cf6"/><stop offset="100%" stopColor="#4c1d95"/></radialGradient>
+                                    <linearGradient id="xrRing" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#5eead4" stopOpacity="0"/><stop offset="30%" stopColor="#5eead4"/><stop offset="70%" stopColor="#2dd4bf"/><stop offset="100%" stopColor="#2dd4bf" stopOpacity="0"/></linearGradient>
+                                  </defs>
+                                  <rect width="168" height="230" rx="28" fill="url(#xrBg)"/>
+                                  <circle cx="34" cy="42" r="1.6" fill="#e9d5ff" opacity=".9"/>
+                                  <circle cx="128" cy="30" r="1.2" fill="#a5f3fc" opacity=".8"/>
+                                  <circle cx="146" cy="78" r="1.8" fill="#fef9c3" opacity=".7"/>
+                                  <circle cx="52" cy="118" r="1.1" fill="#e9d5ff" opacity=".6"/>
+                                  <circle cx="120" cy="140" r="1.4" fill="#a5f3fc" opacity=".8"/>
+                                  <circle cx="26" cy="150" r="1.3" fill="#fef9c3" opacity=".6"/>
+                                  <ellipse cx="84" cy="95" rx="52" ry="14" fill="none" stroke="url(#xrRing)" strokeWidth="5" transform="rotate(-18 84 95)"/>
+                                  <circle cx="84" cy="92" r="30" fill="url(#xrPlanet)"/>
+                                  <ellipse cx="74" cy="82" rx="11" ry="7" fill="#ddd6fe" opacity=".35"/>
+                                  <ellipse cx="95" cy="100" rx="8" ry="5" fill="#2e1065" opacity=".45"/>
+                                  <path d="M 32 95 A 52 14 -18 0 0 136 95" fill="none" stroke="url(#xrRing)" strokeWidth="5" opacity=".5" transform="rotate(-18 84 95)"/>
+                                  <rect x="118" y="34" width="34" height="16" rx="8" fill="#2dd4bf"/>
+                                  <text x="135" y="45.5" textAnchor="middle" fontSize="9" fontWeight="800" fill="#042f2e">BETA</text>
+                                  <rect x="18" y="192" width="132" height="30" rx="15" fill="#130a2e"/>
+                                  <rect x="19" y="193" width="130" height="14" rx="10" fill="#4c1d95" opacity=".5"/>
+                                  <text x="84" y="213" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="#c4b5fd">🪐 XR Lab</text>
+                                </svg>
+                              </div>
                               </div>
 
                             </div>
