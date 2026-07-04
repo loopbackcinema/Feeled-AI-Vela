@@ -1,7 +1,8 @@
-// FeelEd XR Lab — Lesson Screen (V1, Session 4 — stages[] data-driven flow)
+// FeelEd XR Lab — Lesson Screen (V1, Session 5 — progress strip + celebration)
 // Route: /xr/lesson
 // 3D model-viewer + Gemini explanation + Ask AI + இன்னும் எளிதாக + மீண்டும்.
 // Flow order now comes from topic.stages (default: explore → quiz → summary).
+// Session 5: xrl-steps progress strip + summary 🎉 celebration.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -45,6 +46,13 @@ const NEXT_LABEL: Record<XRStageType, string> = {
   explore: '👀 மீண்டும் ஆராய்',
   quiz: '📝 வினாடி வினா',
   summary: '📋 சுருக்கம் பார்',
+};
+
+// Progress strip labels (Session 5)
+const STAGE_LABEL: Record<XRStageType, string> = {
+  explore: '👀 ஆராய்',
+  quiz: '📝 வினா',
+  summary: '📋 சுருக்கம்',
 };
 
 export default function XRLessonPage() {
@@ -285,6 +293,7 @@ useEffect(() => {
 
   const styleLabel = XR_STYLES.find(s => s.id === selection.style)?.labelTa ?? '';
   const isTamil = selection.language !== 'english';
+  const pct = quiz.length > 0 ? Math.round((score / quiz.length) * 100) : 0;
 
   return (
     <div className="xrl-page">
@@ -342,6 +351,27 @@ useEffect(() => {
       </div>
 
       <section className="xrl-panel">
+        {stages.length > 1 && (
+          <nav className="xrl-steps" aria-label="பாட முன்னேற்றம்">
+            {stages.map((s, i) => (
+              <span
+                key={i}
+                className={[
+                  'xrl-step',
+                  i < stageIdx ? 'xrl-step--done' : '',
+                  i === stageIdx ? 'xrl-step--now' : '',
+                ].join(' ')}
+              >
+                {i < stageIdx ? '✔ ' : ''}
+                {STAGE_LABEL[s]}
+                {s === 'quiz' && i === stageIdx && quiz.length > 0
+                  ? ` ${qIdx + 1}/${quiz.length}`
+                  : ''}
+              </span>
+            ))}
+          </nav>
+        )}
+
         {phase === 'quiz' && quiz.length > 0 ? (
           <>
             <div className="xrl-explanation" aria-live="polite">
@@ -386,13 +416,24 @@ useEffect(() => {
           </>
         ) : phase === 'summary' ? (
           <>
-            <div className="xrl-explanation" aria-live="polite">
+            <div className="xrl-explanation xrl-celebrate" aria-live="polite">
               {loading ? (
                 <p className="xrl-thinking">🤖 சுருக்கம் தயாராகிறது…</p>
               ) : (
                 <>
+                  <p className="xrl-celebrate-title">🎉 வாழ்த்துகள்!</p>
                   {quiz.length > 0 && (
-                    <p className="xrl-text">🏆 மதிப்பெண்: {score}/{quiz.length}</p>
+                    <>
+                      <p className="xrl-score-big">{pct}%</p>
+                      <p className="xrl-text">
+                        🏆 மதிப்பெண்: {score}/{quiz.length} ·{' '}
+                        {score === quiz.length
+                          ? 'முழு மதிப்பெண்! 🌟'
+                          : score * 2 >= quiz.length
+                            ? 'நன்றாக செய்தீர்கள்! 💪'
+                            : 'மீண்டும் முயற்சிக்கலாம் — கற்றலே வெற்றி! 🌱'}
+                      </p>
+                    </>
                   )}
                   <p className="xrl-text">{summary}</p>
                 </>
