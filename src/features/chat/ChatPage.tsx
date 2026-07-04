@@ -343,6 +343,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                             <button onClick={() => onNavigate('/story')}       className={navBtn('/story')}><span>✨</span> Story Mode</button>
                             <button onClick={() => onNavigate('/game')}        className={navBtn('/game')}><span>🎮</span> Game Mode</button>
                             <button onClick={() => onNavigate('/exam-mock')}   className={navBtn('/exam-mock')}><span>📝</span> Exam Mode</button>
+                            <button onClick={() => onNavigate('/xr')}          className={navBtn('/xr')}><span>🪐</span> XR Lab <span style={{fontSize:'10px',opacity:0.65}}>Beta</span></button>
                             <button onClick={() => onNavigate('/my-stories')}  className={navBtn('/my-stories')}><span>📖</span> {t('nav.myStories')}</button>
                         </div>
                     </div>
