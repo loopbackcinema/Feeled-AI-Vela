@@ -1,20 +1,30 @@
-/* FeelEd XR Lab — V1 styles
-   Space-dark theme: 3D models இருண்ட பின்னணியில் அழகாக glow ஆகும்.
+/* FeelEd XR Lab — Selector styles (Session 5 pro look)
+   Mockup theme: deep-navy space + indigo-violet accent + glass surfaces.
+   Class names & layout metrics unchanged (Session 1–4 compatible).
    Mobile-first — மாணவர்களின் primary device phone/tablet. */
 
 .xr-page {
   --xr-bg: #0b1026;          /* deep space navy */
-  --xr-surface: #161d3d;
-  --xr-surface-2: #1f2850;
+  --xr-surface: rgba(22, 29, 61, 0.72);
+  --xr-surface-2: rgba(120, 134, 255, 0.22);   /* glass border tone */
   --xr-text: #eef1ff;
   --xr-muted: #9aa3cc;
-  --xr-accent: #ffb547;      /* sun-gold — start/selected */
-  --xr-accent-ink: #241500;
+  --xr-accent: #5b6cff;      /* indigo — selected/CTA (mockup) */
+  --xr-accent-2: #8b5cff;    /* violet — gradient pair */
+  --xr-accent-ink: #ffffff;
+  --xr-gold: #ffb547;        /* sun-gold — glow highlight */
   --xr-radius: 14px;
 
   min-height: 100vh;
+  min-height: 100dvh;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -10%, #232f6b 0%, transparent 60%),
+    radial-gradient(ellipse 90% 55% at 50% -12%, #26327a 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 88% 108%, #2a1a5e 0%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 15% 25%, rgba(255,255,255,0.8) 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,0.6) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 88% 45%, rgba(160,180,255,0.8) 50%, transparent 51%),
+    radial-gradient(1px 1px at 35% 70%, rgba(255,255,255,0.5) 50%, transparent 51%),
+    radial-gradient(2px 2px at 55% 35%, rgba(255,214,140,0.75) 50%, transparent 51%),
     var(--xr-bg);
   color: var(--xr-text);
   padding: 20px 16px 96px;
@@ -26,19 +36,30 @@
 .xr-header h1 {
   display: inline; font-size: 1.6rem; font-weight: 800;
   letter-spacing: 0.5px; margin: 0;
+  background: linear-gradient(90deg, #eef1ff 0%, #b7c1ff 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
 }
 .xr-beta {
-  display: inline-block; margin-left: 8px; padding: 2px 8px;
-  font-size: 0.7rem; font-weight: 700; border-radius: 999px;
-  background: var(--xr-accent); color: var(--xr-accent-ink);
+  display: inline-block; margin-left: 8px; padding: 2px 9px;
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--xr-accent), var(--xr-accent-2));
+  color: var(--xr-accent-ink);
   vertical-align: super;
+  -webkit-text-fill-color: var(--xr-accent-ink); /* h1 gradient-க்குள் இருந்தால் safe */
 }
 .xr-tagline { color: var(--xr-muted); margin: 6px 0 0; font-size: 0.95rem; }
 
 .xr-section { margin: 22px 0; }
 .xr-section h2 {
+  display: flex; align-items: center; gap: 8px;
   font-size: 0.85rem; font-weight: 700; color: var(--xr-muted);
   text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 10px;
+}
+.xr-section h2::before {
+  content: ''; width: 4px; height: 14px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--xr-accent), var(--xr-accent-2));
 }
 
 /* Chips — grade / language / style */
@@ -46,16 +67,20 @@
 .xr-chip {
   padding: 10px 16px; border-radius: 999px; border: 1px solid var(--xr-surface-2);
   background: var(--xr-surface); color: var(--xr-text);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   font-size: 0.95rem; font-weight: 600; cursor: pointer;
-  transition: transform 0.1s ease, background 0.15s ease;
+  transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
   min-height: 44px; /* touch target */
 }
+.xr-chip:hover { border-color: rgba(139, 92, 255, 0.5); }
 .xr-chip:active { transform: scale(0.96); }
 .xr-chip--on {
-  background: var(--xr-accent); color: var(--xr-accent-ink);
-  border-color: var(--xr-accent);
+  background: linear-gradient(135deg, var(--xr-accent), var(--xr-accent-2));
+  color: var(--xr-accent-ink);
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(91, 108, 255, 0.4);
 }
-.xr-chip:focus-visible { outline: 2px solid var(--xr-accent); outline-offset: 2px; }
+.xr-chip:focus-visible { outline: 2px solid var(--xr-gold); outline-offset: 2px; }
 
 /* Topic cards */
 .xr-topic-grid {
@@ -69,19 +94,26 @@
   position: relative; display: flex; flex-direction: column; align-items: flex-start;
   gap: 4px; padding: 14px; border-radius: var(--xr-radius);
   border: 1px solid var(--xr-surface-2); background: var(--xr-surface);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   color: var(--xr-text); cursor: pointer; text-align: left;
-  transition: transform 0.1s ease, border-color 0.15s ease;
+  transition: transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   min-height: 100px;
 }
+.xr-topic-card:hover { border-color: rgba(139, 92, 255, 0.5); transform: translateY(-2px); }
 .xr-topic-card:active { transform: scale(0.97); }
 .xr-topic-card--on {
   border-color: var(--xr-accent);
-  box-shadow: 0 0 0 1px var(--xr-accent), 0 0 24px rgba(255, 181, 71, 0.25);
+  background: linear-gradient(160deg, rgba(91, 108, 255, 0.22) 0%, rgba(22, 29, 61, 0.8) 60%);
+  box-shadow: 0 0 0 1px var(--xr-accent), 0 0 28px rgba(91, 108, 255, 0.35);
 }
 .xr-topic-card--soon { opacity: 0.45; cursor: not-allowed; }
-.xr-topic-card:focus-visible { outline: 2px solid var(--xr-accent); outline-offset: 2px; }
+.xr-topic-card--soon:hover { transform: none; border-color: var(--xr-surface-2); }
+.xr-topic-card:focus-visible { outline: 2px solid var(--xr-gold); outline-offset: 2px; }
 
-.xr-topic-emoji { font-size: 1.6rem; }
+.xr-topic-emoji {
+  font-size: 1.6rem;
+  filter: drop-shadow(0 0 10px rgba(139, 92, 255, 0.35));
+}
 .xr-topic-name { font-weight: 700; font-size: 0.95rem; }
 .xr-topic-badge {
   font-size: 0.7rem; color: var(--xr-muted);
@@ -89,22 +121,25 @@
 }
 .xr-soon {
   position: absolute; top: 8px; right: 8px; font-size: 0.65rem;
-  background: var(--xr-surface-2); color: var(--xr-muted);
+  background: rgba(31, 40, 80, 0.9); color: var(--xr-muted);
   padding: 2px 6px; border-radius: 6px;
 }
 
 /* Start button — fixed bottom, thumb-reachable */
 .xr-start {
-  position: fixed; left: 16px; right: 16px; bottom: 16px;
+  position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom));
   max-width: 688px; margin: 0 auto;
   padding: 16px; border-radius: var(--xr-radius); border: none;
-  background: var(--xr-accent); color: var(--xr-accent-ink);
+  background: linear-gradient(135deg, var(--xr-accent) 0%, var(--xr-accent-2) 100%);
+  color: var(--xr-accent-ink);
   font-size: 1.1rem; font-weight: 800; cursor: pointer;
-  box-shadow: 0 8px 24px rgba(255, 181, 71, 0.35);
-  transition: transform 0.1s ease;
+  box-shadow: 0 10px 30px rgba(91, 108, 255, 0.5), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
 }
+.xr-start:hover { box-shadow: 0 14px 38px rgba(91, 108, 255, 0.6), inset 0 1px 0 rgba(255,255,255,0.25); }
 .xr-start:active { transform: scale(0.98); }
 .xr-start:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.xr-start:focus-visible { outline: 2px solid var(--xr-gold); outline-offset: 3px; }
 
 @media (prefers-reduced-motion: reduce) {
   .xr-chip, .xr-topic-card, .xr-start { transition: none; }
