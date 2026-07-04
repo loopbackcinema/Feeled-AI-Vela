@@ -1,5 +1,6 @@
-/* FeelEd XR Lab — Landing page (Session 5)
+/* FeelEd XR Lab — Landing page (Session 5, Commit 4)
    Mockup theme: deep-navy space + indigo-violet accent + glass cards.
+   Commit 4: orbit animation (☀️ + 🌍 + 🪐) + emotional hero copy styles.
    Mobile-first. */
 
 .xrland-page {
@@ -46,18 +47,47 @@
 @keyframes xrland-twinkle { from { opacity: 0.55; } to { opacity: 1; } }
 
 /* ── Hero ── */
-.xrland-hero { position: relative; text-align: center; max-width: 560px; margin: 0 auto; }
+.xrland-hero { position: relative; text-align: center; max-width: 620px; margin: 0 auto; }
 
-.xrland-orb {
-  font-size: 4rem; line-height: 1;
-  display: inline-block; margin-bottom: 12px;
-  filter: drop-shadow(0 0 24px rgba(139, 92, 255, 0.55));
-  animation: xrland-float 4.5s ease-in-out infinite;
+/* Orbit animation — ☀️ center, 🌍 + 🪐 rotating rings (review item 2) */
+.xrland-orbit {
+  position: relative;
+  width: 180px; height: 180px;
+  margin: 0 auto 18px;
 }
-@keyframes xrland-float {
-  0%, 100% { transform: translateY(0) rotate(-4deg); }
-  50%      { transform: translateY(-12px) rotate(4deg); }
+.xrland-sun {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem; line-height: 1;
+  filter: drop-shadow(0 0 26px rgba(255, 181, 71, 0.65));
+  animation: xrland-sun-pulse 3.5s ease-in-out infinite;
 }
+@keyframes xrland-sun-pulse {
+  0%, 100% { filter: drop-shadow(0 0 20px rgba(255, 181, 71, 0.5)); }
+  50%      { filter: drop-shadow(0 0 34px rgba(255, 181, 71, 0.85)); }
+}
+.xrland-ring {
+  position: absolute; top: 50%; left: 50%;
+  border: 1px solid rgba(120, 134, 255, 0.28);
+  border-radius: 50%;
+}
+.xrland-ring--1 {
+  width: 110px; height: 110px;
+  margin: -55px 0 0 -55px;
+  animation: xrland-spin 9s linear infinite;
+}
+.xrland-ring--2 {
+  width: 176px; height: 176px;
+  margin: -88px 0 0 -88px;
+  animation: xrland-spin 16s linear infinite;
+}
+.xrland-planet {
+  position: absolute; top: 0; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem; line-height: 1;
+  filter: drop-shadow(0 0 10px rgba(139, 92, 255, 0.5));
+}
+@keyframes xrland-spin { to { transform: rotate(360deg); } }
 
 .xrland-hero h1 {
   margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: 0.5px;
@@ -71,13 +101,17 @@
 }
 
 .xrland-headline {
-  margin: 14px 0 0;
-  font-size: 1.5rem; font-weight: 800; line-height: 1.3;
+  margin: 16px 0 0;
+  font-size: 1.45rem; font-weight: 800; line-height: 1.45;
   background: linear-gradient(90deg, #dfe4ff 0%, #a9b4ff 55%, var(--xr-gold) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent; color: transparent;
 }
-.xrland-sub { margin: 12px auto 0; max-width: 440px; color: var(--xr-muted); font-size: 0.98rem; }
+.xrland-verbs {
+  margin: 12px auto 0;
+  color: var(--xr-muted); font-size: 0.95rem; font-weight: 600;
+  letter-spacing: 0.5px;
+}
 
 .xrland-cta {
   margin-top: 26px;
@@ -142,6 +176,6 @@
 .xrland-foot p { margin: 0; font-size: 0.78rem; color: var(--xr-muted); letter-spacing: 0.4px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .xrland-orb, .xrland-stars { animation: none; }
+  .xrland-stars, .xrland-sun, .xrland-ring--1, .xrland-ring--2 { animation: none; }
   .xrland-cta, .xrland-card { transition: none; }
 }

@@ -1,5 +1,6 @@
-// FeelEd XR Lab — Landing / Hero screen (Session 5)
+// FeelEd XR Lab — Landing / Hero screen (Session 5, Commit 4)
 // Route: /xr  →  "தொடங்கு" → /xr/select (selector)
+// Commit 4: emotional hero copy + CSS orbit animation (review items 1, 2)
 import { useNavigate } from 'react-router-dom';
 import './xr-landing.css';
 
@@ -23,14 +24,25 @@ export default function XRLandingPage() {
       <div className="xrland-stars" aria-hidden="true" />
 
       <header className="xrland-hero">
-        <div className="xrland-orb" aria-hidden="true">🪐</div>
+        <div className="xrland-orbit" aria-hidden="true">
+          <span className="xrland-sun">☀️</span>
+          <span className="xrland-ring xrland-ring--1">
+            <span className="xrland-planet">🌍</span>
+          </span>
+          <span className="xrland-ring xrland-ring--2">
+            <span className="xrland-planet">🪐</span>
+          </span>
+        </div>
+
         <h1>
           FeelEd XR Lab <span className="xrland-beta">Beta</span>
         </h1>
-        <p className="xrland-headline">பாடங்களை 3D-ல் தொட்டுப் பாருங்கள்</p>
-        <p className="xrland-sub">
-          சூரிய குடும்பம் முதல் அறிவியல் வரை — உங்கள் phone-லேயே
-          3D &amp; AR அனுபவம், தமிழ் AI விளக்கத்துடன்.
+        <p className="xrland-headline">
+          இன்று புத்தகத்தை மட்டும் படிக்க வேண்டாம் —<br />
+          கிரகங்களுக்குள் பயணம் செய்யுங்கள்
+        </p>
+        <p className="xrland-verbs">
+          தொடுங்கள் · சுழற்றுங்கள் · கேளுங்கள் · கற்றுக்கொள்ளுங்கள்
         </p>
         <button className="xrland-cta" onClick={() => navigate('/xr/select')}>
           தொடங்கு 🚀
