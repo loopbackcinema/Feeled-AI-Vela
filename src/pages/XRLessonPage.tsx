@@ -46,8 +46,49 @@ export default function XRLessonPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [showHint, setShowHint] = useState<boolean>(true);
+  const [audioLoading, setAudioLoading] = useState<boolean>(false);
+  const [playing, setPlaying] = useState<boolean>(false);
   const lastExplanation = useRef<string>('');
   const viewerRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCache = useRef<{ text: string; src: string } | null>(null);
+
+  const stopAudio = () => {
+    audioRef.current?.pause();
+    setPlaying(false);
+  };
+
+  const speakExplanation = async () => {
+    if (playing) { stopAudio(); return; }
+    const text = lastExplanation.current;
+    if (!text) return;
+    try {
+      let src = audioCache.current?.text === text ? audioCache.current.src : null;
+      if (!src) {
+        setAudioLoading(true);
+        const resp = await fetch('/api/concept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'xr', task: 'tts', text }),
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (!data.audio) throw new Error('empty');
+        src = `data:audio/wav;base64,${data.audio}`;
+        audioCache.current = { text, src };
+      }
+      const audio = new Audio(src);
+      audioRef.current = audio;
+      audio.onended = () => setPlaying(false);
+      setPlaying(true);
+      await audio.play();
+    } catch {
+      setPlaying(false);
+      // voice never blocks learning — silent fail, text remains (EDS principle)
+    } finally {
+      setAudioLoading(false);
+    }
+  };
 
   const resetCamera = () => {
     const el = viewerRef.current;
@@ -83,6 +124,7 @@ export default function XRLessonPage() {
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
         if (!data.explanation) throw new Error('Empty');
+        stopAudio();
         lastExplanation.current = data.explanation;
         setExplanation(data.explanation);
       } catch {
@@ -175,6 +217,12 @@ export default function XRLessonPage() {
             <p className="xrl-text">{explanation}</p>
           )}
         </div>
+
+        {topic.capabilities?.voice && explanation && !loading && (
+          <button className="xrl-voice" onClick={speakExplanation} disabled={audioLoading}>
+            {audioLoading ? '🔊 தயாராகிறது…' : playing ? '⏸ நிறுத்து' : '🔊 விளக்கத்தை கேள்'}
+          </button>
+        )}
 
         <div className="xrl-questions">
           {topic.suggestedQuestions.map((q, i) => (

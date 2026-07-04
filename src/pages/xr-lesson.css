@@ -136,3 +136,12 @@
   padding: 8px 14px; font-size: 0.78rem; font-weight: 700; cursor: pointer;
 }
 @media (prefers-reduced-motion: reduce) { .xrl-drag-hint { animation: none; } }
+
+/* Session 2 — Voice */
+.xrl-voice {
+  align-self: flex-start;
+  padding: 10px 18px; border-radius: 999px; border: 1px solid var(--xr-accent);
+  background: transparent; color: var(--xr-accent);
+  font-weight: 700; font-size: 0.9rem; cursor: pointer; min-height: 44px;
+}
+.xrl-voice:disabled { opacity: 0.6; }

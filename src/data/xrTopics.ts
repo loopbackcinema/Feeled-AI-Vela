@@ -137,7 +137,7 @@ export const XR_TOPICS: XRTopic[] = [
       { ta: 'சூரியன் எவ்வளவு பெரியது?', en: 'How big is the Sun?' },
     ],
     quizConfig: { count: 3, types: ['mcq'] },
-    capabilities: { ai: true, voice: false, quiz: false, experiment: false, ar: true, vr: false },
+    capabilities: { ai: true, voice: true, quiz: false, experiment: false, ar: true, vr: false },
     stages: ['orientation', 'explore', 'quiz', 'summary'],
   },
   // ——— விரைவில் (V1-ல் disabled) ———

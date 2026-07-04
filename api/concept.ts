@@ -30,6 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // XR Lab mode — cinemaV2 flag routing போலவே: existing endpoint, புதிய branch.
     // mode இல்லாத எல்லா calls-ம் பழைய flow-க்கே போகும் (backward compatible).
     if (req.body?.mode === 'xr') {
+        if (req.body?.task === 'tts') return handleXRTTS(req, res, ai);
         return handleXRExplain(req, res, ai);
     }
 
@@ -144,5 +145,61 @@ RULES:
     } catch (error) {
         console.error('XR Explain Error:', error);
         res.status(500).json({ error: 'Failed to generate XR explanation' });
+    }
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// FeelEd XR — Voice narration (Gemini TTS). Returns base64 WAV.
+// Session 2 · V1 Build Plan
+// ─────────────────────────────────────────────────────────────
+function pcmToWav(pcm: Buffer, sampleRate = 24000, channels = 1, bitDepth = 16): Buffer {
+    const byteRate = sampleRate * channels * bitDepth / 8;
+    const blockAlign = channels * bitDepth / 8;
+    const header = Buffer.alloc(44);
+    header.write('RIFF', 0);
+    header.writeUInt32LE(36 + pcm.length, 4);
+    header.write('WAVE', 8);
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(1, 20);            // PCM
+    header.writeUInt16LE(channels, 22);
+    header.writeUInt32LE(sampleRate, 24);
+    header.writeUInt32LE(byteRate, 28);
+    header.writeUInt16LE(blockAlign, 32);
+    header.writeUInt16LE(bitDepth, 34);
+    header.write('data', 36);
+    header.writeUInt32LE(pcm.length, 40);
+    return Buffer.concat([header, pcm]);
+}
+
+async function handleXRTTS(req: VercelRequest, res: VercelResponse, ai: GoogleGenAI) {
+    try {
+        const { text } = req.body;
+        if (!text || typeof text !== 'string') {
+            return res.status(400).json({ error: 'text required' });
+        }
+        // 1200 chars ≈ safe narration length; explanations are 60-120 words
+        const clipped = text.slice(0, 1200);
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-preview-tts',
+            contents: [{ parts: [{ text: clipped }] }],
+            config: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                    voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
+                },
+            },
+        } as any);
+
+        const b64 = (response as any)?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        if (!b64) throw new Error('No audio in response');
+
+        const wav = pcmToWav(Buffer.from(b64, 'base64'));
+        res.status(200).json({ audio: wav.toString('base64') });
+    } catch (error) {
+        console.error('XR TTS Error:', error);
+        res.status(500).json({ error: 'TTS failed' });
     }
 }
