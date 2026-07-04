@@ -608,6 +608,7 @@ const ChatPage: React.FC = () => {
     const [showingWelcome, setShowingWelcome] = useState(false);
     const [storyAwake, setStoryAwake] = useState(false);
     const [gameAwake, setGameAwake]   = useState(false);
+    const [xrAwake, setXrAwake]       = useState(false);
     const [examAwake, setExamAwake]   = useState(false);
     const [showGuestModal, setShowGuestModal] = useState(false);
     const [guestMsgCount, setGuestMsgCount]   = useState(0);
@@ -1443,6 +1444,35 @@ const callAPI = useCallback(async (
                               }, 100);
                             } catch(e) { console.log('sound error', e); }
                           };
+                          const playXRWhoosh = () => {
+                            try {
+                              const AC = getAC();
+                              const o = AC.createOscillator();
+                              const g = AC.createGain();
+                              o.connect(g); g.connect(AC.destination);
+                              o.type = 'sine';
+                              o.frequency.setValueAtTime(180, AC.currentTime);
+                              o.frequency.exponentialRampToValueAtTime(760, AC.currentTime + 0.45);
+                              g.gain.setValueAtTime(0, AC.currentTime);
+                              g.gain.linearRampToValueAtTime(0.16, AC.currentTime + 0.05);
+                              g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + 0.55);
+                              o.start(AC.currentTime);
+                              o.stop(AC.currentTime + 0.6);
+                              setTimeout(() => {
+                                const AC2 = getAC();
+                                const o2 = AC2.createOscillator();
+                                const g2 = AC2.createGain();
+                                o2.connect(g2); g2.connect(AC2.destination);
+                                o2.type = 'triangle';
+                                o2.frequency.setValueAtTime(1568, AC2.currentTime);
+                                o2.frequency.setValueAtTime(2093, AC2.currentTime + 0.08);
+                                g2.gain.setValueAtTime(0.09, AC2.currentTime);
+                                g2.gain.exponentialRampToValueAtTime(0.001, AC2.currentTime + 0.35);
+                                o2.start(AC2.currentTime);
+                                o2.stop(AC2.currentTime + 0.4);
+                              }, 250);
+                            } catch(e) { console.log('sound error', e); }
+                          };
 
                           const cardStyle = (anim: string): React.CSSProperties => ({
                             width: 160,
@@ -1691,36 +1721,74 @@ const callAPI = useCallback(async (
                                   <rect x="19" y="193" width="130" height="14" rx="10" fill="#78350f" opacity=".5"/>
                                   <text x="84" y="213" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="#fde047">📝 Exam Mode</text>
                                 </svg>
-                                {/* XR Lab (Beta) card */}
+                              </div>
+                              {/* ── XR LAB ── */}
                               <div
-                                style={cardStyle('floatC 5.2s ease-in-out infinite')}
+                                style={cardStyle('floatA 5.2s ease-in-out infinite')}
                                 onClick={() => navigate('/xr')}
+                                onMouseEnter={() => { setXrAwake(true); playXRWhoosh(); }}
+                                onMouseLeave={() => setXrAwake(false)}
                               >
                                 <svg width="160" height="220" viewBox="0 0 168 230" xmlns="http://www.w3.org/2000/svg">
                                   <defs>
-                                    <radialGradient id="xrBg" cx="40%" cy="35%" r="75%"><stop offset="0%" stopColor="#1b1040"/><stop offset="60%" stopColor="#0d0824"/><stop offset="100%" stopColor="#040210"/></radialGradient>
+                                    <radialGradient id="xgBg" cx="40%" cy="35%" r="70%"><stop offset="0%" stopColor="#1e1b4b"/><stop offset="60%" stopColor="#0e0b2e"/><stop offset="100%" stopColor="#040213"/></radialGradient>
                                     <radialGradient id="xrPlanet" cx="35%" cy="30%" r="75%"><stop offset="0%" stopColor="#c4b5fd"/><stop offset="45%" stopColor="#8b5cf6"/><stop offset="100%" stopColor="#4c1d95"/></radialGradient>
                                     <linearGradient id="xrRing" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor="#5eead4" stopOpacity="0"/><stop offset="30%" stopColor="#5eead4"/><stop offset="70%" stopColor="#2dd4bf"/><stop offset="100%" stopColor="#2dd4bf" stopOpacity="0"/></linearGradient>
                                   </defs>
-                                  <rect width="168" height="230" rx="28" fill="url(#xrBg)"/>
-                                  <circle cx="34" cy="42" r="1.6" fill="#e9d5ff" opacity=".9"/>
-                                  <circle cx="128" cy="30" r="1.2" fill="#a5f3fc" opacity=".8"/>
-                                  <circle cx="146" cy="78" r="1.8" fill="#fef9c3" opacity=".7"/>
-                                  <circle cx="52" cy="118" r="1.1" fill="#e9d5ff" opacity=".6"/>
-                                  <circle cx="120" cy="140" r="1.4" fill="#a5f3fc" opacity=".8"/>
-                                  <circle cx="26" cy="150" r="1.3" fill="#fef9c3" opacity=".6"/>
-                                  <ellipse cx="84" cy="95" rx="52" ry="14" fill="none" stroke="url(#xrRing)" strokeWidth="5" transform="rotate(-18 84 95)"/>
-                                  <circle cx="84" cy="92" r="30" fill="url(#xrPlanet)"/>
-                                  <ellipse cx="74" cy="82" rx="11" ry="7" fill="#ddd6fe" opacity=".35"/>
-                                  <ellipse cx="95" cy="100" rx="8" ry="5" fill="#2e1065" opacity=".45"/>
-                                  <path d="M 32 95 A 52 14 -18 0 0 136 95" fill="none" stroke="url(#xrRing)" strokeWidth="5" opacity=".5" transform="rotate(-18 84 95)"/>
-                                  <rect x="118" y="34" width="34" height="16" rx="8" fill="#2dd4bf"/>
-                                  <text x="135" y="45.5" textAnchor="middle" fontSize="9" fontWeight="800" fill="#042f2e">BETA</text>
+                                  <rect width="168" height="230" rx="28" fill="url(#xgBg)"/>
+                                  <ellipse cx="84" cy="0" rx="70" ry="30" fill="#6366f1" opacity=".18"/>
+                                  <circle cx="20" cy="22" r="2.5" fill="#a5f3fc" style={{animation:'twinkA 2.2s infinite'}}/>
+                                  <circle cx="142" cy="16" r="1.8" fill="#e9d5ff" style={{animation:'twinkA 2.8s infinite .5s'}}/>
+                                  <circle cx="152" cy="52" r="2.2" fill="#a5f3fc" style={{animation:'twinkA 2.5s infinite 1s'}}/>
+                                  <circle cx="12" cy="66" r="1.5" fill="#c4b5fd" style={{animation:'twinkA 3s infinite .3s'}}/>
+                                  <circle cx="154" cy="88" r="2" fill="#e9d5ff" style={{animation:'twinkA 2.6s infinite .8s'}}/>
+                                  <rect x="14" y="16" width="34" height="16" rx="8" fill="#2dd4bf"/>
+                                  <text x="31" y="27.5" textAnchor="middle" fontSize="9" fontWeight="800" fill="#042f2e">BETA</text>
+                                  {!xrAwake && (<g>
+                                    <circle cx="122" cy="52" r="34" fill="#171238" opacity=".95" style={{animation:'dreamPop 3.4s ease-in-out infinite'}}/>
+                                    <circle cx="122" cy="52" r="33" fill="none" stroke="#8b5cf6" strokeWidth="2.5" opacity=".6"/>
+                                    <circle cx="122" cy="52" r="33" fill="none" stroke="#5eead4" strokeWidth="1" opacity=".25" strokeDasharray="3 4"/>
+                                    <circle cx="112" cy="87" r="4" fill="#171238" opacity=".8"/>
+                                    <circle cx="116" cy="95" r="2.5" fill="#171238" opacity=".6"/>
+                                    <polygon points="122,32 130,54 122,50 114,54" fill="#e9d5ff"/>
+                                    <rect x="118" y="48" width="8" height="14" rx="3" fill="#a78bfa"/>
+                                    <polygon points="118,62 122,72 126,62" fill="#fbbf24"/>
+                                    <text x="102" y="44" fontSize="9" fill="#5eead4">★</text>
+                                    <text x="136" y="66" fontSize="8" fill="#fef08a">★</text>
+                                    <text x="134" y="40" fontSize="10" fill="#c4b5fd">★</text>
+                                  </g>)}
+                                  <ellipse cx="84" cy="140" rx="52" ry="14" fill="none" stroke="url(#xrRing)" strokeWidth="5" opacity={xrAwake ? 1 : .55} transform="rotate(-18 84 140)"/>
+                                  <circle cx="84" cy="138" r="30" fill="url(#xrPlanet)"/>
+                                  <ellipse cx="74" cy="128" rx="11" ry="7" fill="#ddd6fe" opacity=".35"/>
+                                  <ellipse cx="95" cy="147" rx="8" ry="5" fill="#2e1065" opacity=".45"/>
+                                  <path d="M 32 140 A 52 14 -18 0 0 136 140" fill="none" stroke="url(#xrRing)" strokeWidth="5" opacity={xrAwake ? .7 : .35} transform="rotate(-18 84 140)"/>
+                                  {!xrAwake ? (<g>
+                                    <path d="M66 133 Q74 126 82 133" stroke="#2e1065" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M86 133 Q94 126 102 133" stroke="#2e1065" strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+                                  </g>) : (<g>
+                                    <circle cx="74" cy="130" r="10" fill="#ede9fe" opacity=".95"/>
+                                    <circle cx="94" cy="130" r="10" fill="#ede9fe" opacity=".95"/>
+                                    <circle cx="75" cy="130" r="6" fill="#4c1d95"/>
+                                    <circle cx="95" cy="130" r="6" fill="#4c1d95"/>
+                                    <circle cx="77" cy="128" r="2.5" fill="#fff"/>
+                                    <circle cx="97" cy="128" r="2.5" fill="#fff"/>
+                                    <text x="52" y="121" fontSize="12" fill="#5eead4">✦</text>
+                                    <text x="112" y="121" fontSize="10" fill="#e9d5ff">✦</text>
+                                    <path d="M63 120 Q74 114 84 120" stroke="#5eead4" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                    <path d="M84 120 Q94 114 105 120" stroke="#5eead4" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  </g>)}
+                                  <path d="M72 150 Q84 157 96 150" stroke="#2e1065" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                                  <ellipse cx="66" cy="146" rx="7" ry="4.5" fill="#8b5cf6" opacity=".25"/>
+                                  <ellipse cx="102" cy="146" rx="7" ry="4.5" fill="#8b5cf6" opacity=".25"/>
+                                  {!xrAwake && (<g>
+                                    <text x="28" y="92" fontSize="13" fill="#c4b5fd" fontWeight="800" style={{animation:'zzz1 3s ease-out infinite .2s'}}>z</text>
+                                    <text x="14" y="77" fontSize="16" fill="#a78bfa" fontWeight="800" style={{animation:'zzz1 3s ease-out infinite 1.1s'}}>z</text>
+                                    <text x="4" y="62" fontSize="11" fill="#e9d5ff" fontWeight="800" style={{animation:'zzz1 3s ease-out infinite .55s'}}>z</text>
+                                  </g>)}
                                   <rect x="18" y="192" width="132" height="30" rx="15" fill="#130a2e"/>
                                   <rect x="19" y="193" width="130" height="14" rx="10" fill="#4c1d95" opacity=".5"/>
                                   <text x="84" y="213" textAnchor="middle" fontSize="13.5" fontWeight="700" fill="#c4b5fd">🪐 XR Lab</text>
                                 </svg>
-                              </div>
                               </div>
 
                             </div>
