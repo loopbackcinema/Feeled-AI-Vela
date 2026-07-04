@@ -179,3 +179,26 @@
   .xrland-stars, .xrland-sun, .xrland-ring--1, .xrland-ring--2 { animation: none; }
   .xrland-cta, .xrland-card { transition: none; }
 }
+
+/* ── Commit 6: bilingual copy styles ── */
+.xrland-headline-en {
+  margin: 8px 0 0;
+  color: var(--xr-muted); font-size: 0.98rem; font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.xrland-verbs-en {
+  display: block; margin-top: 4px;
+  font-size: 0.8rem; font-weight: 500; opacity: 0.75;
+  letter-spacing: 1px;
+}
+.xrland-en {
+  display: block; margin-top: 2px;
+  font-size: 0.72rem; font-weight: 600; color: var(--xr-muted);
+  letter-spacing: 0.4px;
+}
+.xrland-card h3 .xrland-en { margin-top: 3px; }
+.xrland-desc-en {
+  margin: 6px 0 0 !important;
+  font-size: 0.78rem !important; opacity: 0.75;
+}
+.xrland-step-txt { display: flex; flex-direction: column; }
