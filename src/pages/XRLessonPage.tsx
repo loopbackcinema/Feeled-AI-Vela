@@ -1,13 +1,14 @@
-// FeelEd XR Lab — Lesson Screen (V1, Task 3 — AI live)
+// FeelEd XR Lab — Lesson Screen (V1, Session 4 — stages[] data-driven flow)
 // Route: /xr/lesson
 // 3D model-viewer + Gemini explanation + Ask AI + இன்னும் எளிதாக + மீண்டும்.
+// Flow order now comes from topic.stages (default: explore → quiz → summary).
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import '@google/model-viewer';
 import {
   XR_TOPICS, XR_STYLES,
-  type XRSelection,
+  type XRSelection, type XRStageType,
 } from '../data/xrTopics';
 import './xr-lesson.css';
 
@@ -37,6 +38,16 @@ declare global {
   }
 }
 
+// Default flow — topic.stages இல்லை என்றால் இதுவே
+const DEFAULT_STAGES: XRStageType[] = ['explore', 'quiz', 'summary'];
+
+// "அடுத்த stage" button labels (data-driven CTA)
+const NEXT_LABEL: Record<XRStageType, string> = {
+  explore: '👀 மீண்டும் ஆராய்',
+  quiz: '📝 வினாடி வினா',
+  summary: '📋 சுருக்கம் பார்',
+};
+
 export default function XRLessonPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -53,12 +64,28 @@ export default function XRLessonPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCache = useRef<{ text: string; src: string } | null>(null);
   type XRQuizQ = { question: string; options: string[]; correctIndex: number; feedback: string[] };
-  const [phase, setPhase] = useState<'explore' | 'quiz' | 'summary'>('explore');
+  const [stageIdx, setStageIdx] = useState<number>(0);
   const [quiz, setQuiz] = useState<XRQuizQ[]>([]);
   const [qIdx, setQIdx] = useState<number>(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState<number>(0);
   const [summary, setSummary] = useState<string>('');
+
+  const topic = XR_TOPICS.find(t => t.id === selection?.topicId);
+
+  // stages[] — single source of truth for flow order
+  const stages: XRStageType[] = topic?.stages?.length ? topic.stages : DEFAULT_STAGES;
+  const phase: XRStageType = stages[Math.min(stageIdx, stages.length - 1)] ?? 'explore';
+  const nextType: XRStageType | undefined = stages[stageIdx + 1];
+
+  // தற்போதைய index-க்கு முன் உள்ள அருகிலான stage-ஐ கண்டுபிடி (replay-க்கு)
+  const lastIdxOf = (type: XRStageType): number => {
+    for (let i = stageIdx; i >= 0; i--) {
+      if (stages[i] === type) return i;
+    }
+    const fwd = stages.indexOf(type);
+    return fwd === -1 ? 0 : fwd;
+  };
 
   const stopAudio = () => {
     audioRef.current?.pause();
@@ -105,8 +132,6 @@ export default function XRLessonPage() {
     }
   };
 
-  const topic = XR_TOPICS.find(t => t.id === selection?.topicId);
-
   const callXR = useCallback(
     async (opts: { question?: string; easier?: boolean } = {}) => {
       if (!selection || !topic) return;
@@ -142,7 +167,9 @@ export default function XRLessonPage() {
     },
     [selection, topic]
   );
-  const startQuiz = async () => {
+
+  // Quiz fetch success ஆனால் மட்டுமே stage மாறும் (loading-ல் UI உடையாது)
+  const startQuiz = async (targetIdx: number) => {
     if (!selection || !topic) return;
     stopAudio();
     setLoading(true);
@@ -167,7 +194,7 @@ export default function XRLessonPage() {
       setQIdx(0);
       setPicked(null);
       setScore(0);
-      setPhase('quiz');
+      setStageIdx(targetIdx);
     } catch {
       setError('வினாடி வினா வர தாமதம் — மீண்டும் முயற்சிக்கவும் 🔁');
     } finally {
@@ -181,9 +208,9 @@ export default function XRLessonPage() {
     if (i === quiz[qIdx].correctIndex) setScore(s => s + 1);
   };
 
-  const fetchSummary = async () => {
+  const fetchSummary = async (targetIdx: number) => {
     if (!selection || !topic) return;
-    setPhase('summary');
+    setStageIdx(targetIdx);
     setLoading(true);
     try {
       const resp = await fetch('/api/concept', {
@@ -208,12 +235,29 @@ export default function XRLessonPage() {
     }
   };
 
+  // stages[]-ல் அடுத்த stage-க்கு நகர்த்து; இறுதி stage-க்கு பின் explore-க்கு திரும்பு
+  const advance = () => {
+    const nextIdx = stageIdx + 1;
+    const next = stages[nextIdx];
+    if (!next) {
+      stopAudio();
+      setStageIdx(lastIdxOf('explore'));
+      return;
+    }
+    if (next === 'quiz') { startQuiz(nextIdx); return; }
+    if (next === 'summary') { fetchSummary(nextIdx); return; }
+    // next === 'explore'
+    stopAudio();
+    setStageIdx(nextIdx);
+    if (!lastExplanation.current) callXR();
+  };
+
   const nextQuestion = () => {
     if (qIdx < quiz.length - 1) {
       setQIdx(qIdx + 1);
       setPicked(null);
     } else {
-      fetchSummary();
+      advance();
     }
   };
 
@@ -323,7 +367,9 @@ export default function XRLessonPage() {
                 </div>
                 <div className="xrl-actions">
                   <button className="xrl-action" onClick={nextQuestion}>
-                    {qIdx < quiz.length - 1 ? '➡️ அடுத்த கேள்வி' : '📋 சுருக்கம் பார்'}
+                    {qIdx < quiz.length - 1
+                      ? '➡️ அடுத்த கேள்வி'
+                      : nextType ? NEXT_LABEL[nextType] : '👀 மீண்டும் ஆராய்'}
                   </button>
                 </div>
               </>
@@ -336,16 +382,28 @@ export default function XRLessonPage() {
                 <p className="xrl-thinking">🤖 சுருக்கம் தயாராகிறது…</p>
               ) : (
                 <>
-                  <p className="xrl-text">🏆 மதிப்பெண்: {score}/{quiz.length}</p>
+                  {quiz.length > 0 && (
+                    <p className="xrl-text">🏆 மதிப்பெண்: {score}/{quiz.length}</p>
+                  )}
                   <p className="xrl-text">{summary}</p>
                 </>
               )}
             </div>
             <div className="xrl-actions">
-              <button className="xrl-action" disabled={loading} onClick={startQuiz}>
-                🔁 மீண்டும் வினாடி வினா
-              </button>
-              <button className="xrl-action" disabled={loading} onClick={() => setPhase('explore')}>
+              {stages.includes('quiz') && (
+                <button
+                  className="xrl-action"
+                  disabled={loading}
+                  onClick={() => startQuiz(lastIdxOf('quiz'))}
+                >
+                  🔁 மீண்டும் வினாடி வினா
+                </button>
+              )}
+              <button
+                className="xrl-action"
+                disabled={loading}
+                onClick={() => { stopAudio(); setStageIdx(lastIdxOf('explore')); }}
+              >
                 👀 மீண்டும் ஆராய்
               </button>
             </div>
@@ -388,9 +446,11 @@ export default function XRLessonPage() {
               <button className="xrl-action" disabled={loading} onClick={() => callXR()}>
                 🔁 மீண்டும் சொல்
               </button>
-              <button className="xrl-action" disabled={loading} onClick={startQuiz}>
-                📝 வினாடி வினா
-              </button>
+              {nextType && (
+                <button className="xrl-action" disabled={loading} onClick={advance}>
+                  {NEXT_LABEL[nextType]}
+                </button>
+              )}
             </div>
           </>
         )}
