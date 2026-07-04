@@ -48,6 +48,13 @@ const NEXT_LABEL: Record<XRStageType, string> = {
   summary: '📋 சுருக்கம் பார்',
 };
 
+// English sub-labels — bilingual buttons (Session 5, Commit 7)
+const NEXT_SUB: Record<XRStageType, string> = {
+  explore: 'Explore again',
+  quiz: 'Quiz',
+  summary: 'Summary',
+};
+
 // Progress strip labels (Session 5)
 const STAGE_LABEL: Record<XRStageType, string> = {
   explore: '👀 ஆராய்',
@@ -341,12 +348,12 @@ useEffect(() => {
           ))}
         </model-viewer>
         {!viewerReady ? (
-  <div className="xrl-drag-hint">🧊 3D மாதிரி ஏற்றப்படுகிறது…</div>
+  <div className="xrl-drag-hint">🧊 3D மாதிரி ஏற்றப்படுகிறது… · Loading 3D model</div>
 ) : showHint && (
-  <div className="xrl-drag-hint">👆 இழுத்து சுழற்றுங்கள் · pinch-ல் zoom</div>
+  <div className="xrl-drag-hint">👆 இழுத்து சுழற்றுங்கள் · Drag to rotate</div>
 )}
         <button className="xrl-reset" onClick={resetCamera} aria-label="காட்சியை மீட்டமை">
-          🔄 மீட்டமை
+          🔄 மீட்டமை · Reset
         </button>
       </div>
 
@@ -407,8 +414,10 @@ useEffect(() => {
                 <div className="xrl-actions">
                   <button className="xrl-action" onClick={nextQuestion}>
                     {qIdx < quiz.length - 1
-                      ? '➡️ அடுத்த கேள்வி'
-                      : nextType ? NEXT_LABEL[nextType] : '👀 மீண்டும் ஆராய்'}
+                      ? <>➡️ அடுத்த கேள்வி<small>Next question</small></>
+                      : nextType
+                        ? <>{NEXT_LABEL[nextType]}<small>{NEXT_SUB[nextType]}</small></>
+                        : <>👀 மீண்டும் ஆராய்<small>Explore again</small></>}
                   </button>
                 </div>
               </>
@@ -446,7 +455,7 @@ useEffect(() => {
                   disabled={loading}
                   onClick={() => startQuiz(lastIdxOf('quiz'))}
                 >
-                  🔁 மீண்டும் வினாடி வினா
+                  🔁 மீண்டும் வினாடி வினா<small>Retake quiz</small>
                 </button>
               )}
               <button
@@ -454,7 +463,7 @@ useEffect(() => {
                 disabled={loading}
                 onClick={() => { stopAudio(); setStageIdx(lastIdxOf('explore')); }}
               >
-                👀 மீண்டும் ஆராய்
+                👀 மீண்டும் ஆராய்<small>Explore again</small>
               </button>
             </div>
           </>
@@ -472,7 +481,11 @@ useEffect(() => {
 
             {topic.capabilities?.voice && explanation && !loading && (
               <button className="xrl-voice" onClick={speakExplanation} disabled={audioLoading}>
-                {audioLoading ? '🔊 தயாராகிறது…' : playing ? '⏸ நிறுத்து' : '🔊 விளக்கத்தை கேள்'}
+                {audioLoading
+                  ? <>🔊 தயாராகிறது…<small>Loading…</small></>
+                  : playing
+                    ? <>⏸ நிறுத்து<small>Pause</small></>
+                    : <>🔊 விளக்கத்தை கேள்<small>Listen</small></>}
               </button>
             )}
 
@@ -491,14 +504,14 @@ useEffect(() => {
 
             <div className="xrl-actions">
               <button className="xrl-action" disabled={loading} onClick={() => callXR({ easier: true })}>
-                😊 இன்னும் எளிதாக
+                😊 இன்னும் எளிதாக<small>Simpler</small>
               </button>
               <button className="xrl-action" disabled={loading} onClick={() => callXR()}>
-                🔁 மீண்டும் சொல்
+                🔁 மீண்டும் சொல்<small>Repeat</small>
               </button>
               {nextType && (
                 <button className="xrl-action" disabled={loading} onClick={advance}>
-                  {NEXT_LABEL[nextType]}
+                  {NEXT_LABEL[nextType]}<small>{NEXT_SUB[nextType]}</small>
                 </button>
               )}
             </div>

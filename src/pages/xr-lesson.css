@@ -256,3 +256,27 @@
 }
 .xrl-celebrate .xrl-text { text-align: left; }
 .xrl-celebrate .xrl-text:first-of-type { text-align: center; }
+
+/* ── Session 5, Commit 7: overlap fix + compact bilingual buttons ── */
+/* FIX: desktop grid-ல் panel children shrink ஆகி text மேல் button merge ஆனது */
+.xrl-panel > * { flex-shrink: 0; }
+
+/* Compact, professional buttons — mockup pattern: Tamil main + English sub */
+.xrl-action {
+  flex: 1 1 118px;
+  padding: 9px 12px; min-height: 46px;
+  font-size: 0.86rem; line-height: 1.25;
+  box-shadow: 0 3px 12px rgba(91, 108, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+.xrl-action:hover { box-shadow: 0 5px 16px rgba(91, 108, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+.xrl-action small, .xrl-voice small {
+  display: block; margin-top: 1px;
+  font-size: 0.64rem; font-weight: 600;
+  opacity: 0.8; letter-spacing: 0.5px;
+}
+.xrl-voice {
+  padding: 8px 16px; min-height: 42px;
+  font-size: 0.85rem; line-height: 1.25; text-align: left;
+}
+.xrl-q { font-size: 0.84rem; padding: 10px 12px; max-width: 240px; }
+.xrl-explanation { font-size: 0.94rem; }
