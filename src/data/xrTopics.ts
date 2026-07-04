@@ -23,6 +23,7 @@ export interface XRCapabilities {
 }
 
 export type XRStage = 'orientation' | 'explore' | 'experiment' | 'quiz' | 'summary';
+export type XRStageType = XRStage; // V1.1 fix — page imports this name; alias keeps both valid
 
 export interface XRTopic {
   // Block 1: Identity
