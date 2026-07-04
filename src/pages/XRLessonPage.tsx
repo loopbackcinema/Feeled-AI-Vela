@@ -74,7 +74,8 @@ export default function XRLessonPage() {
   const topic = XR_TOPICS.find(t => t.id === selection?.topicId);
 
   // stages[] — single source of truth for flow order
-  const stages: XRStageType[] = topic?.stages?.length ? topic.stages : DEFAULT_STAGES;
+  const supported = (topic?.stages ?? []).filter((s): s is XRStageType => s in NEXT_LABEL);
+  const stages: XRStageType[] = supported.length ? supported : DEFAULT_STAGES;
   const phase: XRStageType = stages[Math.min(stageIdx, stages.length - 1)] ?? 'explore';
   const nextType: XRStageType | undefined = stages[stageIdx + 1];
 
