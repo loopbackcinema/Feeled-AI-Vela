@@ -1,5 +1,5 @@
-/* FeelEd XR Lab — Lesson screen styles (Task 2)
-   xr-lab.css-ன் அதே space theme. Viewer மேலே 55vh, panel கீழே scroll. */
+/* FeelEd XR Lab — Lesson screen styles (Session 4 — mobile polish)
+   xr-lab.css-ன் அதே space theme. Viewer மேலே 52vh, panel கீழே scroll. */
 
 .xrl-page {
   --xr-bg: #0b1026;
@@ -12,6 +12,7 @@
   --xr-radius: 14px;
 
   min-height: 100vh;
+  min-height: 100dvh; /* mobile address-bar jump fix */
   display: flex;
   flex-direction: column;
   background:
@@ -44,6 +45,9 @@
   background: radial-gradient(circle at 50% 40%, #1a2350 0%, #0d1330 70%);
   border: 1px solid var(--xr-surface-2);
 }
+@media (max-height: 700px) {
+  .xrl-viewer-wrap { height: 44vh; min-height: 260px; }
+}
 .xrl-progress {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   color: var(--xr-muted); font-size: 0.9rem;
@@ -55,7 +59,8 @@
 
 /* Panel */
 .xrl-panel {
-  flex: 1; margin-top: 12px; padding: 16px 16px 24px;
+  flex: 1; margin-top: 12px;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); /* iPhone home bar */
   background: var(--xr-surface);
   border-radius: 20px 20px 0 0;
   display: flex; flex-direction: column; gap: 14px;
@@ -82,9 +87,9 @@
 }
 .xrl-q:disabled, .xrl-action:disabled { opacity: 0.45; cursor: not-allowed; }
 
-.xrl-actions { display: flex; gap: 10px; }
+.xrl-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .xrl-action {
-  flex: 1; padding: 13px; border-radius: var(--xr-radius); border: none;
+  flex: 1 1 140px; padding: 13px; border-radius: var(--xr-radius); border: none;
   background: var(--xr-accent); color: var(--xr-accent-ink);
   font-weight: 700; font-size: 0.92rem; cursor: pointer;
   min-height: 48px;
