@@ -33,6 +33,7 @@ declare global {
         exposure?: string;
         'touch-action'?: string;
         loading?: string;
+        autoplay?: boolean;
       };
     }
   }
@@ -332,6 +333,7 @@ useEffect(() => {
           ar-modes="scene-viewer webxr quick-look"
           camera-controls
           auto-rotate
+          autoplay
           shadow-intensity="0.6"
           camera-orbit="35deg 65deg 130%"
           exposure="1.15"
