@@ -1,15 +1,18 @@
-// FeelEd XR Lab — Lesson Screen (V1.1, Session 1 — orientation stage)
+// FeelEd XR Lab — Lesson Screen (V1.1, Session 4 — explanation chunking)
 // Route: /xr/lesson
 // 3D model-viewer + Gemini explanation + Ask AI + இன்னும் எளிதாக + மீண்டும்.
 // Flow order now comes from topic.stages (default: explore → quiz → summary).
 // V1.1 S1: orientation stage (client-only, no API) + XRStageType Partial records.
+// V1.1 S4: progressive explanation reveal — display-only chunking via chunkExplanation().
+//          lastExplanation.current & TTS full text-ஆவே இருக்கும் (chunking UI-only).
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   XR_TOPICS, XR_STYLES,
   type XRSelection, type XRStageType,
 } from '../data/xrTopics';
+import { chunkExplanation } from '../utils/chunkExplanation';
 import './xr-lesson.css';
 
 // model-viewer custom element-க்கு TypeScript declaration
@@ -90,8 +93,13 @@ export default function XRLessonPage() {
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState<number>(0);
   const [summary, setSummary] = useState<string>('');
+  // V1.1 S4 — progressive reveal: எத்தனை chunks இதுவரை காட்டப்பட்டது
+  const [chunkIdx, setChunkIdx] = useState<number>(0);
 
   const topic = XR_TOPICS.find(t => t.id === selection?.topicId);
+
+  // V1.1 S4 — display-only chunks (deterministic; full text state மாறாது)
+  const chunks = useMemo(() => chunkExplanation(explanation), [explanation]);
 
   // stages[] — single source of truth for flow order
   const supported = (topic?.stages ?? []).filter((s): s is XRStageType => s in NEXT_LABEL);
@@ -180,6 +188,7 @@ export default function XRLessonPage() {
         stopAudio();
         lastExplanation.current = data.explanation;
         setExplanation(data.explanation);
+        setChunkIdx(0); // V1.1 S4 — புது explanation = முதல் chunk-ல இருந்து
       } catch {
         setError('விளக்கம் வர தாமதம் ஆகிறது — மீண்டும் முயற்சிக்கவும் 🔁');
       } finally {
@@ -516,7 +525,28 @@ useEffect(() => {
               ) : error ? (
                 <p className="xrl-error">{error}</p>
               ) : (
-                <p className="xrl-text">{explanation}</p>
+                <>
+                  {/* V1.1 S4 — progressive reveal: reveal, don't replace */}
+                  {chunks.slice(0, chunkIdx + 1).map((c, i) => (
+                    <p
+                      key={i}
+                      className={[
+                        'xrl-text xrl-chunk',
+                        i === chunkIdx ? 'xrl-chunk--now' : 'xrl-chunk--past',
+                      ].join(' ')}
+                    >
+                      {c}
+                    </p>
+                  ))}
+                  {chunkIdx < chunks.length - 1 && (
+                    <button
+                      className="xrl-more"
+                      onClick={() => setChunkIdx(i => i + 1)}
+                    >
+                      ➕ மேலும் <small>More</small>
+                    </button>
+                  )}
+                </>
               )}
             </div>
 
