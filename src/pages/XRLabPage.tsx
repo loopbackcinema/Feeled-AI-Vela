@@ -69,7 +69,15 @@ export default function XRLabPage() {
             >
               <span className="xr-topic-emoji">{t.emoji}</span>
               <span className="xr-topic-name">{t.nameTa}</span>
+              <span className="xr-topic-name-en">{t.nameEn}</span>
               <span className="xr-topic-badge">{t.subjectTa}</span>
+              {t.active && (
+                <span className="xr-topic-meta">
+                  {t.stages?.length ? `${t.stages.length} படிகள்` : ''}
+                  {t.capabilities?.voice ? ' · 🔊' : ''}
+                  {t.capabilities?.ar ? ' · 📱 AR' : ''}
+                </span>
+              )}
               {!t.active && <span className="xr-soon">விரைவில்</span>}
             </button>
           ))}
