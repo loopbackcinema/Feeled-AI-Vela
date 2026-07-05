@@ -41,7 +41,7 @@ export interface XRTopic {
   glbUrl: string;
   usdzUrl: string;
   cameraOrbit?: string;
-  hotspots?: { label: string; position: string }[];
+  hotspots?: { label: string; position: string; normal?: string }[];
   // Block 5 + legacy bridge
   knowledgeSheet?: KnowledgeSheet;
   factSheet: string;             // legacy field — live page reads this; derived from facts
@@ -120,15 +120,15 @@ export const XR_TOPICS: XRTopic[] = [
     usdzUrl: '',
     cameraOrbit: '35deg 65deg 130%',
     hotspots: [
-      { label: 'சூரியன்', position: '0.00 2.50 0.00' },
-      { label: 'புதன்', position: '2.79 0.69 -1.95' },
-      { label: 'வெள்ளி', position: '2.96 0.85 3.52' },
-      { label: 'பூமி', position: '1.55 0.87 -5.80' },
-      { label: 'செவ்வாய்', position: '-6.41 0.77 3.70' },
-      { label: 'வியாழன்', position: '-8.31 1.50 -4.80' },
-      { label: 'சனி', position: '11.06 1.33 5.16' },
-      { label: 'யுரேனஸ்', position: '-2.54 1.01 14.38' },
-      { label: 'நெப்டியூன்', position: '-5.68 0.99 -15.60' },
+      { label: 'சூரியன்', position: '0.00 2.50 0.00', normal: '0 1 0' },
+      { label: 'புதன்', position: '2.79 0.69 -1.95', normal: '0.82 0 -0.57' },
+      { label: 'வெள்ளி', position: '2.96 0.85 3.52', normal: '0.64 0 0.77' },
+      { label: 'பூமி', position: '1.55 0.87 -5.80', normal: '0.26 0 -0.97' },
+      { label: 'செவ்வாய்', position: '-6.41 0.77 3.70', normal: '-0.87 0 0.50' },
+      { label: 'வியாழன்', position: '-8.31 1.50 -4.80', normal: '-0.87 0 -0.50' },
+      { label: 'சனி', position: '11.06 1.33 5.16', normal: '0.91 0 0.42' },
+      { label: 'யுரேனஸ்', position: '-2.54 1.01 14.38', normal: '-0.17 0 0.98' },
+      { label: 'நெப்டியூன்', position: '-5.68 0.99 -15.60', normal: '-0.34 0 -0.94' },
     ],
     knowledgeSheet: SOLAR_KNOWLEDGE,
     factSheet: SOLAR_KNOWLEDGE.facts.join('\n'),  // legacy bridge — live page untouched

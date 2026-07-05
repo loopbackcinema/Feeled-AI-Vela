@@ -1,10 +1,11 @@
-// FeelEd XR Lab — Lesson Screen (V1.1, Session 4 — explanation chunking)
+// FeelEd XR Lab — Lesson Screen (V1.1, Session 5 — hotspot label collision)
 // Route: /xr/lesson
 // 3D model-viewer + Gemini explanation + Ask AI + இன்னும் எளிதாக + மீண்டும்.
 // Flow order now comes from topic.stages (default: explore → quiz → summary).
 // V1.1 S1: orientation stage (client-only, no API) + XRStageType Partial records.
 // V1.1 S4: progressive explanation reveal — display-only chunking via chunkExplanation().
 //          lastExplanation.current & TTS full text-ஆவே இருக்கும் (chunking UI-only).
+// V1.1 S5: radial hotspot normals — data-normal={h.normal ?? '0 1 0'} (far-side fade).
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -291,7 +292,7 @@ export default function XRLessonPage() {
     }
   };
 
-  // நேரடியாக /xr/lesson-க்கு வந்தால் selector-க்கு திருப்பு
+  // நேரடியாக /xr/lesson-க்கு வந்தால் selector-க்கு திரும்பு
   useEffect(() => {
     if (!selection || !topic || !topic.active) {
       navigate('/xr', { replace: true });
@@ -356,7 +357,7 @@ useEffect(() => {
               slot={`hotspot-${i}`}
               className="xrl-hotspot"
               data-position={h.position}
-              data-normal="0 1 0"
+              data-normal={h.normal ?? '0 1 0'}
             >
               {h.label}
             </button>

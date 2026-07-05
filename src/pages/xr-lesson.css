@@ -305,10 +305,9 @@
   font-size: 0.85rem;
   white-space: nowrap;
 }
-/* ───────────────────────────────────────────────
+/* ─────────────────────────────────────────────
    V1.1 S4 — explanation chunking (progressive reveal)
-   Append to end of xr-lesson.css
-   ─────────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 .xrl-chunk--now {
   animation: xrl-chunk-in 0.35s ease-out;
 }
@@ -320,8 +319,23 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 .xrl-more {
-  /* Placeholder — உங்க existing .xrl-action base styles-ஐ பார்த்து
-     secondary look-ஆ match பண்ணுங்க (primary CTA-ஐ overpower பண்ணக்கூடாது) */
+  /* Secondary look — primary CTA-ஐ overpower பண்ணக்கூடாது */
   align-self: flex-start;
   margin-top: 4px;
+}
+
+/* ─────────────────────────────────────────────
+   V1.1 S5 — radial hotspot normals: far-side label fade
+   normal × camera dot product negative ஆனா model-viewer
+   hotspot opacity-ஐ --min-hotspot-opacity-க்கு குறைக்கும்.
+   ───────────────────────────────────────────── */
+.xrl-viewer-wrap model-viewer {
+  --min-hotspot-opacity: 0; /* facing-away hotspots முழுசா fade (default 0.25);
+                               disorienting-ஆ இருந்தா 0.12 ghost value try பண்ணலாம் */
+}
+.xrl-hotspot {
+  transition: opacity 0.25s ease; /* fade abrupt-ஆ இருந்தா data-visibility-attribute approach */
+}
+@media (prefers-reduced-motion: reduce) {
+  .xrl-hotspot { transition: none; }
 }
